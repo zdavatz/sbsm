@@ -2,6 +2,7 @@
 # TransHandler -- sbsm -- 23.09.2004 -- hwyss@ywesee.com
 
 require 'rockit/rockit'
+require 'cgi'
 
 module SBSM
 	module TransHandler
@@ -51,7 +52,7 @@ module SBSM
 					ast.variables.each { |pair|
 						key = pair.key.value
 						val = if(pair.children_names.include?('value'))
-							pair.value.value
+							CGI.unescape(pair.value.value.to_s)
 						else
 							''
 						end
