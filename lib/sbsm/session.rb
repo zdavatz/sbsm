@@ -207,9 +207,13 @@ module SBSM
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				this_event = event()
+				#puts "active_state: #{active_state.class}"
 				new_state = active_state.trigger(this_event)
+				#puts "new_state(#{this_event}): #{new_state.class}"
 				new_state ||= @cached_states[this_event]
-				new_state ||= @active_state.default #@state
+				#puts "new_state(cached): #{new_state.class}"
+				new_state ||= active_state.default #@state
+				#puts "new_state(default): #{new_state.class}"
 				new_state.reset_view
 				this_event ||= new_state.direct_event	
 				@state = @cached_states[this_event] = new_state
@@ -217,6 +221,7 @@ module SBSM
 				unless @state.volatile?
 					@active_state = @state
 				end
+				#puts "new @active_state: #{@active_state.class}"
 				@attended_states.store(@state.id, @state)
 				@app.async { cap_max_states }
 			rescue StandardError => e
@@ -262,9 +267,13 @@ module SBSM
 			end
 		end
 		def state(event=nil)
-			@cached_states.fetch(event) {
+			if(event.nil?)
 				@active_state
-			}
+			else
+				@cached_states.fetch(event) {
+					@active_state
+				}
+			end
 		end
     def touch
       @mtime = Time.now
@@ -330,7 +339,6 @@ module SBSM
 		private
 		def active_state
 			if(state_id = user_input(:state_id))
-				#puts state_id
 				@attended_states[state_id]
 			end || @active_state
 		end
