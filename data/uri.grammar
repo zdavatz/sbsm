@@ -14,9 +14,11 @@ Grammar Uri
 									[: _, language]
 							|		SLASH
 									[: _]
-		Variables	->	Pair+
+		Variables	->	Pair+ SLASH?
 									[^: pair ]
 		Pair			->	OTHER SLASH OTHER SLASH?
 									[: key, _, value]
 							|		OTHER SLASH SLASH
+									[: key]
+							|		OTHER									
 									[: key]
