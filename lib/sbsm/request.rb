@@ -41,6 +41,19 @@ module SBSM
 		def abort
 			@thread.exit
 		end
+		def cookies
+			if(cuki = Apache.request.headers_in['Cookie'])
+				cuki.split(/\s*;\s*/).inject({}) { |cookies, cukip| 
+					key, val = cukip.split(/\s*=\s*/, 2).collect { |str|
+						CGI.unescape(str)
+					}
+					(cookies[key] ||= []).push(val)
+					cookies
+				}
+			else
+				{}
+			end
+		end
 		def passthru(path)
 			@passthru = path
 			''
@@ -79,38 +92,40 @@ module SBSM
 				res << snip
 			end
 			# view.to_html can call passthru instead of sending data
+			req = Apache.request
 			if(@passthru) 
 				unless(cookie_input.empty?)
 					cookie = generate_cookie(cookie_input) 
-					Apache.request.headers_out.add('Set-Cookie', cookie.to_s)
-					Apache.request.send_http_header # flush the cookie down the drain
+					req.headers_out.add('Set-Cookie', cookie.to_s)
 				end
-=begin
-				unless(cookie_input.empty?)
-					cookie_string = cookie_input.collect { |*pair|
-						pair.join('=')
-					}.join('&')
-					ed = CGI.rfc1123_date(Time.now + (60 * 60 * 24 * 365 * 10))
-					cookie = "cookie_name=" << cookie_string << 
-						"; path=/; expires=#{ed}"
-					Apache.request.headers_out.add('Set-Cookie', cookie)
-				end
-=end
-				Apache.request.internal_redirect(@passthru)
+				# the variable @passthru is set by a trusted source
+				@passthru.untaint
+				basename = File.basename(@passthru)
+				subreq = req.lookup_uri(@passthru)
+				req.content_type = subreq.content_type
+				req.headers_out.add('Content-Disposition', 
+					"attachment; filename=#{basename}")
+				fullpath = req.server.document_root + @passthru
+				fullpath.untaint
+				req.headers_out.add('Content-Length', File.size(fullpath).to_s)
+				begin
+					req.puts File.read(fullpath)
+        rescue Errno::ENOENT, IOError => err
+          req.log_reason(err.message, @passthru)
+          return Apache::NOT_FOUND
+        end
 			else
 				begin
 					headers = @proxy.http_headers
 					unless(cookie_input.empty?)
-						#cookie = generate_cookie(cookie_input) 
-						#headers.store('Set-Cookie', [cookie])
+						cookie = generate_cookie(cookie_input) 
+						headers.store('Set-Cookie', [cookie])
 					end
-					#@session.output_cookies.push(cookie_pairs)
 					@cgi.out(headers) { 
 						(@cgi.params.has_key?("pretty")) ? CGI.pretty( res ) : res
 					}
 				rescue StandardError => e
-					#handle_exception(e)
-					@cgi.out { e.message } 
+					handle_exception(e)
 				end
 			end
 		end

@@ -125,6 +125,11 @@ module SBSM
 				raise InvalidDataError.new(:e_invalid_email_address, :email, value)
 			end
 		end
+		def filename(value)
+			if(value == File.basename(value))
+				value
+			end
+		end
 		def flavor(value)
 			validate_string(value)
 		end

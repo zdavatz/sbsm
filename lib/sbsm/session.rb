@@ -79,7 +79,7 @@ module SBSM
 				}
 			end
 		end
-		def cookie_input_by_key(key)
+		def get_cookie_input(key)
 			@cookie_input[key]
 		end
 		def cookie_name
@@ -108,9 +108,13 @@ module SBSM
 		end
 		def import_cookies(request)
 			reset_cookie()
-			#request.cookies.each { |key, value|
-				#@cookie_input.store(key, value)	
-			#}
+			if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
+				cuki.each { |cuki_str|
+					CGI.parse(cuki_str).each { |key, val|
+						@cookie_input.store(key.intern, val.compact.last)
+					}
+				}
+			end
 		end
     def import_user_input(request)
 			# attempting to read the cgi-params more than once results in a
