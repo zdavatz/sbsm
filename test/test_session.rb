@@ -165,6 +165,7 @@ class TestSession < Test::Unit::TestCase
 		req4 = StubSessionRequest.new
 		req4["event"] = :foobar	
 		@session.process(req4)
+		@session.cap_max_states
 		state4 = @session.state
 		assert_not_equal(state1, state4)
 		assert_not_equal(state2, state4)
@@ -242,7 +243,7 @@ class TestSession < Test::Unit::TestCase
     assert_respond_to(@session, :delete)
   end
   def test_restore
-    assert_equal(@session, @session.restore[:proxy])
+    assert_instance_of(DRb::DRbObject, @session.restore[:proxy])
   end
 	def test_user_input_no_request
 		assert_nil(@session.user_input(:no_input))

@@ -155,6 +155,7 @@ module SBSM
 				'Location' => '/resources/errors/appdown.html',
 			}
 			@cgi.header(hdrs)
+		ensure
 			@thread.exit 
 			@proxy.active_thread.exit if @proxy
 		end

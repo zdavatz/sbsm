@@ -51,10 +51,6 @@ module SBSM
 			ARGV.push('') # satisfy cgi-offline prompt 
       @app = app
 			@cgi = CGI.new('html4')
-      @hash = {
-        :proxy   =>  self,
-      }
-			@hash.extend(DRbUndumped) # added for Ruby1.8 compliance
 			@html_packets = nil
       @key = key
 			@validator = validator
@@ -240,7 +236,7 @@ module SBSM
 					@active_state = @state
 				end
 				@attended_states.store(@state.id, @state)
-				@app.async { cap_max_states }
+				#@app.async { cap_max_states }
 			rescue StandardError => e
 				puts "error in SBSM::Session#process"
 				puts e.class
@@ -337,12 +333,19 @@ module SBSM
     # CGI::SessionHandler compatibility
     def restore
 			#puts "restore was called"
-      @hash
+			@unix_socket = DRb.start_service('drbunix:', self)
+      hash = {
+				:proxy   =>  DRbObject.new(self, @unix_socket.uri)
+				#:proxy	=>	self,
+      }
+			hash.extend(DRbUndumped) # added for Ruby1.8 compliance
+      hash
     end
     def update
       # nothing
     end
     def close
+			@unix_socket.stop_service
       # nothing
     end
     def delete

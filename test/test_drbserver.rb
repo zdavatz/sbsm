@@ -69,6 +69,7 @@ class TestDRbServer < Test::Unit::TestCase
 			'test3'	=>	ses3,
 			'test4'	=>	ses4,
 		}
+		@server.cap_max_sessions
 		assert_equal(expected, @server.sessions)
 		ses2.touch
 		ses5 = @server['test5']

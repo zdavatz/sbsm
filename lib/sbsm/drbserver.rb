@@ -31,7 +31,7 @@ require 'digest/md5'
 module SBSM
 	class DRbServer < SimpleDelegator
 		include DRbUndumped
-		CLEANING_INTERVAL = 600
+		CLEANING_INTERVAL = 300
 		CAP_MAX_THRESHOLD = 30
 		ENABLE_ADMIN = false
 		MAX_SESSIONS = 20
@@ -67,7 +67,6 @@ module SBSM
 			end
 		end
 		def async(&block)
-			@async.delete_if { |thread| !thread.alive? }
 			@async.push Thread.new(&block)
 		end
 		def cap_max_sessions
@@ -82,17 +81,14 @@ module SBSM
 		def clean
 			loop {
 				sleep self::class::CLEANING_INTERVAL
-				@mutex.synchronize {
-					@sessions.delete_if { |key, s| s.expired? }
-				}
-				#puts "clean: GC.start"
-				GC.start
+				@sessions.delete_if { |key, s| s.expired? }
+				cap_max_sessions()
+				@sessions.each { |key, s| s.cap_max_states }
+				@async.delete_if { |thread| !thread.alive? }
 			}
 		end
 		def clear
-			@mutex.synchronize {
-				@sessions.clear
-			}
+			@sessions.clear
 		end
 		def delete_session(key)
 			@sessions.delete(key)
@@ -101,7 +97,7 @@ module SBSM
 			# puts "running cleaner thread"
 			Thread.new {
 				Thread.current.abort_on_exception = true
-				Thread.current.priority=-2
+				Thread.current.priority = 0
 				clean()
 			}
 		end
@@ -109,7 +105,7 @@ module SBSM
 			self::class::UNKNOWN_USER.new
 		end
 		def [](key)
-			@mutex.synchronize {
+			#@mutex.synchronize {
 				unless(s = @sessions[key] and not s.expired?)
 					args = [key, self]
 					if(klass = self::class::VALIDATOR)
@@ -117,13 +113,13 @@ module SBSM
 					end
 					s = @sessions[key] = self::class::SESSION.new(*args.compact)
 				end
-				Thread.current.priority = @sessions.values.sort.index(s)
 				#Thread.current.abort_on_exception = true
+				Thread.current.priority = 3
 				s.reset()
+				Thread.current.priority = 0
 				s.touch()
-				async { cap_max_sessions() } 
 				s
-			}
+			#}
 		end
 	end
 end
