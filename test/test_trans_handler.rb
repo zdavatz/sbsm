@@ -35,6 +35,9 @@ module SBSM
 			uri = '/de/gcc/search/pretty//state_id/407422388/search_query/ponstan/page/4'
 			expected = '/index.rbx?language=de&flavor=gcc&event=search&pretty=&state_id=407422388&search_query=ponstan&page=4'
 			assert_equal(expected, TransHandler.canonical_uri(uri))
+			uri = '/de/gcc/search/search_query/'
+			expected = '/index.rbx?language=de&flavor=gcc&event=search&search_query='
+			assert_equal(expected, TransHandler.canonical_uri(uri))
 		end
 	end
 end
