@@ -333,10 +333,10 @@ module SBSM
     # CGI::SessionHandler compatibility
     def restore
 			#puts "restore was called"
-			@unix_socket = DRb.start_service('drbunix:', self)
+			#@unix_socket = DRb.start_service('drbunix:', self)
       hash = {
-				:proxy   =>  DRbObject.new(self, @unix_socket.uri)
-				#:proxy	=>	self,
+				#:proxy   =>  DRbObject.new(self, @unix_socket.uri)
+				:proxy	=>	self,
       }
 			hash.extend(DRbUndumped) # added for Ruby1.8 compliance
       hash
@@ -345,7 +345,7 @@ module SBSM
       # nothing
     end
     def close
-			@unix_socket.stop_service
+			#@unix_socket.stop_service
       # nothing
     end
     def delete
