@@ -163,8 +163,8 @@ class TestLookandfeel < Test::Unit::TestCase
 			@lookandfeel.event_url(:foo, {:bar => 'baz'}))
 	end
 	def test_event_url__state_id_given
-		assert_equal("http://test.com/de/gcc/foo/state_id/mine/bar/baz", 
-			@lookandfeel.event_url(:foo, {:bar => 'baz', :state_id => 'mine'}))
+		assert_equal("http://test.com/de/gcc/foo/bar/baz/state_id/mine", 
+			@lookandfeel.event_url(:foo, [:bar, 'baz', :state_id, 'mine']))
 	end
 	def test_format_price
 		assert_equal('123.45', @lookandfeel.format_price(12345))

@@ -57,6 +57,9 @@ class StubSessionRequest < Hash
 	def params
 		self
 	end
+	def cookies
+		{}
+	end
 end
 class StubSessionView 
 	def http_headers 

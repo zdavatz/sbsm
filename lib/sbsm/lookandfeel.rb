@@ -65,7 +65,7 @@ module SBSM
 		end
 		def event_url(event=direct_event, args={})
 			if(!args.is_a?(Hash) || !args.include?(:state_id))
-				args = args.to_a
+				args = args.collect { |*pair| pair }
 				args.unshift([:state_id, @session.state.id])
 			else
 				args = args.to_a

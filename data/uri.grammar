@@ -1,0 +1,20 @@
+Grammar Uri
+	Tokens
+		SLASH = /\//
+		OTHER = /[^\/]+/
+		LANG = /[a-z]{2}/
+	Productions
+		Uri				->	SLASH LANG SLASH OTHER SLASH OTHER SLASH Variables
+									[: _, language, _, flavor, _, event, _, variables]
+							|		SLASH LANG SLASH OTHER SLASH OTHER SLASH? 
+									[: _, language, _, flavor, _, event]
+							|		SLASH LANG SLASH OTHER SLASH? 
+									[: _, language, _, flavor]
+							|		SLASH LANG SLASH?
+									[: _, language]
+							|		SLASH
+									[: _]
+		Variables	->	Pair+
+									[^: pair ]
+		Pair			->	OTHER SLASH OTHER SLASH?
+									[: key, _, value]
