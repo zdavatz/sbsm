@@ -64,11 +64,9 @@ module SBSM
 			default || self::class::ENABLED.include?(event)
 		end
 		def event_url(event=direct_event, args={})
-			if(!args.is_a?(Hash) || !args.include?(:state_id))
-				args = args.to_a
-				args.unshift([:state_id, @session.state.id])
-			else
-				args = args.to_a
+			args = args.to_a.flatten
+			unless(args.include?(:state_id) || args.include?('state_id'))
+				args.unshift(:state_id, @session.state.id)
 			end
 			[base_url(), event, args].compact.join('/')
 		end
