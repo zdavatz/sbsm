@@ -213,6 +213,7 @@ module SBSM
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				@state = active_state.trigger(event()) 
+				@zone = @state.zone
 				@state.reset_view
 				@state.touch
 				unless @state.volatile?
@@ -320,7 +321,7 @@ module SBSM
       @app.delete_session @key
     end
 		def zone
-			persistent_user_input(:zone) || self::class::DEFAULT_ZONE
+			user_input(:zone) || active_state.zone || self::class::DEFAULT_ZONE
 		end
 		def zones 
 			@active_state.zones
