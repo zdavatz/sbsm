@@ -68,11 +68,11 @@ module SBSM
 				@thread = Thread.new {
 					Thread.current.priority=10
 					server = Apache.request.server if defined?(Apache)
-					server.log_notice("#{id} - sending request")
+					#server.log_notice("#{id} - sending request")
 					drb_request()
-					server.log_notice("#{id} - getting response")
+					#server.log_notice("#{id} - getting response")
 					drb_response()
-					server.log_notice("#{id} - done")
+					#server.log_notice("#{id} - done")
 				}	
 				@thread.join
 			rescue StandardError => e
@@ -111,7 +111,8 @@ module SBSM
 		def handle_exception(e)
 			if defined?(Apache)
 				msg = [
-					[Time.now, id, e.class].join(' - '),
+					[Time.now, id].join(' - '),
+					e.class,
 					e.message,
 					e.backtrace,
 				].flatten.join("\n")
