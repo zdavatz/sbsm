@@ -236,7 +236,7 @@ module SBSM
 					@active_state = @state
 				end
 				@attended_states.store(@state.id, @state)
-				#@app.async { cap_max_states }
+				@app.async { cap_max_states }
 			rescue StandardError => e
 				puts "error in SBSM::Session#process"
 				puts e.class

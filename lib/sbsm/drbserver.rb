@@ -79,13 +79,13 @@ module SBSM
 			end
 		end
 		def clean
-			loop {
-				sleep self::class::CLEANING_INTERVAL
-				@sessions.delete_if { |key, s| s.expired? }
-				cap_max_sessions()
-				@sessions.each { |key, s| s.cap_max_states }
-				@async.delete_if { |thread| !thread.alive? }
+			sleep self::class::CLEANING_INTERVAL
+			cap_max_sessions()
+			@sessions.delete_if { |key, s| 
+				#s.cap_max_states if(s.respond_to?(:cap_max_states)
+				!s.respond_to?(:expired?) || s.expired? 
 			}
+			@async.delete_if { |thread| !thread.alive? }
 		end
 		def clear
 			@sessions.clear
@@ -97,8 +97,11 @@ module SBSM
 			# puts "running cleaner thread"
 			Thread.new {
 				Thread.current.abort_on_exception = true
-				Thread.current.priority = 0
-				clean()
+				Thread.current.priority = 1
+				loop {
+					sleep self::class::CLEANING_INTERVAL
+					clean()
+				}
 			}
 		end
 		def unknown_user
