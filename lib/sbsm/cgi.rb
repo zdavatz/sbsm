@@ -26,6 +26,9 @@ require 'cgi'
 require 'drb/drb'
 
 class CGI
+	class Session
+		attr_reader :output_cookies
+	end
   def CGI::pretty(string, shift = "  ")
     lines = string.gsub(/(?!\A)<(?!\/(pre|textarea))(?:.)*?>/ni, "\n\\0").gsub(/<(?!(pre|textarea))(?:.)*?>(?!\n)/ni, "\\0\n")
 	  end_pos = 0

@@ -30,8 +30,9 @@ require 'delegate'
 
 module SBSM
   class	Session < SimpleDelegator
-		attr_reader :user, :active_thread, :app, :key
+		attr_reader :user, :active_thread, :app, :key, :cookie_input
 		include DRbUndumped 
+		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = nil
 		DEFAULT_LANGUAGE = nil
 		DEFAULT_STATE = State
@@ -46,6 +47,7 @@ module SBSM
     def initialize(key, app, validator=nil)
 			touch()
       reset_input()
+			reset_cookie()
 			ARGV.push('') # satisfy cgi-offline prompt 
       @app = app
 			@cgi = CGI.new('html4')
@@ -77,6 +79,12 @@ module SBSM
 				}
 			end
 		end
+		def cookie_input_by_key(key)
+			@cookie_input[key]
+		end
+		def cookie_name
+			self::class::PERSISTENT_COOKIE_NAME	
+		end
 		def default_language
 			self::class::DEFAULT_LANGUAGE
 		end
@@ -97,6 +105,12 @@ module SBSM
 		end
 		def expired?
       Time.now - @mtime > EXPIRES
+		end
+		def import_cookies(request)
+			reset_cookie()
+			#request.cookies.each { |key, value|
+				#@cookie_input.store(key, value)	
+			#}
 		end
     def import_user_input(request)
 			# attempting to read the cgi-params more than once results in a
@@ -212,6 +226,7 @@ module SBSM
 				@request = request
 				@validator.reset_errors() if @validator
 				import_user_input(request)
+				import_cookies(request)
 				@state = active_state.trigger(event()) 
 				@state.reset_view
 				@state.touch
@@ -249,6 +264,9 @@ module SBSM
 			reset_input()
 			@html_packets = nil
 		end
+		def reset_cookie
+			@cookie_input = {}
+		end
     def reset_input
       @valid_input = {}
 			@processing_errors = {}
@@ -257,6 +275,9 @@ module SBSM
 			@remote_addr ||= if @request.respond_to?(:remote_addr)
 				@request.remote_addr
 			end
+		end
+		def set_cookie_input(key, val)
+			@cookie_input.store(key, val)
 		end
 		def server_name
 			@server_name ||= if @request.respond_to?(:server_name)

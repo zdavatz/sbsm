@@ -35,7 +35,6 @@ module SBSM
     def initialize(drb_uri, html_version = "html4")
       @cgi = CGI.new(html_version)
 			@drb_uri = drb_uri
-			#@server = Apache.request.server if defined?(Apache)
 			@thread = nil
 			super(@cgi)
     end
@@ -46,23 +45,6 @@ module SBSM
 			@passthru = path
 			''
 		end
-=begin
-			req = Apache.request
-			req.server.log_notice("passthru")
-			begin
-				req.server.log_notice(path)
-				File::open( path ) { |ofh|
-					req.log_reason(path, ofh)
-					req.send_fd(ofh)
-				}
-				req.server.log_notice(done)
-				''
-			rescue IOError => err
-				req.log_reason( err.message, path)
-				Apache::NOT_FOUND
-			end
-		end
-=end
 		def process
 			begin
 				@thread = Thread.new {
@@ -92,21 +74,57 @@ module SBSM
 		end
 		def drb_response
 			res = ''
+			cookie_input = @proxy.cookie_input
 			while(snip = @proxy.next_html_packet)
 				res << snip
 			end
 			# view.to_html can call passthru instead of sending data
 			if(@passthru) 
+				unless(cookie_input.empty?)
+					cookie = generate_cookie(cookie_input) 
+					Apache.request.headers_out.add('Set-Cookie', cookie.to_s)
+					Apache.request.send_http_header # flush the cookie down the drain
+				end
+=begin
+				unless(cookie_input.empty?)
+					cookie_string = cookie_input.collect { |*pair|
+						pair.join('=')
+					}.join('&')
+					ed = CGI.rfc1123_date(Time.now + (60 * 60 * 24 * 365 * 10))
+					cookie = "cookie_name=" << cookie_string << 
+						"; path=/; expires=#{ed}"
+					Apache.request.headers_out.add('Set-Cookie', cookie)
+				end
+=end
 				Apache.request.internal_redirect(@passthru)
 			else
 				begin
-					@cgi.out(@proxy.http_headers) { 
+					headers = @proxy.http_headers
+					unless(cookie_input.empty?)
+						#cookie = generate_cookie(cookie_input) 
+						#headers.store('Set-Cookie', [cookie])
+					end
+					#@session.output_cookies.push(cookie_pairs)
+					@cgi.out(headers) { 
 						(@cgi.params.has_key?("pretty")) ? CGI.pretty( res ) : res
 					}
 				rescue StandardError => e
-					handle_exception(e)
+					#handle_exception(e)
+					@cgi.out { e.message } 
 				end
 			end
+		end
+		def generate_cookie(cookie_input)
+			cookie_pairs = cookie_input.collect { |*pair| 
+					pair.join('=') 
+			}
+			cookie_hash = {
+				"name"		=>	@proxy.cookie_name || 'sbsm-persistent-cookie',
+				"value"		=>	cookie_pairs,
+				"path"		=>	"/",
+				"expires"	=>	(Time.now + (60 * 60 * 24 * 365 * 10)),
+			}
+			CGI::Cookie.new(cookie_hash)
 		end
 		def handle_exception(e)
 			if defined?(Apache)
