@@ -165,11 +165,14 @@ module SBSM
 			@warnings = []
 			state = if(event && !event.to_s.empty? && self.respond_to?(event))
 				self.send(event) 
-			elsif(state = @events[event])
-				state.new(@session, @model)
+			elsif(klass = @events[event])
+				klass.new(@session, @model)
 			end
-			state.previous = self unless state.nil?
-			state
+			state ||= self.default
+			if(state.respond_to?(:previous=))
+				state.previous = self 
+			end
+			state 
 		end
 		def unset_previous
 			@previous = nil

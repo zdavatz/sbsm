@@ -106,10 +106,11 @@ module SBSM
 			@session.navigation
 		end
 		def resource(rname, rstr=nil)
-			[self::class::RESOURCE_BASE, @session.flavor, self::class::RESOURCES[rname], rstr].compact.join("/")
+			collect_resource([self::class::RESOURCE_BASE, @session.flavor], 
+				rname, rstr)
 		end
 		def resource_global(rname, rstr=nil)
-			[self::class::RESOURCE_BASE, self::class::RESOURCES[rname], rstr].compact.join("/")
+			collect_resource([self::class::RESOURCE_BASE], rname, rstr)
 		end
 		def resource_localized(rname, rstr=nil, lang=@language)
 			result = resource([rname, lang].join('_').intern, rstr)
@@ -119,6 +120,16 @@ module SBSM
 			result
 		end
 		private
+		def collect_resource(base, rname, rstr=nil)
+			varpart = self::class::RESOURCES[rname]
+			if(varpart.is_a?(Array))
+				varpart.collect { |part|
+					[base, part, rstr].flatten.compact.join('/')
+				}
+			else
+				[base, varpart, rstr].flatten.compact.join('/')
+			end
+		end
     def set_dictionary(language)
       @dictionary = self::class::DICTIONARIES[language] || {}
     end

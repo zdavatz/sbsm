@@ -55,7 +55,7 @@ module SBSM
 			@html_packets = nil
       @key = key
 			@validator = validator
-			@cached_states = {}
+			#@cached_states = {}
 			@attended_states = {}
 			@persistent_user_input = {}
 			logout()
@@ -70,9 +70,9 @@ module SBSM
 				sorted[0...(-self::class::MAX_STATES)].each { |state|
 					state.checkout
 					@attended_states.delete(state.id)
-					@cached_states.delete_if { |key, cached|
-						cached.id == state.id
-					}
+					#@cached_states.delete_if { |key, cached|
+					#	cached.id == state.id
+					#}
 				}
 			end
 		end
@@ -98,6 +98,9 @@ module SBSM
       Time.now - @mtime > EXPIRES
 		end
     def import_user_input(request)
+			# attempting to read the cgi-params more than once results in a
+			# DRbConnectionRefused Exception. Therefore, do it only once...
+			return if(@user_input_imported) 
 			#puts request.params.inspect
       reset_input()
       request.params.each { |key, value| 
@@ -112,7 +115,9 @@ module SBSM
 					key = key.intern 
 					if(key == :confirm_pass)
 						pass = request.params["pass"]
-						@valid_input[:set_pass] = @validator.set_pass(pass, value)
+						#puts "pass:#{pass} - confirm:#{value}"
+						@valid_input[key] = @valid_input[:set_pass] \
+							= @validator.set_pass(pass, value)
 					else
 						valid = @validator.validate(key, value)
 						if(index)
@@ -124,6 +129,7 @@ module SBSM
 				end
 				#puts "imported #{key} -> #{value} => #{@valid_input[key].inspect}"
       }
+			@user_input_imported = true
 			#puts @valid_input.inspect
     end
 		def infos
@@ -145,7 +151,7 @@ module SBSM
 			end
 		end
 		def logout
-			@cached_states.clear
+			#@cached_states.clear
 			@attended_states.clear
 			@persistent_user_input.clear
 			@user = @app.unknown_user()
@@ -206,22 +212,12 @@ module SBSM
 				@request = request
 				@validator.reset_errors() if @validator
 				import_user_input(request)
-				this_event = event()
-				#puts "active_state: #{active_state.class}"
-				new_state = active_state.trigger(this_event)
-				#puts "new_state(#{this_event}): #{new_state.class}"
-				new_state ||= @cached_states[this_event]
-				#puts "new_state(cached): #{new_state.class}"
-				new_state ||= active_state.default #@state
-				#puts "new_state(default): #{new_state.class}"
-				new_state.reset_view
-				this_event ||= new_state.direct_event	
-				@state = @cached_states[this_event] = new_state
+				@state = active_state.trigger(event()) 
+				@state.reset_view
 				@state.touch
 				unless @state.volatile?
 					@active_state = @state
 				end
-				#puts "new @active_state: #{@active_state.class}"
 				@attended_states.store(@state.id, @state)
 				@app.async { cap_max_states }
 			rescue StandardError => e
@@ -229,6 +225,9 @@ module SBSM
 				puts e.class
 				puts e.message
 				puts e.backtrace
+				$stdout.flush
+			ensure
+				@user_input_imported = false
 			end
 			''
 		end
@@ -267,13 +266,13 @@ module SBSM
 			end
 		end
 		def state(event=nil)
-			if(event.nil?)
+			#if(event.nil?)
 				@active_state
-			else
-				@cached_states.fetch(event) {
-					@active_state
-				}
-			end
+			#else
+			#	@cached_states.fetch(event) {
+			#		@active_state
+			#	}
+			#end
 		end
     def touch
       @mtime = Time.now
@@ -287,18 +286,8 @@ module SBSM
     def user_input(*keys)
 			if(keys.size == 1)
 				key = keys.first
-				key_str, key_sym = if(key.is_a? Symbol)
-					[key.to_s, key]
-				elsif(key.is_a? String)
-					[key, key.intern]
-				end
-				@valid_input.fetch(key_sym) { |key|
-					input = if(@request.respond_to?(:has_key?) \
-						&& @request.has_key?(key_str))
-						@request[key_str]
-					end
-					@valid_input[key_sym] = @validator.validate(key_sym, input)
-				}
+				key_sym = (key.is_a? Symbol) ? key : key.to_s.intern
+				@valid_input[key_sym]
 			else
 				keys.inject({}) { |inj, key|
 					inj.store(key, user_input(key))
