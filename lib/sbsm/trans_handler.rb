@@ -49,7 +49,13 @@ module SBSM
 					values.add(name, ast.send(name).value)
 				when 'variables'
 					ast.variables.each { |pair|
-						values.add(pair.key.value, pair.value.value)
+						key = pair.key.value
+						val = if(pair.children_names.include?('value'))
+							pair.value.value
+						else
+							''
+						end
+						values.add(key, val)
 					}
 				end
 			}
