@@ -26,6 +26,7 @@ require 'digest/md5'
 require 'tmail'
 require 'date'
 require 'drb/drb'
+require 'uri'
 
 module SBSM
 	class InvalidDataError < RuntimeError
@@ -46,6 +47,7 @@ module SBSM
 		NUMERIC = []
 		PATTERNS = {}
 		STRINGS = []
+		URIS = []
 		def initialize
 			reset_errors()
 			@boolean = self::class::BOOLEAN.dup
@@ -56,6 +58,7 @@ module SBSM
 			@numeric = self::class::NUMERIC.dup
 			@patterns = self::class::PATTERNS.dup
 			@strings = self::class::STRINGS.dup
+			@uris = self::class::URIS.dup
 		end	
 		def error?
 			!@errors.empty?
@@ -99,6 +102,8 @@ module SBSM
 					validate_pattern(key, value)
 				elsif(@numeric.include?(key))
 					validate_numeric(key, value)
+				elsif(@uris.include?(key))
+					validate_uri(key, value)
 				elsif(@strings.include?(key))
 					validate_string(value)
 				elsif(self.respond_to?(key, true))
@@ -129,6 +134,7 @@ module SBSM
 		def pass(value)
 			Digest::MD5::hexdigest(value)
 		end
+		alias :confirm_pass :pass
 		def state_id(value)
 			if(match = /\d+/.match(value))
 				match[0].to_i
@@ -184,6 +190,15 @@ module SBSM
 			rescue ArgumentError
 				raise InvalidDataError.new(:e_invalid_date, key, value)
 			end
+		end
+		def validate_uri(key, value)
+			uri = URI.parse(value)
+			if(uri.scheme.nil?)
+				uri = URI.parse('http://' << value)
+			end
+			uri
+		rescue 
+			raise InvalidDataError.new(:e_invalid_uri, key, value)
 		end
 	end
 end

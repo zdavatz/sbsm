@@ -104,8 +104,8 @@ class TestState < Test::Unit::TestCase
 	def test_direct_event
 		assert_equal(:foo, State.direct_event)
 	end
-	def test_trigger_invalid
-		assert_equal(nil, @state.trigger(:foo))
+	def test_trigger_default
+		assert_equal(@state, @state.trigger(:foo))
 	end
 	def test_trigger_event
 		assert_equal(StubStateState1, @state.trigger(:bar).class)

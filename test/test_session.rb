@@ -72,7 +72,7 @@ class StubSessionView
 end
 class StubSessionBarState < SBSM::State
 	EVENT_MAP = {
-		:foobar	=>	StubSessionBarState
+		:foobar	=>	StubSessionBarState,
 	}
 end	
 class StubSessionBarfoosState < SBSM::State
@@ -170,22 +170,6 @@ class TestSession < Test::Unit::TestCase
 			state2.id => state2,
 			state3.id => state3,
 			state4.id => state4,
-		}
-		assert_equal(attended, @session.attended_states)
-		@session.process(req2)
-		assert_equal(attended, @session.attended_states)
-		req5 = StubSessionRequest.new
-		req5["event"] = :bar	
-		@session.process(req5)
-		state5 = @session.state
-		assert_not_equal(state1, state5)
-		assert_not_equal(state2, state5)
-		assert_not_equal(state3, state5)
-		assert_not_equal(state4, state5)
-		attended = {
-			state2.id => state2,
-			state4.id => state4,
-			state5.id => state5,
 		}
 		assert_equal(attended, @session.attended_states)
 	end
@@ -333,23 +317,6 @@ class TestSession < Test::Unit::TestCase
 		@session.process(@request)
 		assert_equal(expected, @session.state) 
 		assert_equal(expected, @session.attended_states[expected.id])
-		assert_equal(expected, @session.cached_states[:foo]) 
-	end
-	def test_process2
-		@session.active_state = StubSessionBarfoosState.new(@session, nil)
-		@session.process(@request)
-		assert_equal([:barfoos], @session.cached_states.keys) 
-	end
-	def test_cached_state
-		@request['event'] = :foo
-		@session.process(@request)
-		assert_equal(StubSessionFooState, @session.state.class)
-		@request['event'] = :bar
-		@session.process(@request)
-		assert_equal(StubSessionBarState, @session.state.class)
-		@request['event'] = :foo
-		@session.process(@request)
-		assert_equal(StubSessionFooState, @session.state.class)
 	end
 	def test_next_html_packet
 		assert_equal('0123456789', @session.next_html_packet)
@@ -359,12 +326,9 @@ class TestSession < Test::Unit::TestCase
 	end
 	def test_logout
 		state = StubSessionBarState.new(@session, nil)
-		@session.cached_states.store(:event, state)
 		@session.attended_states.store(state.id, state)
-		assert_equal(state, @session.cached_states[:event])
 		assert_equal(state, @session.attended_states[state.id])
 		@session.logout
-		assert_equal(true, @session.cached_states.empty?)
 		assert_equal(true, @session.attended_states.empty?)
 	end
 	def test_lookandfeel
