@@ -133,7 +133,7 @@ module SBSM
 				varpart.collect { |part|
 					[base, part, rstr].flatten.compact.join('/')
 				}
-			else
+			elsif(!varpart.nil?)
 				[base, varpart, rstr].flatten.compact.join('/')
 			end
 		end
