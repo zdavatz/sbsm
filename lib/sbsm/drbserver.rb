@@ -33,6 +33,7 @@ module SBSM
 		include DRbUndumped
 		CLEANING_INTERVAL = 600
 		CAP_MAX_THRESHOLD = 30
+		ENABLE_ADMIN = false
 		MAX_SESSIONS = 20
 		RUN_CLEANER = true
 		SESSION = Session
@@ -45,6 +46,25 @@ module SBSM
 			@cleaner = run_cleaner if self::class::RUN_CLEANER
 			@async = []
 			super(persistence_layer)
+		end
+		def admin(src, priority=-1)
+			return unless(self::class::ENABLE_ADMIN)
+			Thread.current.priority = priority
+			Thread.current.abort_on_exception = true
+			target = @system
+			begin
+				response = target.instance_eval(src)
+				response.to_s[0,72]
+			rescue StandardError => error
+				puts error.class
+				puts error.message
+				puts error.backtrace
+				if(target.id == @system.id)
+					target = self
+					retry
+				end
+				error
+			end
 		end
 		def async(&block)
 			@async.delete_if { |thread| !thread.alive? }

@@ -24,7 +24,7 @@
 
 require 'test/unit'
 require 'sbsm/session'
-require 'htmlgrid/component'
+#require 'htmlgrid/component'
 
 class StubSessionUnknownUser
 end
@@ -58,10 +58,14 @@ class StubSessionRequest < Hash
 		self
 	end
 end
-class StubSessionView < HtmlGrid::Component
-	HTTP_HEADERS = {
-		"foo"	=>	"bar"
-	}
+class StubSessionView 
+	def http_headers 
+		{
+			"foo"	=>	"bar"
+		}
+	end
+	def initialize(foo, bar)
+	end
 	def to_html(context)
 		'0123456789' * 3
 	end
