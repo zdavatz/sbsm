@@ -70,6 +70,10 @@ module SBSM
 			end
 			[base_url(), event, args].compact.join('/')
 		end
+		def _event_url(event=direct_event, args={})
+			args = args.collect { |*pair| pair }.flatten
+			[base_url(), event, args].compact.join('/')
+		end
 		def languages
 			@languages ||= self::class::DICTIONARIES.keys.sort
 		end
