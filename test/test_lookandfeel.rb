@@ -36,6 +36,7 @@ end
 class StubLookandfeelSession
 	attr_accessor :persistent_user_input
 	attr_accessor :user_input
+	attr_accessor :state
 	DEFAULT_LANGUAGE = "de"
 	def initialize(*args)
 		@persistent_user_input = {}	
@@ -157,7 +158,13 @@ class TestLookandfeel < Test::Unit::TestCase
 		assert_equal("http://test.com/de/gcc", @lookandfeel.base_url)
 	end
 	def test_event_url
-		assert_equal("http://test.com/de/gcc/foo/", @lookandfeel.event_url(:foo))
+		# state_id is 4, because @session.state = nil
+		assert_equal("http://test.com/de/gcc/foo/state_id/4/bar/baz", 
+			@lookandfeel.event_url(:foo, {:bar => 'baz'}))
+	end
+	def test_event_url__state_id_given
+		assert_equal("http://test.com/de/gcc/foo/state_id/mine/bar/baz", 
+			@lookandfeel.event_url(:foo, {:bar => 'baz', :state_id => 'mine'}))
 	end
 	def test_format_price
 		assert_equal('123.45', @lookandfeel.format_price(12345))
