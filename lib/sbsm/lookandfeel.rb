@@ -67,8 +67,9 @@ module SBSM
 			unless(args.respond_to?(:include?) && args.include?('state_id'))
 				args = args.to_a
 				args.unshift(["state_id", @session.state.id])
+				args.flatten!
 			end
-			[base_url(), event, args.flatten].compact.join('/')
+			[base_url(), event, args].compact.join('/')
 		end
 		def languages
 			@languages ||= self::class::DICTIONARIES.keys.sort
