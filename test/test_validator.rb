@@ -1,0 +1,114 @@
+#!/usr/bin/env ruby
+#
+# State Based Session Management	
+#	Copyright (C) 2004 Hannes Wyss
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
+#	hwyss@ywesee.com
+#
+# TestValidator -- sbsm -- 15.11.2002 -- hwyss@ywesee.com 
+
+$: << File.dirname(__FILE__)
+$: << File.expand_path("../lib", File.dirname(__FILE__))
+
+require 'test/unit'
+require 'sbsm/validator'
+
+class Validator < SBSM::Validator
+	attr_accessor :errors
+	DATES = [
+		:date
+	]
+	ENUMS = {
+		:enum	=>	['foo'],
+		:values =>	['1', '2', '3', '4', '7'],
+	}
+	EVENTS = [
+		:logout,
+	]
+	BOOLEAN = [ :bool ]
+	PATTERNS = {
+		:pattern =>	/(^\d+$)|(^[a-z]{1,3}$)/,
+	}
+end
+
+class TestValidator < Test::Unit::TestCase
+  def setup
+    @val = Validator.new
+  end
+	def test_reset_errors
+		assert_equal({}, @val.errors)
+		@val.errors = {:foo=>:bar}
+		assert_nothing_raised {
+			@val.reset_errors
+		}
+		assert_equal({}, @val.errors)
+	end
+	def test_validate
+		assert_nothing_raised { @val.validate(:something, :other) }
+	end
+	def test_boolean
+		assert_equal(true, @val.validate(:bool, 'true'))
+		assert_equal(true, @val.validate(:bool, 'TRUE'))
+		assert_equal(true, @val.validate(:bool, 1))
+		assert_equal(true, @val.validate(:bool, true))
+		assert_equal(true, @val.validate(:bool, 'Y'))
+		assert_equal(true, @val.validate(:bool, 'j'))
+		assert_equal(false, @val.validate(:bool, 'false'))
+		assert_equal(false, @val.validate(:bool, 'FALSE'))
+		assert_equal(false, @val.validate(:bool, 0))
+		assert_equal(false, @val.validate(:bool, false))
+		assert_equal(false, @val.validate(:bool, 'N'))
+	end
+	def test_enum
+		assert_equal('foo', @val.validate(:enum, 'foo'))
+	end
+	def test_event
+		assert_equal(:logout, @val.validate(:event, 'logout'))
+		assert_equal(:logout, @val.validate(:event, ['logout']))
+	end
+	def test_email1
+		assert_equal('e_domainless_email_address', @val.validate(:email, 'test').message)
+		assert_equal('test@com', @val.validate(:email, 'test@com'))
+		assert_equal('test@test.com', @val.validate(:email, 'test@test.com'))
+		assert_equal(SBSM::InvalidDataError, @val.validate(:email, 'test@test@test').class)
+	end
+	def test_pass
+		assert_equal('098f6bcd4621d373cade4e832627b4f6', @val.validate(:pass, 'test'))
+	end
+	def test_valid_values
+		expected = ['1', '2', '3', '4', '7']
+		assert_equal(expected, @val.valid_values(:values))
+		assert_equal(expected, @val.valid_values('values'))
+	end
+	def test_date
+		assert_equal(Date.new(2002,1,2), @val.validate(:date, '2.1.2002'))
+		assert_equal(SBSM::InvalidDataError, @val.validate(:date, '13.13.1234').class)
+		assert_equal(nil, @val.validate(:date, " \t"))
+	end
+	def test_state_id
+		assert_equal(nil, @val.validate(:state_id, nil))
+		assert_equal(nil, @val.validate(:state_id, "df"))
+		assert_equal(1245, @val.validate(:state_id, "1245"))
+	end
+	def test_pattern
+		assert_equal('new', @val.validate(:pattern, 'new'))
+		assert_equal('12345', @val.validate(:pattern, '12345'))
+		assert_equal(nil, @val.validate(:pattern, '23foo45'))
+		assert_equal(nil, @val.validate(:pattern, 'abfoodc'))
+	end
+end

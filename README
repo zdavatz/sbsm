@@ -1,0 +1,41 @@
+SBSM
+====
+Version: 0.6.0
+Date: 2003-09-22
+
+Short Description:
+
+Application framework for state based session management
+
+Requirements
+------------
+
+  * ruby 1.8, druby
+	
+Install
+-------
+
+  De-Compress archive and enter its top directory.
+  Then type:
+
+    $ ruby setup.rb config
+    $ ruby setup.rb setup
+   ($ su)
+    # ruby setup.rb install
+
+  You can also install files into your favorite directory
+  by supplying setup.rb some options. Try "ruby setup.rb --help".
+
+
+Usage
+-----
+	
+
+License
+-------
+
+	LGPL
+
+	
+URL: http://download.ywesee.com/ruby/sbsm
+Author: Hannes Wyss <hwyss@ywesee.com>
