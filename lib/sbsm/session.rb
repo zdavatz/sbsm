@@ -69,6 +69,7 @@ module SBSM
 		def cap_max_states
 			if(@attended_states.size > self::class::CAP_MAX_THRESHOLD)
 				#puts "too many states in session! Keeping only #{self::class::MAX_STATES}"
+				#$stdout.flush
 				sorted = @attended_states.values.sort
 				sorted[0...(-self::class::MAX_STATES)].each { |state|
 					state.checkout
@@ -290,6 +291,8 @@ module SBSM
 			else
 				self::class::SERVER_NAME
 			end
+		rescue DRb::DRbConnError
+			@server_name = self::class::SERVER_NAME
 		end
 		def state(event=nil)
 			#if(event.nil?)
@@ -358,7 +361,7 @@ module SBSM
 			super
 		end
 		def <=>(other)
-			@mtime <=> other.mtime	
+			self.weighted_mtime <=> other.weighted_mtime	
 		end
 		private
 		def active_state
@@ -380,5 +383,8 @@ module SBSM
 		end
 		protected
 		attr_reader :mtime
+		def weighted_mtime
+			@mtime + @user.session_weight
+		end
   end
 end
