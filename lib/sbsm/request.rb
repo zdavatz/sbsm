@@ -98,14 +98,13 @@ module SBSM
 					@request.headers_out.add('Set-Cookie', cookie.to_s)
 				end
 				# the variable @passthru is set by a trusted source
-				@passthru.untaint
 				basename = File.basename(@passthru)
-				subreq = @request.lookup_uri(@passthru)
+				fullpath = File.join(@request.server.document_root, @passthru)
+				fullpath.untaint
+				subreq = @request.lookup_file(fullpath)
 				@request.content_type = subreq.content_type
 				@request.headers_out.add('Content-Disposition', 
 					"attachment; filename=#{basename}")
-				fullpath = @request.server.document_root + @passthru
-				fullpath.untaint
 				@request.headers_out.add('Content-Length', 
 					File.size(fullpath).to_s)
 				begin
