@@ -32,6 +32,7 @@ module SBSM
   class	Session < SimpleDelegator
 		attr_reader :user, :active_thread, :app, :key, :cookie_input
 		include DRbUndumped 
+		CRAWLER_PATTERN = /archiver|slurp|bot|crawler/i
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = nil
 		DEFAULT_LANGUAGE = nil
@@ -152,6 +153,10 @@ module SBSM
 		end
 		def info?
 			@state.info? if @state.respond_to?(:info?)
+		end
+		def is_crawler?
+			@request.respond_to?(:user_agent) \
+				&& CRAWLER_PATTERN.match(@request.user_agent)
 		end
 		def language
 			persistent_user_input(:language) \

@@ -65,7 +65,8 @@ module SBSM
 		end
 		def event_url(event=direct_event, args={})
 			args = args.collect { |*pair| pair }.flatten
-			unless(args.include?(:state_id) || args.include?('state_id'))
+			unless(@session.is_crawler? \
+				|| args.include?(:state_id) || args.include?('state_id'))
 				args.unshift(:state_id, @session.state.id)
 			end
 			[base_url(), event, args].compact.join('/')
