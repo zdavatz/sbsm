@@ -325,6 +325,9 @@ module SBSM
 		def zones 
 			@active_state.zones
 		end
+		def zone_navigation
+			@state.zone_navigation
+		end
 		def ==(other)
 			super
 		end

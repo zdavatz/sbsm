@@ -275,6 +275,9 @@ module SBSM
 		def zones 
 			self::class::ZONES
 		end
+		def zone_navigation
+			[]
+		end
 		def <=>(other)
 			@mtime <=> other.mtime
 		end

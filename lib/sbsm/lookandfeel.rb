@@ -119,6 +119,9 @@ module SBSM
 			end
 			result
 		end
+		def zone_navigation
+			@session.zone_navigation
+		end
 		private
 		def collect_resource(base, rname, rstr=nil)
 			varpart = self::class::RESOURCES[rname]
