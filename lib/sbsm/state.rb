@@ -45,6 +45,7 @@ module SBSM
 	class State
 		attr_reader :errors, :infos, :events
 		attr_reader :previous, :warnings
+		attr_accessor :next
 		DIRECT_EVENT = nil
 		EVENT_MAP = {}
 		GLOBAL_MAP = {}
@@ -76,6 +77,10 @@ module SBSM
 			if(@next.respond_to?(:unset_previous))
 				@next.unset_previous
 			end
+			if(@next.respond_to?(:checkout))
+				@next.checkout
+			end
+			@next = nil
 		end
 		def create_error(msg, key, val)
 			ProcessingError.new(msg.to_s, key, val)
@@ -122,7 +127,10 @@ module SBSM
 			value.nil? || (value.respond_to?(:empty?) && value.empty?)
 		end
 		def previous=(state)
-			@previous ||= state
+			if(@previous.nil? && state.respond_to?(:next=))
+				state.next = self
+				@previous = state
+			end
 		end
 		def reset_view
 			@view = nil
@@ -132,7 +140,9 @@ module SBSM
 		end
 		def to_html(context)
 			begin
-				view.to_html(context)
+				html_output = view.to_html(context)
+				#		view.explode!
+				html_output
 			rescue StandardError => e
 				puts "error in SBSM::State#to_html"
 				puts e.class
@@ -229,7 +239,9 @@ module SBSM
 				puts e.backtrace
 				if(@previous)
 					begin
-						@previous.view 
+						view = @previous.view 
+						@previous.reset_view	
+						view
 					rescue
 						stub = HtmlStub.new
 						stub.to_html = 'fatal: could not get view'
