@@ -224,7 +224,7 @@ module SBSM
 		end
 		def process(request)
 			begin
-				@request = request
+				@active_thread[:request] = @request = request
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				import_cookies(request)
@@ -252,10 +252,10 @@ module SBSM
 			if(@active_thread && 
 				!@active_thread.stop? && 
 				@active_thread!=Thread.current)
-				p "killing #{@active_thread}"
+				puts "killing #{@active_thread}"
 				begin
 					if(old_request = @active_thread[:request])
-						p "...and aborting old request"
+						puts "...and aborting old request"
 						old_request.abort
 					end
 					@active_thread.exit 
