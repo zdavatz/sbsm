@@ -155,8 +155,11 @@ module SBSM
 			@state.info? if @state.respond_to?(:info?)
 		end
 		def is_crawler?
-			@request.respond_to?(:user_agent) \
-				&& CRAWLER_PATTERN.match(@request.user_agent)
+			if(@is_crawler.nil? && @request.respond_to?(:user_agent)) 
+				@is_crawler = !!CRAWLER_PATTERN.match(@request.user_agent)
+			else
+				@is_crawler
+			end
 		end
 		def language
 			persistent_user_input(:language) \
