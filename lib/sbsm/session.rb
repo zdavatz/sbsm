@@ -35,6 +35,7 @@ module SBSM
 		DEFAULT_FLAVOR = nil
 		DEFAULT_LANGUAGE = nil
 		DEFAULT_STATE = State
+		DEFAULT_ZONE = nil
 		DRB_LOAD_LIMIT = 255 * 1024
     EXPIRES = 60 * 60
 		LF_FACTORY = nil
@@ -101,7 +102,6 @@ module SBSM
 			# attempting to read the cgi-params more than once results in a
 			# DRbConnectionRefused Exception. Therefore, do it only once...
 			return if(@user_input_imported) 
-			#puts request.params.inspect
       reset_input()
       request.params.each { |key, value| 
 				#puts "importing #{key} -> #{value}"
@@ -319,6 +319,12 @@ module SBSM
     def delete
       @app.delete_session @key
     end
+		def zone
+			persistent_user_input(:zone) || self::class::DEFAULT_ZONE
+		end
+		def zones 
+			@active_state.zones
+		end
 		def ==(other)
 			super
 		end

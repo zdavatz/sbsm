@@ -47,12 +47,21 @@ module SBSM
 		attr_reader :previous, :warnings
 		attr_accessor :next
 		DIRECT_EVENT = nil
+		ZONE = nil
+		ZONES = []
+		ZONE_EVENT = nil
 		EVENT_MAP = {}
 		GLOBAL_MAP = {}
 		VIEW = nil
 		VOLATILE = false
 		def State::direct_event
 			self::DIRECT_EVENT
+		end
+		def State::zone
+			self::ZONE
+		end
+		def State::zones
+			self::ZONES
 		end
 		def initialize(session, model)
 			@session = session
@@ -223,7 +232,7 @@ module SBSM
 					end
 					#puts "view will be a #{klass}"
 					model = if(@filter.is_a? Proc)
-						#puts "filtering the model"
+					#puts "filtering the model"
 						@filter.call(@model)
 					else
 						@model
@@ -259,6 +268,12 @@ module SBSM
 		end
 		def volatile?
 			self::class::VOLATILE
+		end
+		def zone 
+			self::class::ZONE
+		end
+		def zones 
+			self::class::ZONES
 		end
 		def <=>(other)
 			@mtime <=> other.mtime
