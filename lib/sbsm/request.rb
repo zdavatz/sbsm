@@ -36,13 +36,14 @@ module SBSM
       @cgi = CGI.new(html_version)
 			@drb_uri = drb_uri
 			@thread = nil
+			@request = Apache.request
 			super(@cgi)
     end
 		def abort
 			@thread.exit
 		end
 		def cookies
-			if(cuki = Apache.request.headers_in['Cookie'])
+			if(cuki = @request.headers_in['Cookie'])
 				cuki.split(/\s*;\s*/).inject({}) { |cookies, cukip| 
 					key, val = cukip.split(/\s*=\s*/, 2).collect { |str|
 						CGI.unescape(str)
@@ -60,14 +61,13 @@ module SBSM
 		end
 		def process
 			begin
+				@request.notes.each { |key, val|
+					@cgi.params.store(key, val)
+				}
 				@thread = Thread.new {
 					Thread.current.priority=10
-					server = Apache.request.server if defined?(Apache)
-					#server.log_notice("#{id} - sending request")
 					drb_request()
-					#server.log_notice("#{id} - getting response")
 					drb_response()
-					#server.log_notice("#{id} - done")
 				}	
 				@thread.join
 			rescue StandardError => e
@@ -92,26 +92,26 @@ module SBSM
 				res << snip
 			end
 			# view.to_html can call passthru instead of sending data
-			req = Apache.request
 			if(@passthru) 
 				unless(cookie_input.empty?)
 					cookie = generate_cookie(cookie_input) 
-					req.headers_out.add('Set-Cookie', cookie.to_s)
+					@request.headers_out.add('Set-Cookie', cookie.to_s)
 				end
 				# the variable @passthru is set by a trusted source
 				@passthru.untaint
 				basename = File.basename(@passthru)
-				subreq = req.lookup_uri(@passthru)
-				req.content_type = subreq.content_type
-				req.headers_out.add('Content-Disposition', 
+				subreq = @request.lookup_uri(@passthru)
+				@request.content_type = subreq.content_type
+				@request.headers_out.add('Content-Disposition', 
 					"attachment; filename=#{basename}")
-				fullpath = req.server.document_root + @passthru
+				fullpath = @request.server.document_root + @passthru
 				fullpath.untaint
-				req.headers_out.add('Content-Length', File.size(fullpath).to_s)
+				@request.headers_out.add('Content-Length', 
+					File.size(fullpath).to_s)
 				begin
-					req.puts File.read(fullpath)
+					@request.puts File.read(fullpath)
         rescue Errno::ENOENT, IOError => err
-          req.log_reason(err.message, @passthru)
+          @request.log_reason(err.message, @passthru)
           return Apache::NOT_FOUND
         end
 			else
@@ -149,7 +149,7 @@ module SBSM
 					e.message,
 					e.backtrace,
 				].flatten.join("\n")
-				Apache.request.server.log_error(msg)
+				@request.server.log_error(msg)
 			end
 			hdrs = {
 				'Status' => '302 Moved', 

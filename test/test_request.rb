@@ -29,6 +29,11 @@ require 'test/unit'
 require 'stub/cgi'
 require 'sbsm/request'
 
+module Apache
+	def request
+	end
+	module_function :request
+end
 class TestRequest < Test::Unit::TestCase
 	def setup
 		@request = SBSM::Request.new(nil)
