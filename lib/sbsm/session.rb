@@ -30,7 +30,8 @@ require 'delegate'
 
 module SBSM
   class	Session < SimpleDelegator
-		attr_reader :user, :active_thread, :app, :key, :cookie_input
+		attr_reader :user, :active_thread, :app, :key, :cookie_input, 
+			:unsafe_input
 		include DRbUndumped 
 		CRAWLER_PATTERN = /archiver|slurp|bot|crawler/i
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
@@ -122,7 +123,8 @@ module SBSM
       request.params.each { |key, value| 
 				#puts "importing #{key} -> #{value}"
 				index = nil
-				unless key.nil?
+				@unsafe_input.push([key.to_s.dup, value.to_s.dup])
+				unless(key.nil? || key.empty?)
 					if match = /([^\[]+)\[([^\]]+)\]/.match(key)
 						key = match[1]
 						index = match[2]
@@ -146,7 +148,9 @@ module SBSM
 				#puts "imported #{key} -> #{value} => #{@valid_input[key].inspect}"
       }
 			@user_input_imported = true
+			#puts @unsafe_input.inspect
 			#puts @valid_input.inspect
+			#$stdout.flush
     end
 		def infos
 			@state.infos if @state.respond_to?(:infos)
@@ -162,8 +166,11 @@ module SBSM
 			end
 		end
 		def language
-			persistent_user_input(:language) \
-				|| self::class::DEFAULT_LANGUAGE
+			if(lang = @valid_input[:language])
+				set_cookie_input(:language, lang)
+			else
+				@cookie_input[:language] || self::class::DEFAULT_LANGUAGE
+			end
 		end
 		def logged_in?
 			!@user.is_a?(@unknown_user_class)
@@ -249,7 +256,7 @@ module SBSM
 				puts "error in SBSM::Session#process"
 				puts e.class
 				puts e.message
-				puts e.backtrace
+				puts e.backtrace[0,8]
 				$stdout.flush
 			ensure
 				@user_input_imported = false
@@ -280,6 +287,7 @@ module SBSM
     def reset_input
       @valid_input = {}
 			@processing_errors = {}
+			@unsafe_input = []
     end
 		def remote_addr
 			@remote_addr ||= if @request.respond_to?(:remote_addr)

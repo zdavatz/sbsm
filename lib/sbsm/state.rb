@@ -82,6 +82,9 @@ module SBSM
 			warning = Warning.new(message, key, value)
 			@warnings.push(warning)
 		end
+		def back
+			@previous
+		end
 		def checkout
 			if(@next.respond_to?(:unset_previous))
 				@next.unset_previous

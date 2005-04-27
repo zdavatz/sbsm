@@ -108,8 +108,10 @@ module SBSM
 		def format_date(date)
 			date.strftime(lookup(:date_format))
 		end
-		def format_price(price)
-			sprintf('%.2f', price.to_f/100.0) if price.to_i > 0
+		def format_price(price, currency=nil)
+			if(price.to_i > 0)
+				[currency, sprintf('%.2f', price.to_f/100.0)].compact.join(' ')
+			end
 		end
 		def navigation(filter=false)
 			@session.navigation
