@@ -71,10 +71,7 @@ module SBSM
 				sorted = @attended_states.values.sort
 				sorted[0...(-self::class::MAX_STATES)].each { |state|
 					state.checkout
-					@attended_states.delete(state.id)
-					#@cached_states.delete_if { |key, cached|
-					#	cached.id == state.id
-					#}
+					@attended_states.delete(state.object_id)
 				}
 			end
 		end
@@ -253,7 +250,7 @@ module SBSM
 				unless @state.volatile?
 					@active_state = @state
 				end
-				@attended_states.store(@state.id, @state)
+				@attended_states.store(@state.object_id, @state)
 				@app.async { cap_max_states }
 			rescue StandardError => e
 				puts "error in SBSM::Session#process"
