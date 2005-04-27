@@ -67,7 +67,7 @@ module SBSM
 			args = args.collect { |*pair| pair }.flatten
 			unless(@session.is_crawler? \
 				|| args.include?(:state_id) || args.include?('state_id'))
-				args.unshift(:state_id, @session.state.id)
+				args.unshift(:state_id, @session.state.object_id)
 			end
 			[base_url(), event, args].compact.join('/')
 		end

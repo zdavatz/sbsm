@@ -135,7 +135,7 @@ class TestSession < Test::Unit::TestCase
 		@session.process(@request)
 		state = @session.state
 		expected = {
-			state.id => state
+			state.object_id => state
 		}
 		#puts 'test'
 		#puts @state
@@ -157,9 +157,9 @@ class TestSession < Test::Unit::TestCase
 		assert_not_equal(state1, state3)
 		assert_not_equal(state2, state3)
 		attended = {
-			state1.id => state1,
-			state2.id => state2,
-			state3.id => state3,
+			state1.object_id => state1,
+			state2.object_id => state2,
+			state3.object_id => state3,
 		}
 		assert_equal(attended, @session.attended_states)
 		req4 = StubSessionRequest.new
@@ -171,9 +171,9 @@ class TestSession < Test::Unit::TestCase
 		assert_not_equal(state2, state4)
 		assert_not_equal(state3, state4)
 		attended = {
-			state2.id => state2,
-			state3.id => state3,
-			state4.id => state4,
+			state2.object_id => state2,
+			state3.object_id => state3,
+			state4.object_id => state4,
 		}
 		assert_equal(attended, @session.attended_states)
 	end
@@ -185,7 +185,7 @@ class TestSession < Test::Unit::TestCase
 
 		state = StubSessionState.new(@session, nil)
 		@session.attended_states = {
-			state.id =>	state,
+			state.object_id =>	state,
 		}
 		@session.active_state = @state
 		assert_equal(@state, @session.active_state)
@@ -198,10 +198,10 @@ class TestSession < Test::Unit::TestCase
 
 		state = StubSessionState.new(@session, nil)
 		@session.attended_states = {
-			state.id =>	state,
+			state.object_id =>	state,
 		}
 		@session.active_state = @state
-		@request.store('state_id', state.id.next)
+		@request.store('state_id', state.object_id.next)
 		@session.process(@request)
 		assert_equal(@state, @session.active_state)
 	end
@@ -213,10 +213,10 @@ class TestSession < Test::Unit::TestCase
 
 		state = StubSessionState.new(@session, nil)
 		@session.attended_states = {
-			state.id =>	state,
+			state.object_id =>	state,
 		}
 		@session.state = @state
-		@request.store('state_id', state.id)
+		@request.store('state_id', state.object_id)
 		@session.process(@request)
 		assert_equal(state, @session.active_state)
 	end
@@ -312,15 +312,15 @@ class TestSession < Test::Unit::TestCase
 	def test_process
 		state = StubSessionState.new(@session, nil)
 		@session.attended_states = {
-			state.id =>	state,
+			state.object_id =>	state,
 		}
 		@session.state = @state
 		expected = state.foo
-		@request.store('state_id', state.id)
+		@request.store('state_id', state.object_id)
 		@request.store('event', :foo)
 		@session.process(@request)
 		assert_equal(expected, @session.state) 
-		assert_equal(expected, @session.attended_states[expected.id])
+		assert_equal(expected, @session.attended_states[expected.object_id])
 	end
 	def test_next_html_packet
 		assert_equal('0123456789', @session.next_html_packet)
@@ -330,8 +330,8 @@ class TestSession < Test::Unit::TestCase
 	end
 	def test_logout
 		state = StubSessionBarState.new(@session, nil)
-		@session.attended_states.store(state.id, state)
-		assert_equal(state, @session.attended_states[state.id])
+		@session.attended_states.store(state.object_id, state)
+		assert_equal(state, @session.attended_states[state.object_id])
 		@session.logout
 		assert_equal(true, @session.attended_states.empty?)
 	end

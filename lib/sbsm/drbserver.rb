@@ -59,7 +59,7 @@ module SBSM
 				puts error.class
 				puts error.message
 				puts error.backtrace
-				if(target.id == @system.id)
+				if(target.object_id == @system.object_id)
 					target = self
 					retry
 				end
