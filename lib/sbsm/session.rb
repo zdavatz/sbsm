@@ -239,7 +239,10 @@ module SBSM
 		end
 		def process(request)
 			begin
-				@active_thread[:request] = @request = request
+				@request = request
+				if(@active_thread.is_a?(Thread))
+					@active_thread[:request] = request
+				end
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				import_cookies(request)

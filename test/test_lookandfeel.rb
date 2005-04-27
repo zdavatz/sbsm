@@ -34,9 +34,8 @@ class StubLookandfeelState
 	end
 end
 class StubLookandfeelSession
-	attr_accessor :persistent_user_input
-	attr_accessor :user_input
-	attr_accessor :state
+	attr_accessor :persistent_user_input, :user_input, :state, 
+		:is_crawler
 	DEFAULT_LANGUAGE = "de"
 	def initialize(*args)
 		@persistent_user_input = {}	
@@ -44,6 +43,9 @@ class StubLookandfeelSession
 	end
 	def default_language
 		"de"
+	end
+	def is_crawler?
+		!!@is_crawler
 	end
 	def language
 		persistent_user_input(:language) \
@@ -113,7 +115,8 @@ end
 
 class TestLookandfeel < Test::Unit::TestCase
 	def setup
-		@lookandfeel = LookandfeelBase.new(StubLookandfeelSession.new)
+		@session = StubLookandfeelSession.new
+		@lookandfeel = LookandfeelBase.new(@session)
 	end
 	def test_attributes
 		expected = {:foo=>"Bar", :baz=>123, :rof=>StubNotBuiltIn}
@@ -160,6 +163,11 @@ class TestLookandfeel < Test::Unit::TestCase
 	def test_event_url
 		# state_id is 4, because @session.state = nil
 		assert_equal("http://test.com/de/gcc/foo/state_id/4/bar/baz", 
+			@lookandfeel.event_url(:foo, {:bar => 'baz'}))
+	end
+	def test_event_url__crawler
+		@session.is_crawler = true
+		assert_equal("http://test.com/de/gcc/foo/bar/baz", 
 			@lookandfeel.event_url(:foo, {:bar => 'baz'}))
 	end
 	def test_event_url__state_id_given

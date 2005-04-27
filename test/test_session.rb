@@ -243,7 +243,7 @@ class TestSession < Test::Unit::TestCase
     assert_respond_to(@session, :delete)
   end
   def test_restore
-    assert_instance_of(DRb::DRbObject, @session.restore[:proxy])
+    assert_instance_of(Session, @session.restore[:proxy])
   end
 	def test_user_input_no_request
 		assert_nil(@session.user_input(:no_input))
