@@ -33,7 +33,7 @@ module SBSM
 		attr_reader :user, :active_thread, :app, :key, :cookie_input, 
 			:unsafe_input
 		include DRbUndumped 
-		CRAWLER_PATTERN = /archiver|slurp|bot|crawler/i
+		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|google/i
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = nil
 		DEFAULT_LANGUAGE = nil
