@@ -75,6 +75,13 @@ module SBSM
 				}
 			end
 		end
+		def cookie_set_or_get(key)
+			if(value = @valid_input[key])
+				set_cookie_input(key, value)
+			else
+				@cookie_input[key]
+			end
+		end
 		def get_cookie_input(key)
 			@cookie_input[key]
 		end
@@ -107,7 +114,9 @@ module SBSM
 			if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
 				cuki.each { |cuki_str|
 					CGI.parse(cuki_str).each { |key, val|
-						@cookie_input.store(key.intern, val.compact.last)
+						key = key.intern
+						valid = @validator.validate(key, val.compact.last)
+						@cookie_input.store(key, valid)
 					}
 				}
 			end
@@ -163,11 +172,14 @@ module SBSM
 			end
 		end
 		def language
+			cookie_set_or_get(:language) || default_language
+=begin
 			if(lang = @valid_input[:language])
 				set_cookie_input(:language, lang)
 			else
 				@cookie_input[:language] || self::class::DEFAULT_LANGUAGE
 			end
+=end
 		end
 		def logged_in?
 			!@user.is_a?(@unknown_user_class)
