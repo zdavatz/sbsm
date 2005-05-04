@@ -46,13 +46,13 @@ module SBSM
 		CAP_MAX_THRESHOLD = 20
 		MAX_STATES = 10
 		SERVER_NAME = nil
+		ARGV.push('') # satisfy cgi-offline prompt 
+		@@cgi = CGI.new('html4')
     def initialize(key, app, validator=nil)
 			touch()
       reset_input()
 			reset_cookie()
-			ARGV.push('') # satisfy cgi-offline prompt 
       @app = app
-			@cgi = CGI.new('html4')
 			@html_packets = nil
       @key = key
 			@validator = validator
@@ -333,7 +333,7 @@ module SBSM
     end
 		def to_html
 			html_safe_wrap {
-				@state.to_html(@cgi)
+				@state.to_html(@@cgi)
 			}
 		end
     def user_input(*keys)
