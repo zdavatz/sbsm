@@ -3,18 +3,24 @@
 
 require 'rockit/rockit'
 require 'cgi'
+require 'singleton'
 
 module SBSM
-	module TransHandler
-		GRAMMAR_PATH = File.expand_path('../../data/uri.grammar', 
-			File.dirname(__FILE__))
-		PARSER_PATH = File.expand_path('uri_parser.rb', 
-			File.dirname(__FILE__))
+	class AbstractTransHandler
+		attr_reader :parser_name
 		SHORTCUT_PATH = '../etc/shortcuts.rb'
-		HANDLER_URI = '/index.rbx'
 		@@empty_check ||= nil
 		@@lang_check ||= nil
 		@@uri_parser ||= nil
+		HANDLER_URI = '/index.rbx'
+		def initialize(name)
+			@parser_name = name
+			@parser_method = "_#{name}_parser"
+			@grammar_path = File.expand_path("../../data/#{name}.grammar", 
+				File.dirname(__FILE__))
+			@parser_path = File.expand_path("#{name}_parser.rb", 
+				File.dirname(__FILE__))
+		end
 		def handle_shortcut(request)
 			path = File.expand_path(SHORTCUT_PATH, request.server.document_root)
 			path.untaint
@@ -29,8 +35,8 @@ module SBSM
 			end
 		end
 		def parse_uri(request)
-			@@uri_parser = self.uri_parser if(@@uri_parser.nil?)
-			ast = @@uri_parser.parse(request.uri)
+			@uri_parser ||= self.uri_parser 
+			ast = @uri_parser.parse(request.uri)
 			values = request.notes
 			ast.children_names.each { |name|
 				case name
@@ -50,8 +56,8 @@ module SBSM
 			}
 		end
 		def translate_uri(request)
-			@@empty_check = Regexp.new('^/?$')
-			@@lang_check = Regexp.new('^/[a-z]{2}(/|$)')
+			@@empty_check ||= Regexp.new('^/?$')
+			@@lang_check ||= Regexp.new('^/[a-z]{2}(/|$)')
 			begin
 				handle_shortcut(request)
 				rescue StandardError => err
@@ -72,7 +78,7 @@ module SBSM
 			end
 			Apache::DECLINED
 		end
-		def uri_parser(grammar_path=GRAMMAR_PATH, parser_path=PARSER_PATH)
+		def uri_parser(grammar_path=@grammar_path, parser_path=@parser_path)
 			if(File.exist?(grammar_path))
 				oldpath = File.expand_path("_" << File.basename(grammar_path), 
 					File.dirname(grammar_path))
@@ -80,16 +86,24 @@ module SBSM
 				unless(File.exists?(oldpath) && File.read(oldpath)==src)
 					File.delete(oldpath) if File.exists?(oldpath)
 					Parse.generate_parser_from_file_to_file(grammar_path, 
-						parser_path, '_uri_parser', 'SBSM')
+						parser_path, @parser_method, 'SBSM')
 					File.open(oldpath, 'w') { |f| f << src }
 				end
 			end
 			require parser_path
-			SBSM._uri_parser
+			SBSM.send(@parser_method)
 		end
-		module_function :translate_uri
-		module_function :parse_uri
-		module_function :uri_parser
-		module_function :handle_shortcut
+	end
+	class TransHandler < AbstractTransHandler
+		include Singleton
+		def initialize
+			super('uri')
+		end
+	end
+	class FlavoredTransHandler < AbstractTransHandler
+		include Singleton
+		def initialize
+			super('flavored_uri')
+		end
 	end
 end
