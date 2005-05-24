@@ -99,7 +99,8 @@ module SBSM
 				end
 				# the variable @passthru is set by a trusted source
 				basename = File.basename(@passthru)
-				fullpath = File.join(@request.server.document_root, @passthru)
+				fullpath = File.expand_path(@passthru, 
+					@request.server.document_root)
 				fullpath.untaint
 				subreq = @request.lookup_file(fullpath)
 				@request.content_type = subreq.content_type
