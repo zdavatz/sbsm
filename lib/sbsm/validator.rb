@@ -141,7 +141,7 @@ module SBSM
 		end
 		alias :confirm_pass :pass
 		def state_id(value)
-			if(match = /\d+/.match(value))
+			if(match = /-?\d+/.match(value))
 				match[0].to_i
 			else
 				nil
