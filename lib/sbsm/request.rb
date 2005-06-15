@@ -76,6 +76,9 @@ module SBSM
 				@session.close if @session.respond_to?(:close)
 			end
 		end
+		def unparsed_uri
+			@request.unparsed_uri
+		end
 		private
 		def drb_request
 			@session = CGI::Session.new(@cgi,
