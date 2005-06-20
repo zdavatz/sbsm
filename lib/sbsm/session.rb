@@ -209,6 +209,7 @@ module SBSM
 		end
 		def flavor
 			user_input = persistent_user_input(:flavor)
+			user_input ||= user_input(:default_flavor)
 			lf_factory = self::class::LF_FACTORY
 			if(lf_factory && lf_factory.include?(user_input))
 				user_input

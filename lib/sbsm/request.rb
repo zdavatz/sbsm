@@ -61,6 +61,7 @@ module SBSM
 		end
 		def process
 			begin
+				@cgi.params.store('default_flavor', ENV['DEFAULT_FLAVOR'])
 				@request.notes.each { |key, val|
 					@cgi.params.store(key, val)
 				}
