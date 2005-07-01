@@ -173,13 +173,6 @@ module SBSM
 		end
 		def language
 			cookie_set_or_get(:language) || default_language
-=begin
-			if(lang = @valid_input[:language])
-				set_cookie_input(:language, lang)
-			else
-				@cookie_input[:language] || self::class::DEFAULT_LANGUAGE
-			end
-=end
 		end
 		def logged_in?
 			!@user.is_a?(@unknown_user_class)

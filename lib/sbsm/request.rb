@@ -91,10 +91,10 @@ module SBSM
 		end
 		def drb_response
 			res = ''
-			cookie_input = @proxy.cookie_input
 			while(snip = @proxy.next_html_packet)
 				res << snip
 			end
+			cookie_input = @proxy.cookie_input
 			# view.to_html can call passthru instead of sending data
 			if(@passthru) 
 				unless(cookie_input.empty?)
