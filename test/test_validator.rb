@@ -104,6 +104,7 @@ class TestValidator < Test::Unit::TestCase
 		assert_equal(nil, @val.validate(:state_id, nil))
 		assert_equal(nil, @val.validate(:state_id, "df"))
 		assert_equal(1245, @val.validate(:state_id, "1245"))
+		assert_equal(-1245, @val.validate(:state_id, "-1245"))
 	end
 	def test_pattern
 		assert_equal('new', @val.validate(:pattern, 'new'))
