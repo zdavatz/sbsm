@@ -77,6 +77,9 @@ module SBSM
 				@session.close if @session.respond_to?(:close)
 			end
 		end
+		def remote_host(lookup_type=Apache::REMOTE_NOLOOKUP)
+			@request.remote_host(lookup_type)
+		end
 		def unparsed_uri
 			@request.unparsed_uri
 		end

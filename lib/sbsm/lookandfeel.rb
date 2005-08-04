@@ -49,7 +49,6 @@ module SBSM
       @flavor = @session.flavor
       @language = @session.language
       set_dictionary(@language)
-			#set_resources_language(@language)
 		end
 		def attributes(key)
 			self::class::HTML_ATTRIBUTES.fetch(key, {}).dup

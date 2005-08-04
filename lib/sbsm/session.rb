@@ -109,6 +109,9 @@ module SBSM
 		def expired?
       Time.now - @mtime > EXPIRES
 		end
+		def force_login(user)
+			@user = user
+		end
 		def import_cookies(request)
 			reset_cookie()
 			if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
@@ -299,6 +302,9 @@ module SBSM
 			@remote_addr ||= if @request.respond_to?(:remote_addr)
 				@request.remote_addr
 			end
+		end
+		def remote_ip
+			@request.remote_host
 		end
 		def set_cookie_input(key, val)
 			@cookie_input.store(key, val)
