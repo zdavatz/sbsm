@@ -380,7 +380,7 @@ module SBSM
       @app.delete_session @key
     end
 		def zone
-			user_input(:zone) || active_state.zone || self::class::DEFAULT_ZONE
+			user_input(:zone) || @state.zone || self::class::DEFAULT_ZONE
 		end
 		def zones 
 			@active_state.zones
