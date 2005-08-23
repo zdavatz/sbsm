@@ -75,6 +75,9 @@ module SBSM
 				}
 			end
 		end
+		def checkout
+			true
+		end
 		def cookie_set_or_get(key)
 			if(value = @valid_input[key])
 				set_cookie_input(key, value)
