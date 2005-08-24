@@ -85,12 +85,12 @@ module SBSM
 		def back
 			@previous
 		end
-		def checkout
+		def __checkout
 			if(@next.respond_to?(:unset_previous))
 				@next.unset_previous
 			end
-			if(@next.respond_to?(:checkout))
-				@next.checkout
+			if(@next.respond_to?(:__checkout))
+				@next.__checkout
 			end
 			@next = nil
 		end

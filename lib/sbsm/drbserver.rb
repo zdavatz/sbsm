@@ -74,26 +74,27 @@ module SBSM
 				#puts "too many sessions! Keeping only #{self::class::MAX_SESSIONS}"
 				sorted = @sessions.values.sort
 				sorted[0...(-self::class::MAX_SESSIONS)].each { |sess|
-					sess.checkout
+					sess.__checkout
 					@sessions.delete(sess.key)
 				}
 			end
 		end
 		def clean
 			sleep self::class::CLEANING_INTERVAL
-			cap_max_sessions()
 			@sessions.delete_if { |key, s| 
-				!s.respond_to?(:expired?) || (s.expired? && s.checkout)
+				!s.respond_to?(:expired?) \
+					|| ((s.is_crawler? || s.expired?) && s.__checkout)
 			}
+			cap_max_sessions()
 			@async.delete_if { |thread| !thread.alive? }
 		end
 		def clear
-			@sessions.each { |sess| sess.checkout }
+			@sessions.each_value { |sess| sess.__checkout }
 			@sessions.clear
 		end
 		def delete_session(key)
 			if(sess = @sessions.delete(key))
-				sess.checkout
+				sess.__checkout
 			end
 		end
 		def run_cleaner

@@ -70,12 +70,12 @@ module SBSM
 				#$stdout.flush
 				sorted = @attended_states.values.sort
 				sorted[0...(-self::class::MAX_STATES)].each { |state|
-					state.checkout
+					state.__checkout
 					@attended_states.delete(state.object_id)
 				}
 			end
 		end
-		def checkout
+		def __checkout
 			true
 		end
 		def cookie_set_or_get(key)
@@ -263,7 +263,8 @@ module SBSM
 					@active_state = @state
 				end
 				@attended_states.store(@state.object_id, @state)
-				@app.async { cap_max_states }
+				#@app.async { cap_max_states }
+				cap_max_states
 			rescue StandardError => e
 				puts "error in SBSM::Session#process"
 				puts e.class
