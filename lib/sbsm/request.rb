@@ -151,12 +151,14 @@ module SBSM
 		def handle_exception(e)
 			if defined?(Apache)
 				msg = [
-					[Time.now, id].join(' - '),
+					[Time.now, self.object_id].join(' - '),
 					e.class,
 					e.message,
-					e.backtrace,
-				].flatten.join("\n")
+				].join(" - ")
 				@request.server.log_error(msg)
+				e.backtrace.each { |line|
+					@request.server.log_error(line)
+				}
 			end
 			hdrs = {
 				'Status' => '302 Moved', 

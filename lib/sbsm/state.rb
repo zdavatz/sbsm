@@ -39,9 +39,6 @@ module SBSM
 			@value = value
 		end
 	end
-	class HtmlStub
-		attr_accessor :to_html
-	end
 	class State
 		attr_reader :errors, :infos, :events
 		attr_reader :previous, :warnings
@@ -86,6 +83,8 @@ module SBSM
 			@previous
 		end
 		def __checkout
+			return if(@checked_out)
+			@checked_out = true
 			if(@next.respond_to?(:unset_previous))
 				@next.unset_previous
 			end
@@ -151,25 +150,7 @@ module SBSM
 			@mtime = Time.now
 		end
 		def to_html(context)
-			begin
-				html_output = view.to_html(context)
-				#		view.explode!
-				html_output
-			rescue StandardError => e
-				puts "error in SBSM::State#to_html"
-				puts e.class
-				puts e.message
-				puts e.backtrace
-				if(@previous) 
-					begin
-						@previous.to_html(context)
-					rescue StandardError => f
-						"Fatal: @previous.to_html raised #{f}"
-					end
-				else
-					"Fatal: no previous State!"
-				end
-			end
+			view.to_html(context)
 		end
 		def trigger(event)
 			@errors = {}
@@ -195,19 +176,6 @@ module SBSM
 		def warning?
 			!@warnings.empty?		
 		end
-=begin
-		def user_input(keys)
-			keys.inject({}) { |inj, key|
-				value = @session.user_input(key)
-				if(value.is_a? RuntimeError)
-					@errors.store(key, value)
-				else
-					inj.store(key, value)
-				end
-				inj
-			}
-		end
-=end
 		def user_input(keys=[], mandatory=[])
 			keys = [keys] unless keys.is_a?(Array)
 			mandatory = [mandatory] unless mandatory.is_a?(Array)
@@ -223,50 +191,15 @@ module SBSM
 			end
 		end
 		def view
-			#puts "view start"
-			begin
-				if(@view.nil?)
-					#puts "view was not initialized. doing it now..."
-					klass = @default_view
-					if(klass.is_a?(Hash))
-						klass = klass.fetch(@session.user.class) {
-							klass[:default]
-						}
-					end
-					#puts "view will be a #{klass}"
-					model = if(@filter.is_a? Proc)
-					#puts "filtering the model"
-						@filter.call(@model)
-					else
-						@model
-					end
-					#puts "creating the actual view of klass: #{klass}"
-					#puts model.class
-					#puts @session.class
-					@view = klass.new(model, @session)	
-					#puts "the view is #{@view}"
+			@view ||= begin
+				klass = @default_view
+				if(klass.is_a?(Hash))
+					klass = klass.fetch(@session.user.class) {
+						klass[:default]
+					}
 				end
-				@view
-			rescue StandardError => e
-				puts "error in SBSM::State#view"
-				puts e.class
-				puts e.message
-				puts e.backtrace
-				if(@previous)
-					begin
-						view = @previous.view 
-						@previous.reset_view	
-						view
-					rescue
-						stub = HtmlStub.new
-						stub.to_html = 'fatal: could not get view'
-						stub
-					end
-				else
-					stub = HtmlStub.new
-					stub.to_html = 'fatal: could not get view'
-					stub
-				end
+				model = (@filter.is_a? Proc) ? @filter.call(@model) : @model
+				klass.new(model, @session)	
 			end
 		end
 		def volatile?
