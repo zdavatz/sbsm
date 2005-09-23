@@ -81,8 +81,12 @@ module SBSM
 		end
 		def clean
 			@sessions.delete_if { |key, s| 
-				!s.respond_to?(:expired?) \
-					|| ((s.is_crawler? || s.expired?) && s.__checkout)
+				begin
+					!s.respond_to?(:expired?) \
+						|| ((s.is_crawler? || s.expired?) && s.__checkout)
+				rescue
+					true
+				end
 			}
 			cap_max_sessions()
 			@async.delete_if { |thread| !thread.alive? }
