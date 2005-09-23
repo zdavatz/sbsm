@@ -22,8 +22,8 @@
 #
 # Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com 
 
-require 'drb/drb'
 require 'sbsm/cgi'
+require 'sbsm/drb'
 require 'sbsm/state'
 require 'sbsm/lookandfeelfactory'
 require 'delegate'
@@ -308,7 +308,9 @@ module SBSM
 			end
 		end
 		def remote_ip
-			@request.remote_host
+			@remote_ip ||= if(@request.respond_to?(:remote_host))
+				@request.remote_host
+			end
 		end
 		def set_cookie_input(key, val)
 			@cookie_input.store(key, val)

@@ -23,9 +23,9 @@
 # Request -- sbsm -- hwyss@ywesee.com
 
 require 'sbsm/cgi'
+require 'sbsm/drb'
 require 'cgi/session'
 require 'cgi/drbsession'
-require 'drb/drb'
 require 'delegate'
 
 module SBSM
