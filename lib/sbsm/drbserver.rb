@@ -80,7 +80,6 @@ module SBSM
 			end
 		end
 		def clean
-			sleep self::class::CLEANING_INTERVAL
 			@sessions.delete_if { |key, s| 
 				!s.respond_to?(:expired?) \
 					|| ((s.is_crawler? || s.expired?) && s.__checkout)
@@ -101,7 +100,7 @@ module SBSM
 			# puts "running cleaner thread"
 			Thread.new {
 				Thread.current.abort_on_exception = true
-				Thread.current.priority = 1
+				Thread.current.priority = 0
 				loop {
 					sleep self::class::CLEANING_INTERVAL
 					clean()

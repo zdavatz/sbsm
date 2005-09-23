@@ -218,6 +218,8 @@ module SBSM
 		end
 		def http_headers
 			@state.http_headers
+		rescue StandardError
+			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
 			@http_protocol ||= if(@request.respond_to?(:server_protocol) && 
@@ -231,10 +233,8 @@ module SBSM
 			@user.navigation
 		end
 		def next_html_packet
-			html_safe_wrap {
-				@html_packets = to_html unless @html_packets
-				@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT) unless @html_packets.empty?
-			}
+			@html_packets = to_html unless @html_packets
+			@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT) unless @html_packets.empty?
 		end
 		def passthru(path)
 			@request.passthru(path)
@@ -409,13 +409,8 @@ module SBSM
 		def html_safe_wrap(&block)
 			begin
 				block.call
-			rescue StandardError => e
-				msg = [
-					e.class,
-					e.message,
-					e.backtrace.join("<br>"),
-				].join("</p><p>")
-				"<p>" << msg << "</p>"
+			rescue RuntimeError, StandardError => e
+				[ e.class, e.message ].concat(e.backtrace).join("\n")
 			end
 		end
 		protected
