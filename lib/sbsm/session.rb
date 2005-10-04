@@ -56,7 +56,6 @@ module SBSM
 			@html_packets = nil
       @key = key
 			@validator = validator
-			#@cached_states = {}
 			@attended_states = {}
 			@persistent_user_input = {}
 			logout()
@@ -73,9 +72,16 @@ module SBSM
 					state.__checkout
 					@attended_states.delete(state.object_id)
 				}
+				## start GC if we are maxing out:
+				Object.new
 			end
 		end
 		def __checkout
+			@attended_states.each_value { |state| state.__checkout }
+			@attended_states.clear
+			@persistent_user_input.clear
+			@valid_input.clear
+			@unsafe_input.clear
 			true
 		end
 		def cookie_set_or_get(key)
@@ -189,9 +195,7 @@ module SBSM
 			end
 		end
 		def logout
-			#@cached_states.clear
-			@attended_states.clear
-			@persistent_user_input.clear
+			__checkout
 			@user = @app.unknown_user()
 		end
 		def lookandfeel
@@ -325,13 +329,7 @@ module SBSM
 			@server_name = self::class::SERVER_NAME
 		end
 		def state(event=nil)
-			#if(event.nil?)
-				@active_state
-			#else
-			#	@cached_states.fetch(event) {
-			#		@active_state
-			#	}
-			#end
+			@active_state
 		end
     def touch
       @mtime = Time.now

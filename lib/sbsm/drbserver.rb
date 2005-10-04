@@ -31,7 +31,7 @@ require 'digest/md5'
 module SBSM
 	class DRbServer < SimpleDelegator
 		include DRbUndumped
-		CLEANING_INTERVAL = 300
+		CLEANING_INTERVAL = 30
 		CAP_MAX_THRESHOLD = 30
 		ENABLE_ADMIN = false
 		MAX_SESSIONS = 20
@@ -104,7 +104,7 @@ module SBSM
 			# puts "running cleaner thread"
 			Thread.new {
 				Thread.current.abort_on_exception = true
-				Thread.current.priority = 0
+				Thread.current.priority = 1
 				loop {
 					sleep self::class::CLEANING_INTERVAL
 					clean()

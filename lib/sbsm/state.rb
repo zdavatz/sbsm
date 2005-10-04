@@ -85,13 +85,16 @@ module SBSM
 		def __checkout
 			return if(@checked_out)
 			@checked_out = true
+			reset_view
+			@model = nil
 			if(@next.respond_to?(:unset_previous))
 				@next.unset_previous
 			end
-			if(@next.respond_to?(:__checkout))
-				@next.__checkout
-			end
 			@next = nil
+			if(@previous.respond_to?(:__checkout))
+				@previous.__checkout
+			end
+			@previous = nil
 		end
 		def create_error(msg, key, val)
 			ProcessingError.new(msg.to_s, key, val)
