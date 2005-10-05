@@ -253,9 +253,7 @@ module SBSM
 		def process(request)
 			begin
 				@request = request
-				if(@active_thread.is_a?(Thread))
-					@active_thread[:request] = request
-				end
+				Thread.current[:request] = request
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				import_cookies(request)
@@ -281,16 +279,16 @@ module SBSM
 			''
 		end
 		def reset
-			if(@active_thread && 
-				!@active_thread.stop? && 
-				@active_thread!=Thread.current)
-				puts "killing #{@active_thread}"
+			## called with priority 3 from DRbServer
+			if(@active_thread \
+				&& @active_thread != Thread.current)
 				begin
+					puts "killing #{@active_thread}"
+					@active_thread.exit 
 					if(old_request = @active_thread[:request])
 						puts "...and aborting old request"
 						old_request.abort
 					end
-					@active_thread.exit 
 				rescue StandardError
 				end
 			end

@@ -90,12 +90,6 @@ module SBSM
 				'drbsession_uri'		=>	@drb_uri,
 				'session_path'			=>	'/')
 			@proxy = @session[:proxy]
-			@request.register_cleanup { 
-				begin
-					@proxy.reset 
-				rescue Exception
-				end
-			}
 			@proxy.process(self)
 		end
 		def drb_response
