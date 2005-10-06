@@ -238,7 +238,14 @@ module SBSM
 		end
 		def next_html_packet
 			@html_packets = to_html unless @html_packets
-			@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT) unless @html_packets.empty?
+			if(@html_packets.empty?)
+				if(@active_thread == Thread.current)
+					@active_thread = nil
+				end
+				Thread.current[:request] = nil
+			else
+				@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT)
+			end
 		end
 		def passthru(path)
 			@request.passthru(path)
@@ -281,6 +288,7 @@ module SBSM
 		def reset
 			## called with priority 3 from DRbServer
 			if(@active_thread \
+				&& @active_thread.alive? \
 				&& @active_thread != Thread.current)
 				begin
 					puts "killing #{@active_thread}"
