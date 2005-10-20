@@ -143,15 +143,12 @@ module SBSM
 				index = nil
 				@unsafe_input.push([key.to_s.dup, value.to_s.dup])
 				unless(key.nil? || key.empty?)
- 					if(match = /([^\[]+)\[\]$/.match(key))
- 						key = match[1].to_sym
- 						index = (@valid_input[key] ||= []).size
- 					elsif(match = /([^\[]+)\[([^\]]+)\]$/.match(key))
+					if match = /([^\[]+)\[([^\]]+)\]/.match(key)
 						key = match[1]
 						index = match[2]
 						#puts key, index
 					end
-					key = key.to_sym
+					key = key.intern 
 					if(key == :confirm_pass)
 						pass = request.params["pass"]
 						#puts "pass:#{pass} - confirm:#{value}"
@@ -160,7 +157,7 @@ module SBSM
 					else
 						valid = @validator.validate(key, value)
 						if(index)
- 							(@valid_input[key] ||= {})[index] = valid
+							(@valid_input[key] ||= {}).store(index, valid)
 						else
 							@valid_input[key] = valid
 						end
