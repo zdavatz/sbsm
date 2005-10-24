@@ -265,6 +265,7 @@ module SBSM
 				import_user_input(request)
 				import_cookies(request)
 				@state = active_state.trigger(event()) 
+				@state.request_path ||= @request.unparsed_uri
 				@zone = @state.zone
 				@state.reset_view
 				@state.touch

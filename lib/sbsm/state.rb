@@ -40,9 +40,8 @@ module SBSM
 		end
 	end
 	class State
-		attr_reader :errors, :infos, :events
-		attr_reader :previous, :warnings
-		attr_accessor :next
+		attr_reader :errors, :infos, :events, :previous, :warnings
+		attr_accessor :next, :request_path
 		DIRECT_EVENT = nil
 		ZONE = nil
 		ZONES = []
