@@ -23,6 +23,7 @@
 # Lookandfeel -- sbsm -- hwyss@ywesee.com
 
 require 'sbsm/time'
+require 'cgi'
 
 module SBSM
   class Lookandfeel
@@ -53,9 +54,9 @@ module SBSM
 		def attributes(key)
 			self::class::HTML_ATTRIBUTES.fetch(key, {}).dup
 		end
-    def base_url
-      [@session.http_protocol + ':/', @session.server_name, @language, @flavor].compact.join("/")
-    end
+		def base_url
+			[@session.http_protocol + ':/', @session.server_name, @language, @flavor].compact.join("/")
+		end
 		def direct_event
 			@session.direct_event
 		end
@@ -63,15 +64,18 @@ module SBSM
 			default || self::class::ENABLED.include?(event)
 		end
 		def event_url(event=direct_event, args={})
-			args = args.collect { |*pair| pair }.flatten
-			unless(@session.is_crawler? \
-				|| args.include?(:state_id) || args.include?('state_id'))
-				args.unshift(:state_id, @session.state.object_id)
-			end
-			[base_url(), event, args].compact.join('/')
+			_event_url(event, args) { |args|
+				unless(@session.is_crawler? || args.include?('state_id'))
+					args.unshift(:state_id, @session.state.object_id)
+				end
+			}
 		end
-		def _event_url(event=direct_event, args={})
+		def _event_url(event=direct_event, args={}, &block)
 			args = args.collect { |*pair| pair }.flatten
+			args = args.collect { |value| CGI.escape(value.to_s) }
+			if(block_given?)
+				yield(args)
+			end
 			[base_url(), event, args].compact.join('/')
 		end
 		def languages
