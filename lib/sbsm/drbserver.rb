@@ -23,6 +23,7 @@
 # DrbServer -- sbsm -- hwyss@ywesee.com
 
 require 'delegate'
+require 'sbsm/drb'
 require 'sbsm/session'
 require 'sbsm/user'
 require 'thread'
@@ -45,25 +46,23 @@ module SBSM
 			@mutex = Mutex.new
 			@cleaner = run_cleaner if self::class::RUN_CLEANER
 			@async = []
+			@system = persistence_layer
 			super(persistence_layer)
 		end
-		def admin(src, priority=-1)
+		def _admin(src, priority=-1)
 			return unless(self::class::ENABLE_ADMIN)
 			Thread.current.priority = priority
-			Thread.current.abort_on_exception = true
-			target = @system
-			begin
-				response = target.instance_eval(src)
-				response.to_s[0,72]
-			rescue StandardError => error
-				puts error.class
-				puts error.message
-				puts error.backtrace
-				if(target.object_id == @system.object_id)
-					target = self
-					retry
-				end
-				error
+			Thread.current.abort_on_exception = false
+			response = begin
+				instance_eval(src)
+			rescue Exception => e
+				e
+			end
+			str = response.to_s
+			if(str.length > 200)
+				response.class
+			else
+				str
 			end
 		end
 		def async(&block)
@@ -99,6 +98,11 @@ module SBSM
 			if(sess = @sessions.delete(key))
 				sess.__checkout
 			end
+		end
+		def reset
+			@mutex.synchronize {
+				@sessions.clear
+			}
 		end
 		def run_cleaner
 			# puts "running cleaner thread"
