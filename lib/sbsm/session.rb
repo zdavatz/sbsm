@@ -31,7 +31,7 @@ require 'delegate'
 module SBSM
   class	Session < SimpleDelegator
 		attr_reader :user, :active_thread, :app, :key, :cookie_input, 
-			:unsafe_input
+			:unsafe_input, :valid_input
 		include DRbUndumped 
 		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|google|jeeves/i
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
@@ -39,7 +39,7 @@ module SBSM
 		DEFAULT_LANGUAGE = nil
 		DEFAULT_STATE = State
 		DEFAULT_ZONE = nil
-		DRB_LOAD_LIMIT = 255 * 1024
+		DRB_LOAD_LIMIT = 255 * 102400
     EXPIRES = 60 * 60
 		LF_FACTORY = nil
 		LOOKANDFEEL = Lookandfeel
@@ -233,16 +233,21 @@ module SBSM
 				'http'
 			end
 		end
+		def input_keys
+			@valid_input.keys
+		end
 		def navigation
 			@user.navigation
 		end
 		def next_html_packet
 			@html_packets = to_html unless @html_packets
 			if(@html_packets.empty?)
+				Thread.current[:request] = nil
 				if(@active_thread == Thread.current)
 					@active_thread = nil
 				end
-				Thread.current[:request] = nil
+				## return nil
+				nil
 			else
 				@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT)
 			end
@@ -268,10 +273,10 @@ module SBSM
 				@state.request_path ||= @request.unparsed_uri
 				@zone = @state.zone
 				@state.reset_view
-				@state.touch
 				unless @state.volatile?
 					@active_state = @state
 				end
+				@active_state.touch
 				@attended_states.store(@state.object_id, @state)
 				#@app.async { cap_max_states }
 				cap_max_states
