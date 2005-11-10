@@ -79,7 +79,11 @@ module SBSM
 		def __checkout
 			@attended_states.each_value { |state| state.__checkout }
 			@attended_states.clear
+			flavor = flavor()
+			lang = language()
 			@persistent_user_input.clear
+			@persistent_user_input.store(:flavor, flavor)
+			@persistent_user_input.store(:language, lang)
 			@valid_input.clear
 			@unsafe_input.clear
 			true
