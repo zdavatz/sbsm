@@ -10,12 +10,12 @@
 #
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the GNU
 # Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
 #
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
@@ -25,15 +25,14 @@
 require "sbsm/lookandfeel"
 
 module SBSM
-  class LookandfeelWrapper < Lookandfeel
-		ENABLED = []
-    def initialize(component)
-      super component.session
-      @component = component
-    end 
-    def method_missing(symbol, *args, &block)
-      @component.send(symbol, *args, &block)
-    end
+	class LookandfeelWrapper < Lookandfeel
+		def initialize(component)
+			@component = component
+			super(@component.session)
+		end 
+		def method_missing(symbol, *args, &block)
+			@component.send(symbol, *args, &block)
+		end
 		def attributes(key)
 			self::class::HTML_ATTRIBUTES.fetch(key) {
 				@component.attributes(key)
@@ -43,9 +42,18 @@ module SBSM
 			self::class::ENABLED.include?(event) \
 				|| @component.enabled?(event, default)
 		end
-    def lookup(key, *args)
-      super or @component.lookup(key, *args)
-    end
+		def languages
+			unless(@languages)
+				super
+				if(@languages.empty?) 
+					@languages = @component.languages
+				end
+			end
+			@languages
+		end
+		def lookup(key, *args)
+			super or @component.lookup(key, *args)
+		end
 		def navigation(filter=true)
 			nav = @component.navigation(false)
 			if(filter)
@@ -71,5 +79,5 @@ module SBSM
 				@component.resource_global(rname, rstr)
 			end
 		end
-  end
+	end
 end

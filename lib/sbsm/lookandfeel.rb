@@ -27,10 +27,7 @@ require 'cgi'
 
 module SBSM
   class Lookandfeel
-    attr_reader :language, :flavor
-    protected
-    attr_reader :session
-    public
+    attr_reader :language, :flavor, :session
     DICTIONARIES = {}
 		ENABLED = []
 		HTML_ATTRIBUTES = {}
@@ -123,6 +120,9 @@ module SBSM
 			collect_resource([self::class::RESOURCE_BASE, @session.flavor], 
 				rname, rstr)
 		end
+		def resource_external(rname)
+			self::class::RESOURCES[rname]
+		end
 		def resource_global(rname, rstr=nil)
 			collect_resource([self::class::RESOURCE_BASE], rname, rstr)
 		end
@@ -135,6 +135,9 @@ module SBSM
 		end
 		def zone_navigation
 			@session.zone_navigation
+		end
+		def zones
+			@session.zones
 		end
 		private
 		def collect_resource(base, rname, rstr=nil)

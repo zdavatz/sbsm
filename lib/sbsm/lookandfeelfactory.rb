@@ -31,11 +31,16 @@ module SBSM
     class << self
       def create(session)
         lnf = self::BASE.new(session)
-        wrappers = self::WRAPPERS[session.flavor]
-        wrappers.each { |wrapper| 
-          lnf = wrapper.new(lnf)
-        } if wrappers
+        if(wrappers = self::WRAPPERS[session.flavor])
+					lnf = wrappers.inject(lnf) { |lnf, klass| 
+						klass.new(lnf)
+					}
+				end
         lnf
+			rescue Exception => e
+				puts e.class
+				puts e.message
+				puts e.backtrace
       end
 			def include?(str)
 				self::WRAPPERS.include?(str)
