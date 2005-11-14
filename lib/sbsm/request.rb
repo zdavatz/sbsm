@@ -116,7 +116,7 @@ module SBSM
 				@request.headers_out.add('Content-Length', 
 					File.size(fullpath).to_s)
 				begin
-					@cgi.out { File.read(fullpath) }
+					File.open(fullpath) { |fd| @request.send_fd(fd) }
         rescue Errno::ENOENT, IOError => err
           @request.log_reason(err.message, @passthru)
           return Apache::NOT_FOUND
