@@ -31,7 +31,7 @@ require 'delegate'
 module SBSM
   class	Session < SimpleDelegator
 		attr_reader :user, :active_thread, :app, :key, :cookie_input, 
-			:unsafe_input, :valid_input
+			:unsafe_input, :valid_input, :request_path
 		include DRbUndumped 
 		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|google|jeeves/i
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
