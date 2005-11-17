@@ -250,8 +250,9 @@ module SBSM
 				if(@active_thread == Thread.current)
 					@active_thread = nil
 				end
+				$stdout.flush
 				## return nil
-				nil
+				@html_packets = nil
 			else
 				@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT)
 			end

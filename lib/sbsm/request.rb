@@ -29,7 +29,7 @@ require 'cgi/drbsession'
 require 'delegate'
 
 module SBSM
-  class Request < SimpleDelegator
+  class Request < DelegateClass(CGI)
     include DRbUndumped
     attr_reader :cgi
     def initialize(drb_uri, html_version = "html4")
