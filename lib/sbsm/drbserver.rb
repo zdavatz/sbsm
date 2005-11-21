@@ -111,7 +111,9 @@ module SBSM
 				Thread.current.priority = 1
 				loop {
 					sleep self::class::CLEANING_INTERVAL
-					clean()
+					@mutex.synchronize {
+						clean()
+					}
 				}
 			}
 		end
@@ -119,7 +121,7 @@ module SBSM
 			self::class::UNKNOWN_USER.new
 		end
 		def [](key)
-			#@mutex.synchronize {
+			@mutex.synchronize {
 				unless(s = @sessions[key] and not s.expired?)
 					args = [key, self]
 					if(klass = self::class::VALIDATOR)
@@ -127,13 +129,12 @@ module SBSM
 					end
 					s = @sessions[key] = self::class::SESSION.new(*args.compact)
 				end
-				#Thread.current.abort_on_exception = true
 				Thread.current.priority = 3
 				s.reset()
 				Thread.current.priority = 0
 				s.touch()
 				s
-			#}
+			}
 		end
 	end
 end

@@ -247,10 +247,6 @@ module SBSM
 			@html_packets = to_html unless @html_packets
 			if(@html_packets.empty?)
 				Thread.current[:request] = nil
-				if(@active_thread == Thread.current)
-					@active_thread = nil
-				end
-				$stdout.flush
 				## return nil
 				@html_packets = nil
 			else
@@ -297,6 +293,7 @@ module SBSM
 		end
 		def reset
 			## called with priority 3 from DRbServer
+=begin
 			if(@active_thread \
 				&& @active_thread.alive? \
 				&& @active_thread != Thread.current)
@@ -311,6 +308,7 @@ module SBSM
 				end
 			end
 			@active_thread = Thread.current
+=end
 			reset_input()
 			@html_packets = nil
 		end
