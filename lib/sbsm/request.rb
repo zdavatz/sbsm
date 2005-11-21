@@ -29,7 +29,7 @@ require 'cgi/drbsession'
 require 'delegate'
 
 module SBSM
-  class Request < DelegateClass(CGI)
+  class Request < SimpleDelegator
     include DRbUndumped
     attr_reader :cgi
     def initialize(drb_uri, html_version = "html4")
@@ -66,7 +66,6 @@ module SBSM
 					@cgi.params.store(key, val)
 				}
 				@thread = Thread.new {
-					Thread.current.priority=10
 					drb_request()
 					drb_response()
 				}	
@@ -165,9 +164,9 @@ module SBSM
 				'Location' => '/resources/errors/appdown.html',
 			}
 			@cgi.header(hdrs)
-		ensure
-			@thread.exit 
-			@proxy.active_thread.exit if @proxy
+		#ensure
+			#@thread.exit 
+			#@proxy.active_thread.exit if @proxy
 		end
   end
 end
