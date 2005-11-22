@@ -136,7 +136,7 @@ module SBSM
 		def zone_navigation
 			@session.zone_navigation
 		end
-		def zones
+		def zones(filter=false)
 			@session.zones
 		end
 		private

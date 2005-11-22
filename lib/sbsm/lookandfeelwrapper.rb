@@ -79,5 +79,16 @@ module SBSM
 				@component.resource_global(rname, rstr)
 			end
 		end
+		def zones(filter=true)
+			nav = @component.zones(false)
+			if(filter)
+				nav.select { |item| 
+					key = (item.is_a? Symbol) ? item : item.direct_event
+					enabled?(key)
+				}
+			else
+				nav
+			end
+		end
 	end
 end
