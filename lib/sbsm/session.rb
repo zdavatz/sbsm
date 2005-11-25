@@ -356,9 +356,19 @@ module SBSM
 		end
     def user_input(*keys)
 			if(keys.size == 1)
-				key = keys.first
-				key_sym = (key.is_a? Symbol) ? key : key.to_s.intern
-				@valid_input[key_sym]
+				index = nil
+				key = keys.first.to_s
+				if match = /([^\[]+)\[([^\]]+)\]/.match(key)
+					key = match[1]
+					index = match[2]
+				end
+				key_sym = key.to_sym
+				valid = @valid_input[key_sym]
+				if(index && valid.respond_to?(:[]))
+					valid[index]
+				else
+					valid
+				end
 			else
 				keys.inject({}) { |inj, key|
 					inj.store(key, user_input(key))
