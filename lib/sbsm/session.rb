@@ -61,6 +61,7 @@ module SBSM
 			logout()
 			@active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
 			@unknown_user_class = @user.class
+			@variables = {}
 			super(app)
     end
 		def cap_max_states
@@ -419,6 +420,12 @@ module SBSM
 		end
 		def <=>(other)
 			self.weighted_mtime <=> other.weighted_mtime	
+		end
+		def [](key)
+			@variables[key]
+		end
+		def []=(key, val)
+			@variables[key] = val
 		end
 		private
 		def active_state
