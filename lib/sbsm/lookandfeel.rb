@@ -60,20 +60,24 @@ module SBSM
 		def enabled?(event, default=true)
 			default || self::class::ENABLED.include?(event)
 		end
-		def event_url(event=direct_event, args={})
-			_event_url(event, args) { |args|
+		def event_url(event=direct_event, args={}, anchor=nil)
+			_event_url(event, args, anchor=nil) { |args|
 				unless(@session.is_crawler? || args.include?('state_id'))
 					args.unshift(:state_id, @session.state.object_id)
 				end
 			}
 		end
-		def _event_url(event=direct_event, args={}, &block)
+		def _event_url(event=direct_event, args={}, anchor=nil, &block)
 			args = args.collect { |*pair| pair }.flatten
 			args = args.collect { |value| CGI.escape(value.to_s) }
 			if(block_given?)
 				yield(args)
 			end
-			[base_url(), event, args].compact.join('/')
+			url = [base_url(), event, args].compact.join('/')
+			if(anchor)
+				url << "#" << anchor.to_s
+			end
+			url
 		end
 		def languages
 			@languages ||= self::class::DICTIONARIES.keys.sort
@@ -133,7 +137,7 @@ module SBSM
 			end
 			result
 		end
-		def zone_navigation
+		def zone_navigation(filter=false)
 			@session.zone_navigation
 		end
 		def zones(filter=false)
