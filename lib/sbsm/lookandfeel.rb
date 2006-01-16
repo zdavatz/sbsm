@@ -117,6 +117,9 @@ module SBSM
 				[currency, sprintf('%.2f', price.to_f/100.0)].compact.join(' ')
 			end
 		end
+		def format_time(time)
+			time.strftime(lookup(:time_format))
+		end
 		def navigation(filter=false)
 			@session.navigation
 		end

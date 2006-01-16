@@ -23,6 +23,7 @@
 # Validator -- sbsm -- 15.11.2002 -- hwyss@ywesee.com 
 
 require 'digest/md5'
+require 'iconv'
 require 'tmail'
 require 'date'
 require 'drb/drb'
@@ -91,7 +92,8 @@ module SBSM
 			value = value.to_s.strip
 			begin
 				if(key==:event)
-					value.intern if @events.include?(value.intern)
+					symbol = value.to_sym
+					symbol if @events.include?(symbol)
 				elsif(@boolean.include?(key))
 					validate_boolean(key, value)
 				elsif(@dates.include?(key))
@@ -115,15 +117,15 @@ module SBSM
 		end
 		private
 		def email(value)
-			begin
-				if(TMail::Address.parse(value).domain)
-					value
-				else
-					raise InvalidDataError.new(:e_domainless_email_address, :email, value)
-				end
-			rescue TMail::SyntaxError => e
-				raise InvalidDataError.new(:e_invalid_email_address, :email, value)
+			return if(value.empty?)
+			parsed = TMail::Address.parse(value)
+			if(TMail::Address.parse(value).domain)
+				value
+			else
+				raise InvalidDataError.new(:e_domainless_email_address, :email, value)
 			end
+		rescue TMail::SyntaxError => e
+			raise InvalidDataError.new(:e_invalid_email_address, :email, value)
 		end
 		def filename(value)
 			if(value == File.basename(value))
@@ -158,6 +160,14 @@ module SBSM
 				raise InvalidDataError.new(:e_invalid_boolean, key, value)
 			end
 		end
+		def validate_date(key, value)
+			return nil if (value.empty?)
+			begin
+				Date.parse(value.tr('.', '-'))
+			rescue ArgumentError
+				raise InvalidDataError.new(:e_invalid_date, key, value)
+			end
+		end
 		def validate_file(key, value)
 			return nil if value.original_filename.empty?
 			value
@@ -169,17 +179,6 @@ module SBSM
 				raise InvalidDataError.new(:e_invalid_numeric_format, key, value)
 			end
 		end
-		def validate_string(value)
-			value
-		end
-		def validate_date(key, value)
-			return nil if (value.empty?)
-			begin
-				Date.parse(value.tr('.', '-'))
-			rescue ArgumentError
-				raise InvalidDataError.new(:e_invalid_date, key, value)
-			end
-		end
 		def validate_pattern(key, value)
 			pattern = @patterns[key] 
 			if(match = pattern.match(value))
@@ -188,14 +187,6 @@ module SBSM
 		end
 		def validate_string(value)
 			value
-		end
-		def validate_date(key, value)
-			return nil if (value.empty?)
-			begin
-				Date.parse(value.tr('.', '-'))
-			rescue ArgumentError
-				raise InvalidDataError.new(:e_invalid_date, key, value)
-			end
 		end
 		def validate_uri(key, value)
 			uri = URI.parse(value)

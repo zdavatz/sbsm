@@ -48,6 +48,7 @@ module SBSM
 		ZONE_EVENT = nil
 		EVENT_MAP = {}
 		GLOBAL_MAP = {}
+		REVERSE_MAP = {}
 		VIEW = nil
 		VOLATILE = false
 		def State::direct_event
@@ -148,6 +149,13 @@ module SBSM
 		def reset_view
 			@view = nil
 		end
+		def sort
+			return self unless @model.respond_to?(:sort!)
+			get_sortby!
+			@model.sort! { |a, b| compare_entries(a, b) }
+			@model.reverse! if(@sort_reverse)
+			self
+		end
 		def touch
 			@mtime = Time.now
 		end
@@ -223,6 +231,39 @@ module SBSM
 		def init
 		end
 		protected
+		def compare_entries(a, b)
+			@sortby.each { |sortby|
+				aval, bval = nil
+				begin
+					aval = a.send(sortby)
+					bval = b.send(sortby)
+				rescue
+					next
+				end
+				res = if (aval.nil? && bval.nil?)
+					0
+				elsif (aval.nil?)
+					1
+				elsif (bval.nil?)
+					-1
+				else 
+					aval <=> bval
+				end
+				return res if(res.nonzero?)
+			}
+			0
+		end
+		def get_sortby!
+			@sortby ||= []
+			sortvalue = @session.user_input(:sortvalue).to_sym
+			if(@sortby.first == sortvalue)
+				@sort_reverse = !@sort_reverse 
+			else
+				@sort_reverse = self.class::REVERSE_MAP[sortvalue] 
+			end
+			@sortby.delete(sortvalue)
+			@sortby.unshift(sortvalue)
+		end
 		attr_reader :mtime
 	end
 end

@@ -293,6 +293,7 @@ module SBSM
 			''
 		end
 		def reset
+=begin
 			## called with priority 3 from DRbServer
 			if(@active_thread \
 				&& @active_thread.alive? \
@@ -307,6 +308,7 @@ module SBSM
 				rescue StandardError
 				end
 			end
+=end
 			@active_thread = Thread.current
 			reset_input()
 			@html_packets = nil
