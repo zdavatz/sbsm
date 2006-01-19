@@ -231,8 +231,7 @@ module SBSM
 			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
-			@http_protocol ||= if(@request.respond_to?(:server_protocol) && 
-				/https/i.match(@request.server_protocol))
+			if(@request.respond_to?(:server_port) && @request.server_port == 443)
 				'https'
 			else
 				'http'
