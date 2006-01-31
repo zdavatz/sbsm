@@ -292,7 +292,7 @@ module SBSM
 			''
 		end
 		def reset
-=begin
+begin
 			## called with priority 3 from DRbServer
 			if(@active_thread \
 				&& @active_thread.alive? \
@@ -300,14 +300,16 @@ module SBSM
 				begin
 					puts "killing #{@active_thread}"
 					@active_thread.exit 
+=begin
 					if(old_request = @active_thread[:request])
 						puts "...and aborting old request"
 						old_request.abort
 					end
-				rescue StandardError
+=end
+				rescue StandardError # => e
 				end
 			end
-=end
+end
 			@active_thread = Thread.current
 			reset_input()
 			@html_packets = nil
