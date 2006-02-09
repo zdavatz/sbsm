@@ -39,9 +39,6 @@ module SBSM
 			@request = Apache.request
 			super(@cgi)
     end
-		def abort
-			@thread.exit
-		end
 		def cookies
 			if(cuki = @request.headers_in['Cookie'])
 				cuki.split(/\s*;\s*/).inject({}) { |cookies, cukip| 
@@ -65,11 +62,8 @@ module SBSM
 				@request.notes.each { |key, val|
 					@cgi.params.store(key, val)
 				}
-				@thread = Thread.new {
-					drb_request()
-					drb_response()
-				}	
-				@thread.join
+				drb_request()
+				drb_response()
 			rescue StandardError => e
 				handle_exception(e)
 			ensure
@@ -164,9 +158,6 @@ module SBSM
 				'Location' => '/resources/errors/appdown.html',
 			}
 			@cgi.header(hdrs)
-		#ensure
-			#@thread.exit 
-			#@proxy.active_thread.exit if @proxy
 		end
   end
 end

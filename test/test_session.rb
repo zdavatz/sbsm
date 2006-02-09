@@ -54,6 +54,7 @@ class StubSessionValidator
 	end
 end
 class StubSessionRequest < Hash
+	attr_accessor :unparsed_uri
 	def params
 		self
 	end

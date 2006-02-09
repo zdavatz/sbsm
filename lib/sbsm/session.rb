@@ -60,6 +60,7 @@ module SBSM
 			@persistent_user_input = {}
 			logout()
 			@active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
+			@attended_states.store(@state.object_id, @state)
 			@unknown_user_class = @user.class
 			@variables = {}
 			super(app)
@@ -246,10 +247,11 @@ module SBSM
 		def next_html_packet
 			@html_packets = to_html unless @html_packets
 			if(@html_packets.empty?)
-				Thread.current[:request] = nil
+				Thread.current.priority = 0
 				## return nil
 				@html_packets = nil
 			else
+				Thread.current.priority = 1
 				@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT)
 			end
 		end
@@ -266,7 +268,6 @@ module SBSM
 		def process(request)
 			begin
 				@request = request
-				Thread.current[:request] = request
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				import_cookies(request)
@@ -292,24 +293,14 @@ module SBSM
 			''
 		end
 		def reset
-begin
-			## called with priority 3 from DRbServer
 			if(@active_thread \
 				&& @active_thread.alive? \
 				&& @active_thread != Thread.current)
 				begin
-					puts "killing #{@active_thread}"
-					@active_thread.exit 
-=begin
-					if(old_request = @active_thread[:request])
-						puts "...and aborting old request"
-						old_request.abort
-					end
-=end
-				rescue StandardError # => e
+					@active_thread.exit
+				rescue StandardError
 				end
 			end
-end
 			@active_thread = Thread.current
 			reset_input()
 			@html_packets = nil

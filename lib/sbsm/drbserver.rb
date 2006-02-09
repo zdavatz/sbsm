@@ -129,9 +129,7 @@ module SBSM
 					end
 					s = @sessions[key] = self::class::SESSION.new(*args.compact)
 				end
-				Thread.current.priority = 3
 				s.reset()
-				Thread.current.priority = 0
 				s.touch()
 				s
 			}

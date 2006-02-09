@@ -40,7 +40,7 @@ module SBSM
 		end
 	end
 	class State
-		attr_reader :errors, :infos, :events, :previous, :warnings
+		attr_reader :errors, :infos, :events, :previous, :warnings, :model
 		attr_accessor :next, :request_path
 		DIRECT_EVENT = nil
 		ZONE = nil
