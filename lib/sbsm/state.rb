@@ -208,7 +208,7 @@ module SBSM
 						klass[:default]
 					}
 				end
-				model = (@filter.is_a? Proc) ? @filter.call(@model) : @model
+				model = @filter ? @filter.call(@model) : @model
 				klass.new(model, @session)	
 			end
 		end

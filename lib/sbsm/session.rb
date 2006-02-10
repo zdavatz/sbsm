@@ -88,6 +88,7 @@ module SBSM
 			@persistent_user_input.store(:language, lang)
 			@valid_input.clear
 			@unsafe_input.clear
+			@active_thread = nil
 			true
 		end
 		def cookie_set_or_get(key)
