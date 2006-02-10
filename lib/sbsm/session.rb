@@ -247,11 +247,9 @@ module SBSM
 		def next_html_packet
 			@html_packets = to_html unless @html_packets
 			if(@html_packets.empty?)
-				Thread.current.priority = 0
 				## return nil
 				@html_packets = nil
 			else
-				Thread.current.priority = 1
 				@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT)
 			end
 		end
