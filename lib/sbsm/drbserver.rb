@@ -45,7 +45,7 @@ module SBSM
 			@sessions = {}
 			@mutex = Mutex.new
 			@cleaner = run_cleaner if self::class::RUN_CLEANER
-			@async = []
+			@async = ThreadGroup.new
 			@system = persistence_layer
 			super(persistence_layer)
 		end
@@ -66,7 +66,7 @@ module SBSM
 			end
 		end
 		def async(&block)
-			@async.push Thread.new(&block)
+			@async.add(Thread.new(&block))
 		end
 		def cap_max_sessions
 			if(@sessions.size > self::class::CAP_MAX_THRESHOLD)
@@ -88,7 +88,6 @@ module SBSM
 				end
 			}
 			cap_max_sessions()
-			@async.delete_if { |thread| !thread.alive? }
 		end
 		def clear
 			@sessions.each_value { |sess| sess.__checkout }
@@ -108,7 +107,7 @@ module SBSM
 			# puts "running cleaner thread"
 			Thread.new {
 				Thread.current.abort_on_exception = true
-				Thread.current.priority = 1
+				#Thread.current.priority = 1
 				loop {
 					sleep self::class::CLEANING_INTERVAL
 					@mutex.synchronize {

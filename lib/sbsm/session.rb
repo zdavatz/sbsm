@@ -258,7 +258,7 @@ module SBSM
 			@request.passthru(path)
 		end
 		def persistent_user_input(key)
-			if (value = user_input(key))
+			if(value = user_input(key))
 				@persistent_user_input.store(key, value)
 			else
 				@persistent_user_input[key]
