@@ -120,7 +120,7 @@ module SBSM
 			@state.error? if @state.respond_to?(:error?)
 		end
 		def event
-			user_input(:event)
+			@valid_input[:event]
 		end
 		def expired?
       Time.now - @mtime > EXPIRES
@@ -207,7 +207,7 @@ module SBSM
 		end
 		def lookandfeel
 			if(@lookandfeel.nil? \
-				|| (@lookandfeel.flavor != persistent_user_input(:flavor)) \
+				|| (@lookandfeel.flavor != flavor) \
 				|| (@lookandfeel.language != persistent_user_input(:language)))
 				@lookandfeel = if self::class::LF_FACTORY
 					self::class::LF_FACTORY.create(self)
@@ -218,13 +218,15 @@ module SBSM
 			@lookandfeel
 		end
 		def flavor
-			user_input = persistent_user_input(:flavor)
-			user_input ||= user_input(:default_flavor)
-			lf_factory = self::class::LF_FACTORY
-			if(lf_factory && lf_factory.include?(user_input))
-				user_input
-			else	
-				self::class::DEFAULT_FLAVOR
+			@flavor ||= begin
+				user_input = persistent_user_input(:flavor)
+				user_input ||= @valid_input[:default_flavor]
+				lf_factory = self::class::LF_FACTORY
+				if(lf_factory && lf_factory.include?(user_input))
+					user_input
+				else	
+					self::class::DEFAULT_FLAVOR
+				end
 			end
 		end
 		def http_headers
@@ -233,11 +235,12 @@ module SBSM
 			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
-			if(@request.respond_to?(:server_port) && @request.server_port == 443)
-				'https'
-			else
-				'http'
-			end
+			@http_protocol ||=	if(@request.respond_to?(:server_port) \
+														&& @request.server_port == 443)
+														'https'
+													else
+														'http'
+													end
 		end
 		def input_keys
 			@valid_input.keys
@@ -310,6 +313,8 @@ module SBSM
     def reset_input
       @valid_input = {}
 			@processing_errors = {}
+			@http_protocol = nil
+			@flavor = nil
 			@unsafe_input = []
     end
 		def remote_addr
@@ -400,7 +405,7 @@ module SBSM
       @app.delete_session @key
     end
 		def zone
-			user_input(:zone) || @state.zone || self::class::DEFAULT_ZONE
+			@valid_input[:zone] || @state.zone || self::class::DEFAULT_ZONE
 		end
 		def zones 
 			@active_state.zones
@@ -422,7 +427,7 @@ module SBSM
 		end
 		private
 		def active_state
-			if(state_id = user_input(:state_id))
+			if(state_id = @valid_input[:state_id])
 				@attended_states[state_id]
 			end || @active_state
 		end
