@@ -69,7 +69,7 @@ module SBSM
 		end	
 		def valid_values(key)
 			key = key.intern if key.is_a? String
-			@enums[key]	{
+			@enums.fetch(key)	{
 				if(@boolean.include?(key))
 					[nil, 'true', 'false']
 				end
