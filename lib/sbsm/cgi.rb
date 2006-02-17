@@ -26,6 +26,23 @@ require 'cgi'
 require 'drb/drb'
 
 class CGI
+	module TagMaker
+    def nOE_element_def(element, append = nil)
+      s = <<-END
+          "<#{element.upcase}" + attributes.collect{|name, value|
+            next unless value
+            " " + name.to_s +
+            if true == value
+              ""
+            else
+              '="' + CGI::escapeHTML(value) + '"'
+            end
+          }.to_s + ">"
+      END
+      s.sub!(/\Z/, " +") << append if append
+      s
+    end
+	end
 	class Session
 		attr_reader :output_cookies
 	end
