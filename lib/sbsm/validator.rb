@@ -69,7 +69,11 @@ module SBSM
 		end	
 		def valid_values(key)
 			key = key.intern if key.is_a? String
-			@enums[key]
+			if(@boolean.include?(key))
+				['true', 'false']
+			else
+				@enums[key]
+			end
 		end
 		def validate(key, value)
 			value = value.pop if value.is_a? Array
