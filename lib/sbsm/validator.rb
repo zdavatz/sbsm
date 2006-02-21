@@ -71,7 +71,7 @@ module SBSM
 			key = key.intern if key.is_a? String
 			@enums.fetch(key)	{
 				if(@boolean.include?(key))
-					[nil, 'true', 'false']
+					['false', 'true']
 				end
 			}
 		end
