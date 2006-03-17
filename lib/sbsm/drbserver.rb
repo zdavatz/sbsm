@@ -45,25 +45,35 @@ module SBSM
 			@sessions = {}
 			@mutex = Mutex.new
 			@cleaner = run_cleaner if self::class::RUN_CLEANER
+			@admin_threads = ThreadGroup.new
 			@async = ThreadGroup.new
 			@system = persistence_layer
 			super(persistence_layer)
 		end
-		def _admin(src, priority=-1)
+		def _admin(src, result, priority=-1)
 			return unless(self::class::ENABLE_ADMIN)
-			Thread.current.priority = priority
-			Thread.current.abort_on_exception = false
-			response = begin
-				instance_eval(src)
-			rescue Exception => e
-				e
-			end
-			str = response.to_s
-			if(str.length > 200)
-				response.class
-			else
-				str
-			end
+			t = Thread.new {
+				Thread.current.abort_on_exception = false
+				result << begin
+					response = begin
+						instance_eval(src)
+					rescue NameError => e
+						e
+					end
+					str = response.to_s
+					if(str.length > 200)
+						response.class
+					else
+						str
+					end
+				rescue Exception => e
+					e.message
+				end.to_s
+			}
+			t[:source] = src
+			t.priority = priority
+			@admin_threads.add(t)
+			t
 		end
 		def async(&block)
 			@async.add(Thread.new(&block))

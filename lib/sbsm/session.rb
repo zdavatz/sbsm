@@ -231,7 +231,7 @@ module SBSM
 		end
 		def http_headers
 			@state.http_headers
-		rescue StandardError
+		rescue NameError, StandardError
 			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
@@ -347,9 +347,9 @@ module SBSM
       self
     end
 		def to_html
-			html_safe_wrap {
-				@state.to_html(@@cgi)
-			}
+			@state.to_html(@@cgi)
+		rescue NameError, StandardError => err
+			[ err.class, err.message ].join("\n") #.concat(err.backtrace).join("\n")
 		end
     def user_input(*keys)
 			if(keys.size == 1)
@@ -430,13 +430,6 @@ module SBSM
 			if(state_id = @valid_input[:state_id])
 				@attended_states[state_id]
 			end || @active_state
-		end
-		def html_safe_wrap(&block)
-			begin
-				block.call
-			rescue RuntimeError, StandardError => e
-				[ e.class, e.message ].concat(e.backtrace).join("\n")
-			end
 		end
 		protected
 		attr_reader :mtime
