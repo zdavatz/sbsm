@@ -38,6 +38,10 @@ module SBSM
 				@component.attributes(key)
 			}
 		end
+		def disabled?(event)
+			self::class::DISABLED.include?(event) \
+				|| @component.disabled?(event)
+		end
 		def enabled?(event, default=false)
 			self::class::ENABLED.include?(event) \
 				|| @component.enabled?(event, default)

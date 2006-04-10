@@ -29,6 +29,7 @@ module SBSM
   class Lookandfeel
     attr_reader :language, :flavor, :session
     DICTIONARIES = {}
+		DISABLED = []
 		ENABLED = []
 		HTML_ATTRIBUTES = {}
 		RESOURCES = {}
@@ -56,6 +57,9 @@ module SBSM
 		end
 		def direct_event
 			@session.direct_event
+		end
+		def disabled?(event)
+			self::class::DISABLED.include?(event)
 		end
 		def enabled?(event, default=true)
 			default || self::class::ENABLED.include?(event)

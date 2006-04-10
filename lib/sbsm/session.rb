@@ -349,7 +349,7 @@ module SBSM
 		def to_html
 			@state.to_html(@@cgi)
 		rescue NameError, StandardError => err
-			[ err.class, err.message ].join("\n") #.concat(err.backtrace).join("\n")
+			[ err.class, err.message ].concat(err.backtrace).join("\n")
 		end
     def user_input(*keys)
 			if(keys.size == 1)
