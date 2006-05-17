@@ -40,7 +40,7 @@ module SBSM
 			values = request.notes
 			ast.children_names.each { |name|
 				case name
-				when'language', 'flavor', 'event'
+				when'language', 'flavor', 'event', 'zone'
 					values.add(name, ast.send(name).value)
 				when 'variables'
 					ast.variables.each { |pair|
@@ -104,6 +104,12 @@ module SBSM
 		include Singleton
 		def initialize
 			super('flavored_uri')
+		end
+	end
+	class ZoneTransHandler < AbstractTransHandler
+		include Singleton
+		def initialize
+			super('zone_uri')
 		end
 	end
 end
