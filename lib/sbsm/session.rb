@@ -128,6 +128,13 @@ module SBSM
 		def force_login(user)
 			@user = user
 		end
+		def identify_crawler(request)
+			if(@is_crawler.nil? && request.respond_to?(:user_agent)) 
+				@is_crawler = !!CRAWLER_PATTERN.match(request.user_agent)
+			else
+				@is_crawler
+			end
+		end
 		def import_cookies(request)
 			reset_cookie()
 			if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
@@ -184,11 +191,7 @@ module SBSM
 			@state.info? if @state.respond_to?(:info?)
 		end
 		def is_crawler?
-			if(@is_crawler.nil? && @request.respond_to?(:user_agent)) 
-				@is_crawler = !!CRAWLER_PATTERN.match(@request.user_agent)
-			else
-				@is_crawler
-			end
+			@is_crawler
 		end
 		def language
 			cookie_set_or_get(:language) || default_language
@@ -269,19 +272,20 @@ module SBSM
 		end
 		def process(request)
 			begin
+				identify_crawler(request)
 				@request = request
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				import_cookies(request)
 				@state = active_state.trigger(event()) 
 				@state.request_path ||= @request.unparsed_uri
-				@zone = @state.zone
 				@state.reset_view
 				unless @state.volatile?
 					@active_state = @state
+					@attended_states.store(@state.object_id, @state)
 				end
+				@zone = @active_state.zone
 				@active_state.touch
-				@attended_states.store(@state.object_id, @state)
 				cap_max_states
 			rescue StandardError => e
 				puts "error in SBSM::Session#process"

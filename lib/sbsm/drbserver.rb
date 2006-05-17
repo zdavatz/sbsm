@@ -91,7 +91,7 @@ module SBSM
 		def clean
 			@sessions.delete_if { |key, s| 
 				begin
-					!s.respond_to?(:expired?) \
+					(!s.respond_to?(:expired?)) \
 						|| ((s.is_crawler? || s.expired?) && s.__checkout)
 				rescue
 					true
@@ -131,7 +131,7 @@ module SBSM
 		end
 		def [](key)
 			@mutex.synchronize {
-				unless(s = @sessions[key] and not s.expired?)
+				unless((s = @sessions[key]) && !s.expired?)
 					args = [key, self]
 					if(klass = self::class::VALIDATOR)
 						args.push(klass.new)
