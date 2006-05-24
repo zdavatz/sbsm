@@ -177,10 +177,11 @@ module SBSM
 			value
 		end
 		def validate_numeric(key, value)
-			if(match = /\d*(\.\d{1,2})?/.match(value))
+			return if(value.empty?)
+			if(match = /\d+(\.\d{1,2})?/.match(value))
 				match[0]
 			else
-				raise InvalidDataError.new(:e_invalid_numeric_format, key, value)
+				raise InvalidDataError.new("e_invalid_#{key}", key, value)
 			end
 		end
 		def validate_pattern(key, value)
