@@ -4,11 +4,12 @@
 require 'rockit/rockit'
 require 'cgi'
 require 'singleton'
+require 'yaml'
 
 module SBSM
 	class AbstractTransHandler
 		attr_reader :parser_name
-		SHORTCUT_PATH = '../etc/shortcuts.rb'
+		CONFIG_PATH = '../etc/trans_handler.yml'
 		@@empty_check ||= nil
 		@@lang_check ||= nil
 		@@uri_parser ||= nil
@@ -21,13 +22,23 @@ module SBSM
 			@parser_path = File.expand_path("#{name}_parser.rb", 
 				File.dirname(__FILE__))
 		end
-		def handle_shortcut(request)
-			path = File.expand_path(SHORTCUT_PATH, request.server.document_root)
-			path.untaint
-			code = '{' << File.read(path) << '}'
-			code.untaint
-			shortcuts = instance_eval(code)
-			if(notes = shortcuts[request.uri])
+    def config(request)
+      config = Hash.new { {} } 
+			begin
+        path = File.expand_path(CONFIG_PATH, request.server.document_root)
+        path.untaint
+        config.update(YAML.load(File.read(path)))
+        config
+			rescue StandardError => err
+				fmt = 'Unable to load url configuration: %s'
+				request.server.log_warn(fmt, err.message)
+				fmt = 'Hint: store configuration in a YAML-File at DOCUMENT_ROOT/%s'
+				request.server.log_notice(fmt, CONFIG_PATH)
+        config
+			end
+    end
+		def handle_shortcut(request, config)
+			if(notes = config['shortcut'][request.uri])
 				notes.each { |key, val|
 					request.notes.add(key, val)
 				}
@@ -58,25 +69,17 @@ module SBSM
 		def translate_uri(request)
 			@@empty_check ||= Regexp.new('^/?$')
 			@@lang_check ||= Regexp.new('^/[a-z]{2}(/|$)')
-			begin
-				handle_shortcut(request)
-				rescue StandardError => err
-				fmt = 'Notice: unable to load url shortcuts: %s'
-				request.server.log_notice(fmt, err.message)
-				fmt = 'Hint: store shortcuts in Ruby-Code at DOCUMENT_ROOT/%s'
-				request.server.log_notice(fmt, SHORTCUT_PATH)
-				fmt = 'e.g.: "/shortcut" => {"variables" => "to be sent"}'
-				request.server.log_notice(fmt)
-			end
-			uri = request.uri
-			case uri
-			when @@empty_check
-				request.uri = HANDLER_URI
-			when @@lang_check
-				self.parse_uri(request)
-				request.uri = HANDLER_URI
-			end
-			Apache::DECLINED
+      config = config(request)
+      handle_shortcut(request, config)
+      uri = request.uri
+      case uri
+      when @@empty_check
+        request.uri = config['redirect']['/'] || HANDLER_URI
+      when @@lang_check
+        self.parse_uri(request)
+        request.uri = HANDLER_URI
+      end
+      Apache::DECLINED
 		end
 		def uri_parser(grammar_path=@grammar_path, parser_path=@parser_path)
 			if(File.exist?(grammar_path))
