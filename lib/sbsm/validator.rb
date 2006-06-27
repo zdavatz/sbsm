@@ -86,13 +86,15 @@ module SBSM
 					begin
 						value = value.read
 					rescue StandardError => e
-						p e
+						#p e
 					end
 				end
 			end
+=begin
 			if(value.is_a? String)
 				value = Iconv.iconv('ISO-8859-1', 'UTF8', value).pop if value.index("\303")
 			end
+=end
 			value = value.to_s.strip
 			begin
 				if(key==:event)

@@ -69,6 +69,7 @@ module SBSM
 			@errors = {}
 			@infos = []
 			@warnings = []
+      @viral_modules = []
 			touch()
 			init()
 		end
@@ -121,7 +122,7 @@ module SBSM
 		end
 		def extend(mod)
 			if(mod.constants.include?('VIRAL'))
-				@viral_module = mod 
+				@viral_modules.push(mod)
 			end
 			if(mod.constants.include?('EVENT_MAP'))
 				@events.update(mod::EVENT_MAP)

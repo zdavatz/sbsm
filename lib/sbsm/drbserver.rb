@@ -44,13 +44,13 @@ module SBSM
 		def initialize(persistence_layer=nil)
 			@sessions = {}
 			@mutex = Mutex.new
-			@cleaner = run_cleaner if self::class::RUN_CLEANER
+			@cleaner = run_cleaner if(self.class.const_get(:RUN_CLEANER))
 			@admin_threads = ThreadGroup.new
 			@async = ThreadGroup.new
 			@system = persistence_layer
 			super(persistence_layer)
 		end
-		def _admin(src, result, priority=-1)
+		def _admin(src, result, priority=0)
 			return unless(self::class::ENABLE_ADMIN)
 			t = Thread.new {
 				Thread.current.abort_on_exception = false
