@@ -25,14 +25,19 @@
 module SBSM
 	module ViralState
 		VIRAL = true
-		def trigger(event)
-			newstate = super
-			unless(event==:logout)
-				unless(@viral_module.nil? || newstate.is_a?(@viral_module))
-					newstate.extend(@viral_module) 
-				end
-			end
-			newstate
-		end
+    def trigger(event)
+      newstate = super
+      if(event==:logout)
+        @session.logout
+      else
+        @viral_modules.uniq.each { |mod|
+          newstate.extend(mod) unless newstate.is_a?(mod)
+        }
+      end
+      newstate
+    rescue DRb::DRbError, RangeError
+      @session.logout
+      home
+    end
 	end
 end
