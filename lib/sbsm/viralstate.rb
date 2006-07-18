@@ -29,6 +29,7 @@ module SBSM
 			@viral_modules.uniq.each { |mod|
 				newstate.extend(mod) unless newstate.is_a?(mod)
 			}
+			newstate
 		end
     def trigger(event)
       newstate = super
