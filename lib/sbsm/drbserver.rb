@@ -51,7 +51,7 @@ module SBSM
 			super(persistence_layer)
 		end
 		def _admin(src, result, priority=0)
-			return unless(self::class::ENABLE_ADMIN)
+			raise "admin interface disabled" unless(self::class::ENABLE_ADMIN)
 			t = Thread.new {
 				Thread.current.abort_on_exception = false
 				result << begin

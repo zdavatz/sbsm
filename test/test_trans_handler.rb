@@ -21,6 +21,9 @@ module SBSM
 			attr_accessor :document_root
 			def log_notice(fmt, *args)
 			end
+      def log_warn(*args)
+        warn(args.join(' - '))
+      end
 		end
 		class NotesStub < Hash
 			alias :add :store
@@ -167,6 +170,9 @@ module SBSM
 			attr_accessor :document_root
 			def log_notice(fmt, *args)
 			end
+      def log_warn(*args)
+        warn(args.join(' - '))
+      end
 		end
 		class NotesStub < Hash
 			alias :add :store
@@ -330,6 +336,9 @@ module SBSM
 			attr_accessor :document_root
 			def log_notice(fmt, *args)
 			end
+      def log_warn(*args)
+        warn(args.join(' - '))
+      end
 		end
 		class NotesStub < Hash
 			alias :add :store

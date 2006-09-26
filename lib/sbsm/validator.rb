@@ -67,6 +67,17 @@ module SBSM
 		def reset_errors
 			@errors = {}
 		end	
+		def set_pass(value1, value2)
+			valid1 = pass(value1.to_s)
+			valid2 = pass(value2.to_s)
+			if(value1.to_s.empty?)
+				SBSM::InvalidDataError.new(:e_empty_pass, :pass, '')
+			elsif(valid1 != valid2)
+				SBSM::InvalidDataError.new(:e_non_matching_pass, :pass, '')
+			else
+				valid1
+			end
+		end
 		def valid_values(key)
 			key = key.intern if key.is_a? String
 			@enums.fetch(key)	{
@@ -90,11 +101,6 @@ module SBSM
 					end
 				end
 			end
-=begin
-			if(value.is_a? String)
-				value = Iconv.iconv('ISO-8859-1', 'UTF8', value).pop if value.index("\303")
-			end
-=end
 			value = value.to_s.strip
 			begin
 				if(key==:event)

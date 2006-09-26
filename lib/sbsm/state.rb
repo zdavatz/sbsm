@@ -71,8 +71,9 @@ module SBSM
 			@warnings = []
       @viral_modules = []
 			touch()
-			init()
 		end
+    def init
+    end
 		def add_warning(message, key, value)
 			if(key.is_a? String)
 				key = key.intern
@@ -228,9 +229,6 @@ module SBSM
 		def <=>(other)
 			@mtime <=> other.mtime
 		end
-		private
-		def init
-		end
 		protected
 		def compare_entries(a, b)
 			@sortby.each { |sortby|
@@ -256,14 +254,16 @@ module SBSM
 		end
 		def get_sortby!
 			@sortby ||= []
-			sortvalue = @session.user_input(:sortvalue).to_sym
-			if(@sortby.first == sortvalue)
-				@sort_reverse = !@sort_reverse 
-			else
-				@sort_reverse = self.class::REVERSE_MAP[sortvalue] 
-			end
-			@sortby.delete(sortvalue)
-			@sortby.unshift(sortvalue)
+			if(sortvalue = @session.user_input(:sortvalue))
+        sortvalue = sortvalue.to_sym
+        if(@sortby.first == sortvalue)
+          @sort_reverse = !@sort_reverse 
+        else
+          @sort_reverse = self.class::REVERSE_MAP[sortvalue] 
+        end
+        @sortby.delete(sortvalue)
+        @sortby.unshift(sortvalue)
+      end
 		end
 		attr_reader :mtime
 	end

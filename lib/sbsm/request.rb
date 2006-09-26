@@ -62,8 +62,9 @@ module SBSM
 				@request.notes.each { |key, val|
 					@cgi.params.store(key, val)
 				}
-				drb_request()
-				drb_response()
+        drb_process()
+				#drb_request()
+				#drb_response()
 			rescue StandardError => e
 				handle_exception(e)
 			ensure
@@ -77,19 +78,17 @@ module SBSM
 			@request.unparsed_uri
 		end
 		private
-		def drb_request
+		def drb_process
 			@session = CGI::Session.new(@cgi,
 				'database_manager'	=>	CGI::Session::DRbSession,
 				'drbsession_uri'		=>	@drb_uri,
 				'session_path'			=>	'/')
 			@proxy = @session[:proxy]
-			@proxy.process(self)
-		end
-		def drb_response
-			res = ''
-			while(snip = @proxy.next_html_packet)
-				res << snip
-			end
+			res = @proxy.drb_process(self)
+			#res = ''
+			#while(snip = @proxy.next_html_packet)
+			#	res << snip
+			#end
 			cookie_input = @proxy.cookie_input
 			# view.to_html can call passthru instead of sending data
 			if(@passthru) 

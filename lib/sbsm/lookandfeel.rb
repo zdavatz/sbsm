@@ -89,7 +89,10 @@ module SBSM
 		def language_url(language)
 			[@session.http_protocol + ':/', @session.server_name, language, @flavor].compact.join("/")
 		end
-		def lookup(key, *args)
+    def lookup(key, *args, &block)
+      _lookup(key, *args) || (block.call if block)
+    end
+		def _lookup(key, *args)
 			key = key.intern if key.is_a? String
 			if(args.size > 0)
 				result = ""

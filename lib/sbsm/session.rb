@@ -91,6 +91,23 @@ module SBSM
 			@active_thread = nil
 			true
 		end
+		def client_activex?
+			if(@request.respond_to?(:user_agent))
+				user_agent = @request.user_agent
+				/MSIE/.match(user_agent) && /Win/i.match(user_agent)
+			else
+				false
+			end
+		end
+		def client_nt5?
+			if(@request.respond_to?(:user_agent))
+				user_agent = @request.user_agent
+				match = /Windows\s*NT\s*(\d+\.\d+)/i.match(user_agent)
+				(match && (match[1].to_f >= 5))
+			else
+				false
+			end
+		end
 		def cookie_set_or_get(key)
 			if(value = @valid_input[key])
 				set_cookie_input(key, value)
@@ -110,6 +127,10 @@ module SBSM
 		def direct_event
 			@state.direct_event
 		end
+    def drb_process(request)
+      process(request)
+      to_html
+    end
 		def error(key)
 			@state.error(key) if @state.respond_to?(:error)
 		end
@@ -122,6 +143,16 @@ module SBSM
 		def event
 			@valid_input[:event]
 		end
+    def event_bound_user_input(key)
+      @event_user_input ||= {}
+      evt = state.direct_event
+      @event_user_input[evt] ||= {}
+      if(val = user_input(key))
+        @event_user_input[evt][key] = val
+      else
+        @event_user_input[evt][key]
+      end
+    end
 		def expired?
       Time.now - @mtime > EXPIRES
 		end
@@ -274,11 +305,13 @@ module SBSM
 			begin
 				identify_crawler(request)
 				@request = request
+        @request_method = request.request_method
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				import_cookies(request)
 				@state = active_state.trigger(event()) 
 				@state.request_path ||= @request.unparsed_uri
+        @state.init
 				@state.reset_view
 				unless @state.volatile?
 					@active_state = @state
@@ -299,15 +332,17 @@ module SBSM
 			''
 		end
 		def reset
+=begin
 			if(@active_thread \
 				&& @active_thread.alive? \
 				&& @active_thread != Thread.current)
 				begin
-					@active_thread.exit
+					#@active_thread.exit
 				rescue StandardError
 				end
 			end
 			@active_thread = Thread.current
+=end
 			reset_input()
 			@html_packets = nil
 		end
