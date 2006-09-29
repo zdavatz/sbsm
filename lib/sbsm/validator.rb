@@ -101,6 +101,9 @@ module SBSM
 					end
 				end
 			end
+      perform_validation(key, value)
+    end
+    def perform_validation(key, value)
 			value = value.to_s.strip
 			begin
 				if(key==:event)
