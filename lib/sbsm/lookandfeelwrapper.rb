@@ -55,8 +55,8 @@ module SBSM
 			end
 			@languages
 		end
-		def lookup(key, *args)
-			super or @component.lookup(key, *args)
+		def lookup(key, *args, &block)
+			_lookup(key, *args) || @component.lookup(key, *args, &block)
 		end
 		def navigation(filter=true)
 			nav = @component.navigation(false)
