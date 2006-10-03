@@ -310,8 +310,13 @@ module SBSM
 				import_user_input(request)
 				import_cookies(request)
 				@state = active_state.trigger(event()) 
-				@state.request_path ||= @request.unparsed_uri
-        @state.init
+        #FIXME: is there a better way to distinguish returning states?
+        #       ... we could simply refuse to init if event == :sort, but that 
+        #       would not solve the problem cleanly, I think.
+        unless(@state.request_path)
+          @state.request_path = @request.unparsed_uri
+          @state.init
+        end
 				@state.reset_view
 				unless @state.volatile?
 					@active_state = @state
