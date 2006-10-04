@@ -158,7 +158,9 @@ module SBSM
 			validate_string(value)
 		end
 		def pass(value)
-			Digest::MD5::hexdigest(value)
+      unless(value.empty?)
+			  Digest::MD5::hexdigest(value)
+      end
 		end
 		alias :confirm_pass :pass
 		def state_id(value)
