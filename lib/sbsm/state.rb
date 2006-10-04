@@ -237,6 +237,7 @@ module SBSM
 					aval = a.send(sortby)
 					bval = b.send(sortby)
 				rescue
+          warn "could not sort by #{sortby}"
 					next
 				end
 				res = if (aval.nil? && bval.nil?)

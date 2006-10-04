@@ -28,6 +28,7 @@ require 'tmail'
 require 'date'
 require 'drb/drb'
 require 'uri'
+require 'stringio'
 
 module SBSM
 	class InvalidDataError < RuntimeError
@@ -123,6 +124,8 @@ module SBSM
 					validate_uri(key, value)
 				elsif(@strings.include?(key))
 					validate_string(value)
+        elsif(@files.include?(key))
+          StringIO.new(value)
 				elsif(self.respond_to?(key, true))
 					self.send(key, value)
 				end

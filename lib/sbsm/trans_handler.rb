@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # TransHandler -- sbsm -- 23.09.2004 -- hwyss@ywesee.com
 
+$USING_STRSCAN = true
 require 'rockit/rockit'
 require 'cgi'
 require 'singleton'
