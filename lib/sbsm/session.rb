@@ -59,8 +59,6 @@ module SBSM
 			@attended_states = {}
 			@persistent_user_input = {}
 			logout()
-			@active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
-			@attended_states.store(@state.object_id, @state)
 			@unknown_user_class = @user.class
 			@variables = {}
 			super(app)
@@ -238,6 +236,8 @@ module SBSM
 		def logout
 			__checkout
 			@user = @app.unknown_user()
+			@active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
+			@attended_states.store(@state.object_id, @state)
 		end
 		def lookandfeel
 			if(@lookandfeel.nil? \
