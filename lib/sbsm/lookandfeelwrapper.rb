@@ -34,7 +34,7 @@ module SBSM
 			@component.send(symbol, *args, &block)
 		end
 		def attributes(key)
-			self::class::HTML_ATTRIBUTES.fetch(key) {
+			self::class::HTML_ATTRIBUTES.fetch(key.to_sym) {
 				@component.attributes(key)
 			}
 		end
