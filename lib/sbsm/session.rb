@@ -237,6 +237,7 @@ module SBSM
 			__checkout
 			@user = @app.unknown_user()
 			@active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
+      @state.init
 			@attended_states.store(@state.object_id, @state)
 		end
 		def lookandfeel

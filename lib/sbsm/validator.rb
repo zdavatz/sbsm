@@ -24,7 +24,7 @@
 
 require 'digest/md5'
 require 'iconv'
-require 'tmail'
+require 'rmail'
 require 'date'
 require 'drb/drb'
 require 'uri'
@@ -136,14 +136,14 @@ module SBSM
 		private
 		def email(value)
 			return if(value.empty?)
-			parsed = TMail::Address.parse(value)
-			if(TMail::Address.parse(value).domain)
-				value
+			parsed = RMail::Address.parse(value).first
+      if(parsed.nil?)
+			  raise InvalidDataError.new(:e_invalid_email_address, :email, value)
+      elsif(parsed.domain)
+				value.address
 			else
 				raise InvalidDataError.new(:e_domainless_email_address, :email, value)
 			end
-		rescue TMail::SyntaxError => e
-			raise InvalidDataError.new(:e_invalid_email_address, :email, value)
 		end
 		def filename(value)
 			if(value == File.basename(value))
