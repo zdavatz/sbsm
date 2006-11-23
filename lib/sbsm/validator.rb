@@ -140,7 +140,7 @@ module SBSM
       if(parsed.nil?)
 			  raise InvalidDataError.new(:e_invalid_email_address, :email, value)
       elsif(parsed.domain)
-				value.address
+				parsed.address
 			else
 				raise InvalidDataError.new(:e_domainless_email_address, :email, value)
 			end
