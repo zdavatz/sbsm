@@ -23,7 +23,6 @@
 # Validator -- sbsm -- 15.11.2002 -- hwyss@ywesee.com 
 
 require 'digest/md5'
-require 'iconv'
 require 'rmail'
 require 'date'
 require 'drb/drb'
