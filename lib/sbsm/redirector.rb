@@ -14,12 +14,12 @@ module SBSM
       end
     end
     def redirect?
-      #return @state.direct_event && @request_method != 'GET'
       direct = @state.direct_event
       if(direct.is_a?(Array))
         direct = direct.first
       end
-      direct && ![direct, :sort].include?(event)
+      direct && (@request_method != 'GET' \
+                 || ![direct, :sort].include?(event))
     end
     def to_html
       if(redirect?)
