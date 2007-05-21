@@ -168,7 +168,7 @@ module SBSM
 			reset_cookie()
 			if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
 				cuki.each { |cuki_str|
-					CGI.parse(cuki_str).each { |key, val|
+					CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
 						key = key.intern
 						valid = @validator.validate(key, val.compact.last)
 						@cookie_input.store(key, valid)
@@ -292,8 +292,8 @@ module SBSM
 				@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT)
 			end
 		end
-		def passthru(path)
-			@request.passthru(path)
+		def passthru(*args)
+			@request.passthru(*args)
 		end
 		def persistent_user_input(key)
 			if(value = user_input(key))

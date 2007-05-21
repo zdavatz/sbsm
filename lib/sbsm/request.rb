@@ -40,20 +40,11 @@ module SBSM
 			super(@cgi)
     end
 		def cookies
-			if(cuki = @request.headers_in['Cookie'])
-				cuki.split(/\s*;\s*/).inject({}) { |cookies, cukip| 
-					key, val = cukip.split(/\s*=\s*/, 2).collect { |str|
-						CGI.unescape(str)
-					}
-					(cookies[key] ||= []).push(val)
-					cookies
-				}
-			else
-				{}
-			end
+      @cgi.cookies
 		end
-		def passthru(path)
+		def passthru(path, disposition='attachment')
 			@passthru = path
+      @disposition = disposition
 			''
 		end
 		def process
@@ -102,9 +93,9 @@ module SBSM
 					@request.server.document_root)
 				fullpath.untaint
 				subreq = @request.lookup_file(fullpath)
-				@request.content_type = subreq.content_type
+				@request.content_type = subreq.content_type + "; filename=#{basename}"
 				@request.headers_out.add('Content-Disposition', 
-					"attachment; filename=#{basename}")
+					"#@disposition; filename=#{basename}")
 				@request.headers_out.add('Content-Length', 
 					File.size(fullpath).to_s)
 				begin
