@@ -93,7 +93,7 @@ module SBSM
 					@request.server.document_root)
 				fullpath.untaint
 				subreq = @request.lookup_file(fullpath)
-				@request.content_type = subreq.content_type + "; filename=#{basename}"
+				@request.content_type = subreq.content_type
 				@request.headers_out.add('Content-Disposition', 
 					"#@disposition; filename=#{basename}")
 				@request.headers_out.add('Content-Length', 
