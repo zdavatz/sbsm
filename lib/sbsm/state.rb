@@ -169,7 +169,7 @@ module SBSM
 			@infos = []
 			@warnings = []
 			state = if(event && !event.to_s.empty? && self.respond_to?(event))
-				self.send(event) 
+				_trigger(event)
 			elsif(klass = @events[event])
 				klass.new(@session, @model)
 			end
@@ -179,6 +179,9 @@ module SBSM
 			end
 			state 
 		end
+    def _trigger(event)
+      self.send(event) 
+    end
 		def unset_previous
 			@previous = nil
 		end
