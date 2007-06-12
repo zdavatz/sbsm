@@ -31,6 +31,7 @@ require 'delegate'
 module SBSM
   class Request < SimpleDelegator
     include DRbUndumped
+		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|jeeves|spider/i
     attr_reader :cgi
     def initialize(drb_uri, html_version = "html4")
       @cgi = CGI.new(html_version)
@@ -41,6 +42,9 @@ module SBSM
     end
 		def cookies
       @cgi.cookies
+		end
+    def is_crawler?
+			!!CRAWLER_PATTERN.match(@cgi.user_agent)
 		end
 		def passthru(path, disposition='attachment')
 			@passthru = path
@@ -70,10 +74,15 @@ module SBSM
 		end
 		private
 		def drb_process
-			@session = CGI::Session.new(@cgi,
-				'database_manager'	=>	CGI::Session::DRbSession,
+      args = {
+        'database_manager'	=>	CGI::Session::DRbSession,
 				'drbsession_uri'		=>	@drb_uri,
-				'session_path'			=>	'/')
+				'session_path'			=>	'/',
+      }
+      if(is_crawler?)
+        args.store('session_id', @cgi.user_agent)
+      end
+			@session = CGI::Session.new(@cgi, args)
 			@proxy = @session[:proxy]
 			res = @proxy.drb_process(self)
 			#res = ''

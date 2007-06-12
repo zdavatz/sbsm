@@ -33,7 +33,6 @@ module SBSM
 		attr_reader :user, :active_thread, :app, :key, :cookie_input, 
 			:unsafe_input, :valid_input, :request_path
 		include DRbUndumped 
-		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|google|jeeves|spider/i
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = nil
 		DEFAULT_LANGUAGE = nil
@@ -157,13 +156,6 @@ module SBSM
 		def force_login(user)
 			@user = user
 		end
-		def identify_crawler(request)
-			if(@is_crawler.nil? && request.respond_to?(:user_agent)) 
-				@is_crawler = !!CRAWLER_PATTERN.match(request.user_agent)
-			else
-				@is_crawler
-			end
-		end
 		def import_cookies(request)
 			reset_cookie()
 			if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
@@ -220,7 +212,9 @@ module SBSM
 			@state.info? if @state.respond_to?(:info?)
 		end
 		def is_crawler?
-			@is_crawler
+			@is_crawler ||= if @request.respond_to?(:is_crawler?)
+                        @request.is_crawler?
+                      end
 		end
 		def language
 			cookie_set_or_get(:language) || default_language
@@ -304,7 +298,6 @@ module SBSM
 		end
 		def process(request)
 			begin
-				identify_crawler(request)
 				@request = request
         @request_method = request.request_method
 				@validator.reset_errors() if @validator
