@@ -97,7 +97,7 @@ module SBSM
 					true
 				end
 			}
-			cap_max_sessions()
+			#cap_max_sessions()
 		end
 		def clear
 			@sessions.each_value { |sess| sess.__checkout }
