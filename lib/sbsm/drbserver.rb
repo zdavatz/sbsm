@@ -92,7 +92,7 @@ module SBSM
 			@sessions.delete_if { |key, s| 
 				begin
 					(!s.respond_to?(:expired?)) \
-						|| ((s.is_crawler? || s.expired?) && s.__checkout)
+						|| s.expired? && s.__checkout
 				rescue
 					true
 				end
