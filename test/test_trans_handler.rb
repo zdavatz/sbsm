@@ -130,14 +130,18 @@ module SBSM
 			assert_equal('/shortcut', request.uri)
 			
 			FileUtils.mkdir_p(@etc_path)
-			shortcut = File.join(@etc_path, 'shortcuts.rb')
+			shortcut = File.join(@etc_path, 'trans_handler.yml')
 			File.open(shortcut, 'w') { |fh|
-				fh.puts <<-EOS
-					'/shortcut'	=>	{	'shortcut'	=>	'variables'},
-					'/somewhere'=>  {	'over'			=>	'the rainbow',
-														'goodbye'		=>	'yellow brick road'},
-				EOS
-			}
+        fh.puts <<-EOS
+--- 
+shortcut:
+  /somewhere: 
+    over: the rainbow
+    goodbye: yellow brick road
+  /shortcut: 
+    shortcut: variables
+        EOS
+      }
 			
 			request.uri = '/shortcut'
 			request.notes = NotesStub.new
@@ -296,14 +300,18 @@ module SBSM
 			assert_equal('/shortcut', request.uri)
 			
 			FileUtils.mkdir_p(@etc_path)
-			shortcut = File.join(@etc_path, 'shortcuts.rb')
+			shortcut = File.join(@etc_path, 'trans_handler.yml')
 			File.open(shortcut, 'w') { |fh|
-				fh.puts <<-EOS
-					'/shortcut'	=>	{	'shortcut'	=>	'variables'},
-					'/somewhere'=>  {	'over'			=>	'the rainbow',
-														'goodbye'		=>	'yellow brick road'},
-				EOS
-			}
+        fh.puts <<-EOS
+--- 
+shortcut:
+  /somewhere: 
+    over: the rainbow
+    goodbye: yellow brick road
+  /shortcut: 
+    shortcut: variables
+        EOS
+      }
 			
 			request.uri = '/shortcut'
 			request.notes = NotesStub.new

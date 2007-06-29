@@ -60,6 +60,8 @@ module SBSM
 			logout()
 			@unknown_user_class = @user.class
 			@variables = {}
+		  #ARGV.push('') # satisfy cgi-offline prompt 
+      #@cgi = CGI.new('html4')
 			super(app)
     end
 		def cap_max_states

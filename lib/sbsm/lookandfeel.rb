@@ -33,7 +33,7 @@ module SBSM
 		ENABLED = []
 		HTML_ATTRIBUTES = {}
 		RESOURCES = {}
-		RESOURCE_BASE = "/resources"
+		RESOURCE_BASE = "resources"
 		TXT_RESOURCES = "/resources"
 		class << self
 			def txt_file(filename)
@@ -131,14 +131,14 @@ module SBSM
 			@session.navigation
 		end
 		def resource(rname, rstr=nil)
-			collect_resource([self::class::RESOURCE_BASE, @session.flavor], 
-				rname, rstr)
+			collect_resource([ self::class::RESOURCE_BASE, @session.flavor ], 
+                         rname, rstr)
 		end
 		def resource_external(rname)
 			self::class::RESOURCES[rname]
 		end
 		def resource_global(rname, rstr=nil)
-			collect_resource([self::class::RESOURCE_BASE], rname, rstr)
+			collect_resource(self::class::RESOURCE_BASE, rname, rstr)
 		end
 		def resource_localized(rname, rstr=nil, lang=@language)
 			result = resource([rname, lang].join('_').intern, rstr)
@@ -156,14 +156,19 @@ module SBSM
 		private
 		def collect_resource(base, rname, rstr=nil)
 			varpart = self::class::RESOURCES[rname]
-			if(varpart.is_a?(Array))
-				varpart.collect { |part|
-					[base, part, rstr].flatten.compact.join('/')
-				}
-			elsif(!varpart.nil?)
-				[base, varpart, rstr].flatten.compact.join('/')
-			end
+      if(varpart.is_a?(Array))
+        varpart.collect { |part|
+          _collect_resource(base, part, rstr)
+        }
+      elsif(!varpart.nil?)
+        _collect_resource(base, varpart, rstr)
+      end
 		end
+    def _collect_resource(base, part, rstr)
+      [ @session.http_protocol + ':/', 
+        @session.server_name, 
+        base, part, rstr].flatten.compact.join('/')
+    end
     def set_dictionary(language)
       @dictionary = self::class::DICTIONARIES[language] || {}
     end

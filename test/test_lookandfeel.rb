@@ -126,7 +126,7 @@ class TestLookandfeel < Test::Unit::TestCase
 		assert_equal({}, @lookandfeel.attributes(:undefined))
 	end
 	def test_resource
-		assert_equal('/resources/gcc/bar', @lookandfeel.resource(:foo))
+		assert_equal('http://test.com/resources/gcc/bar', @lookandfeel.resource(:foo))
 	end
 	def test_lookup
 		assert_equal('dictbar', @lookandfeel.lookup(:foo))
@@ -213,10 +213,10 @@ class TestLookandfeelWrapper < Test::Unit::TestCase
 	end
 	def test_resource1
 		lnf = SBSM::LookandfeelWrapper.new(@lookandfeel)
-		assert_equal('/resources/gcc/bar', lnf.resource(:foo))
+		assert_equal('http://test.com/resources/gcc/bar', lnf.resource(:foo))
 	end
 	def test_resource2
-		assert_equal('/resources/gcc/foo', @wrapped.resource(:foo))
+		assert_equal('http://test.com/resources/gcc/foo', @wrapped.resource(:foo))
 	end
 	def test_attributes1
 		lnf = SBSM::LookandfeelWrapper.new(@lookandfeel)

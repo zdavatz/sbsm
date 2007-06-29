@@ -61,6 +61,9 @@ class StubSessionRequest < Hash
 	def cookies
 		{}
 	end
+  def request_method
+    'GET'
+  end
 end
 class StubSessionView 
 	def http_headers 
@@ -334,7 +337,7 @@ class TestSession < Test::Unit::TestCase
 		@session.attended_states.store(state.object_id, state)
 		assert_equal(state, @session.attended_states[state.object_id])
 		@session.logout
-		assert_equal(true, @session.attended_states.empty?)
+		assert_equal(1, @session.attended_states.size)
 	end
 	def test_lookandfeel
 		@session.lookandfeel=nil
@@ -346,13 +349,13 @@ class TestSession < Test::Unit::TestCase
 		assert_equal('gcc', lnf.flavor)
 		assert_instance_of(SBSM::Lookandfeel, lnf)
 		lnf2 = @session.lookandfeel
-		#assert_equal(lnf, lnf2)
+		assert_equal(lnf, lnf2)
 		@session.persistent_user_input = {
 			:flavor => 'other',
 		}
 		lnf3 = @session.lookandfeel
 		assert_instance_of(SBSM::Lookandfeel, lnf)
-		assert_not_equal(lnf, lnf3)
+		assert_equal(lnf, lnf3) ## flavor does not change!
 	end
 	def test_lookandfeel2
 		session = StubSessionSession.new("test", StubSessionApp.new, StubSessionValidator.new)

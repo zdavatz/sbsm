@@ -116,9 +116,6 @@ class TestState < Test::Unit::TestCase
 	def test_trigger_method
 		assert_equal(StubStateState3, @state.trigger(:buc).class)
 	end
-	def test_init_called
-		assert_equal(true, @state.init_called)
-	end
 	def test_errors
 		assert_equal(false, @state.error?)
 		@state.errors = {:de => 'ein Error'}
