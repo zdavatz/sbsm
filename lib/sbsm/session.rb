@@ -90,6 +90,9 @@ module SBSM
 			@active_thread = nil
 			true
 		end
+    def cgi
+      @@cgi
+    end
 		def client_activex?
 			if(@request.respond_to?(:user_agent))
 				user_agent = @request.user_agent
