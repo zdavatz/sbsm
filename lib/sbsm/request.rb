@@ -80,7 +80,8 @@ module SBSM
 				'session_path'			=>	'/',
       }
       if(is_crawler?)
-        args.store('session_id', @cgi.user_agent)
+        sid = [ENV['DEFAULT_FLAVOR'], @cgi.user_agent].join('-')
+        args.store('session_id', sid)
       end
 			@session = CGI::Session.new(@cgi, args)
 			@proxy = @session[:proxy]
