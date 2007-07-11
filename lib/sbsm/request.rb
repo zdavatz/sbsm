@@ -31,7 +31,7 @@ require 'delegate'
 module SBSM
   class Request < SimpleDelegator
     include DRbUndumped
-		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|jeeves|spider/i
+		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|jeeves|spider|\.{6}/i
     attr_reader :cgi
     def initialize(drb_uri, html_version = "html4")
       @cgi = CGI.new(html_version)
