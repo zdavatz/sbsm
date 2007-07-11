@@ -82,7 +82,6 @@ module SBSM
       if(is_crawler?)
         sid = [ENV['DEFAULT_FLAVOR'], @cgi.user_agent].join('-')
         args.store('session_id', sid)
-        sleep 10
       end
 			@session = CGI::Session.new(@cgi, args)
 			@proxy = @session[:proxy]
