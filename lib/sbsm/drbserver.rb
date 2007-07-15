@@ -33,9 +33,9 @@ module SBSM
 	class DRbServer < SimpleDelegator
 		include DRbUndumped
 		CLEANING_INTERVAL = 30
-		CAP_MAX_THRESHOLD = 30
+		CAP_MAX_THRESHOLD = 120
 		ENABLE_ADMIN = false
-		MAX_SESSIONS = 20
+		MAX_SESSIONS = 100
 		RUN_CLEANER = true
 		SESSION = Session
 		UNKNOWN_USER = UnknownUser
@@ -78,26 +78,32 @@ module SBSM
 		def async(&block)
 			@async.add(Thread.new(&block))
 		end
-		def cap_max_sessions
+		def cap_max_sessions(now = Time.now)
 			if(@sessions.size > self::class::CAP_MAX_THRESHOLD)
-				#puts "too many sessions! Keeping only #{self::class::MAX_SESSIONS}"
+				puts "too many sessions! Keeping only #{self::class::MAX_SESSIONS}"
+        sess = nil
 				sorted = @sessions.values.sort
 				sorted[0...(-self::class::MAX_SESSIONS)].each { |sess|
 					sess.__checkout
 					@sessions.delete(sess.key)
 				}
+        if(sess)
+          age = sess.age(now)
+          puts sprintf("deleted all sessions that had not been accessed for more than %im %is", age / 60, age % 60)
+        end
 			end
 		end
 		def clean
+      now = Time.now
 			@sessions.delete_if { |key, s| 
 				begin
 					(!s.respond_to?(:expired?)) \
-						|| s.expired? && s.__checkout
+						|| s.expired?(now) && s.__checkout
 				rescue
 					true
 				end
 			}
-			#cap_max_sessions()
+			#cap_max_sessions(now)
 		end
 		def clear
 			@sessions.each_value { |sess| sess.__checkout }

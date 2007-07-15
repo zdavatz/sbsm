@@ -64,6 +64,9 @@ module SBSM
       #@cgi = CGI.new('html4')
 			super(app)
     end
+    def age(now=Time.now)
+      now - @mtime 
+    end
 		def cap_max_states
 			if(@attended_states.size > self::class::CAP_MAX_THRESHOLD)
 				#puts "too many states in session! Keeping only #{self::class::MAX_STATES}"
@@ -155,8 +158,8 @@ module SBSM
         @event_user_input[evt][key]
       end
     end
-		def expired?
-      Time.now - @mtime > EXPIRES
+		def expired?(now=Time.now)
+      age(now) > EXPIRES
 		end
 		def force_login(user)
 			@user = user
