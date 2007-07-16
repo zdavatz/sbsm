@@ -96,6 +96,9 @@ module SBSM
     def cgi
       @@cgi
     end
+    def clear_view
+      @state.reset_view if @state
+    end
 		def client_activex?
 			if(@request.respond_to?(:user_agent))
 				user_agent = @request.user_agent
@@ -319,7 +322,6 @@ module SBSM
           @state.request_path = @request.unparsed_uri
           @state.init
         end
-				@state.reset_view
 				unless @state.volatile?
 					@active_state = @state
 					@attended_states.store(@state.object_id, @state)

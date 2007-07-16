@@ -128,6 +128,8 @@ module SBSM
 					handle_exception(e)
 				end
 			end
+    ensure
+      @proxy.clear_view if @proxy
 		end
 		def generate_cookie(cookie_input)
 			cookie_pairs = cookie_input.collect { |*pair| 
