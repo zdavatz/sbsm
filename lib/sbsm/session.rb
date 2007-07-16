@@ -327,11 +327,10 @@ module SBSM
 				@zone = @active_state.zone
 				@active_state.touch
 				cap_max_states
-			rescue StandardError => e
+			rescue StandardError => err
 				puts "error in SBSM::Session#process"
-				puts e.class
-				puts e.message
-				puts e.backtrace[0,8]
+				puts err.class, err.message
+				puts err.backtrace
 				$stdout.flush
 			ensure
 				@user_input_imported = false
@@ -394,8 +393,12 @@ module SBSM
     end
 		def to_html
 			@state.to_html(@@cgi)
-		rescue NameError, StandardError => err
-			[ err.class, err.message ].concat(err.backtrace).join("\n")
+		rescue StandardError => err
+      puts "error in SBSM::Session#to_html"
+      puts err.class, err.message
+      puts err.backtrace
+      $stdout.flush
+			[ err.class, err.message ].join("\n")
 		end
     def user_input(*keys)
 			if(keys.size == 1)
