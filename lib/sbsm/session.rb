@@ -311,6 +311,7 @@ module SBSM
 			begin
 				@request = request
         @request_method = request.request_method
+        @request_path = @request.unparsed_uri
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				import_cookies(request)
@@ -319,7 +320,7 @@ module SBSM
         #       ... we could simply refuse to init if event == :sort, but that 
         #       would not solve the problem cleanly, I think.
         unless(@state.request_path)
-          @state.request_path = @request.unparsed_uri
+          @state.request_path = @request_path
           @state.init
         end
 				unless @state.volatile?
