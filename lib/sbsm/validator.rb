@@ -28,6 +28,7 @@ require 'date'
 require 'drb/drb'
 require 'uri'
 require 'stringio'
+require 'hpricot'
 
 module SBSM
 	class InvalidDataError < RuntimeError
@@ -45,10 +46,12 @@ module SBSM
 		ENUMS = {}
 		EVENTS = []
 		FILES = []
+    HTML = []
 		NUMERIC = []
 		PATTERNS = {}
 		STRINGS = []
 		URIS = []
+    ALLOWED_TAGS = %{a b br div font h1 h2 h3 i img li ol p pre strong u ul}
 		def initialize
 			reset_errors()
 			@boolean = self::class::BOOLEAN.dup
@@ -56,6 +59,7 @@ module SBSM
 			@enums = self::class::ENUMS.dup
 			@events = self::class::EVENTS.dup
 			@files = self::class::FILES.dup
+			@html = self::class::HTML.dup
 			@numeric = self::class::NUMERIC.dup
 			@patterns = self::class::PATTERNS.dup
 			@strings = self::class::STRINGS.dup
@@ -115,6 +119,8 @@ module SBSM
 					validate_date(key, value)
 				elsif(@enums.has_key?(key))
 					value if @enums[key].include?(value)
+				elsif(@html.include?(key))
+					validate_html(value)
 				elsif(@patterns.include?(key))
 					validate_pattern(key, value)
 				elsif(@numeric.include?(key))
@@ -191,6 +197,19 @@ module SBSM
 			return nil if value.original_filename.empty?
 			value
 		end
+    def validate_html(value)
+      _validate_html(value.gsub(/\s+/, ' '))
+    end
+    def _validate_html(value, valid=self.class.const_get(:ALLOWED_TAGS))
+			doc = Hpricot(value, :fixup_tags => true)
+      (doc/"*").each { |element|
+        unless(element.is_a?(Hpricot::Text) \
+               || valid.include?(element.name.downcase))
+          element.swap element.inner_html
+        end
+      }
+      doc.to_html
+    end
 		def validate_numeric(key, value)
 			return if(value.empty?)
 			if(match = /\d+(\.\d{1,2})?/.match(value))
@@ -206,7 +225,7 @@ module SBSM
 			end
 		end
 		def validate_string(value)
-			value
+      _validate_html(value, [])
 		end
 		def validate_uri(key, value)
 			uri = URI.parse(value)
