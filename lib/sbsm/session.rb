@@ -100,21 +100,12 @@ module SBSM
       @state.reset_view if @state
     end
 		def client_activex?
-			if(@request.respond_to?(:user_agent))
-				user_agent = @request.user_agent
-				/MSIE/.match(user_agent) && /Win/i.match(user_agent)
-			else
-				false
-			end
+      (ua = user_agent) && /MSIE/.match(ua) && /Win/i.match(ua)
 		end
 		def client_nt5?
-			if(@request.respond_to?(:user_agent))
-				user_agent = @request.user_agent
-				match = /Windows\s*NT\s*(\d+\.\d+)/i.match(user_agent)
-				(match && (match[1].to_f >= 5))
-			else
-				false
-			end
+      (ua = user_agent) \
+        && (match = /Windows\s*NT\s*(\d+\.\d+)/i.match(user_agent)) \
+        && (match[1].to_f >= 5)
 		end
 		def cookie_set_or_get(key)
 			if(value = @valid_input[key])
@@ -403,6 +394,9 @@ module SBSM
       $stdout.flush
 			[ err.class, err.message ].join("\n")
 		end
+    def user_agent
+      @user_agent ||= (@request.user_agent if @request.respond_to?(:user_agent))
+    end
     def user_input(*keys)
 			if(keys.size == 1)
 				index = nil
