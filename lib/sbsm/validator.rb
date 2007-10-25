@@ -51,7 +51,7 @@ module SBSM
 		PATTERNS = {}
 		STRINGS = []
 		URIS = []
-    ALLOWED_TAGS = %{a b br div font h1 h2 h3 i img li ol p pre strong u ul}
+    ALLOWED_TAGS = %{a b br div font h1 h2 h3 i img li ol p pre span strong u ul}
 		def initialize
 			reset_errors()
 			@boolean = self::class::BOOLEAN.dup
@@ -201,11 +201,12 @@ module SBSM
       _validate_html(value.gsub(/\s+/, ' '))
     end
     def _validate_html(value, valid=self.class.const_get(:ALLOWED_TAGS))
-			doc = Hpricot(value, :fixup_tags => true)
+			doc = Hpricot(value.gsub(/<\?xml[^>]+>/, ''), :fixup_tags => true)
       (doc/"*").each { |element|
         unless(element.is_a?(Hpricot::Text) \
-               || valid.include?(element.name.downcase))
-          element.swap element.inner_html
+               || (element.respond_to?(:name) \
+                   && valid.include?(element.name.downcase)))
+          element.swap _validate_html(element.inner_html.to_s)
         end
       }
       doc.to_html
