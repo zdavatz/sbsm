@@ -118,4 +118,9 @@ class TestValidator < Test::Unit::TestCase
     expected = "<span style=\"PADDING-BOTTOM: 4px; LINE-HEIGHT: 1.4em; WHITE-SPACE: normal\"><p class=\"MsoNormal\" style=\"MARGIN: 0cm -0.3pt 0pt 0cm; TEXT-ALIGN: justify\"><span lang=\"DE\" style=\"FONT-SIZE: 11pt; FONT-FAMILY: Arial; mso-bidi-font-size: 10.0pt; mso-bidi-font-family: 'Times New Roman'\">Wirkstoff: Ibuprofenum. </span></p><p class=\"MsoNormal\" style=\"MARGIN: 0cm -0.3pt 0pt 0cm; TEXT-ALIGN: justify\"><span lang=\"DE\" style=\"FONT-SIZE: 11pt; FONT-FAMILY: Arial; mso-bidi-font-size: 10.0pt; mso-bidi-font-family: 'Times New Roman'\">Hilfsstoffe: Conserv.: Sorbins\344ure (E 200), Excipiens pro compr. obducto</span></p><p style=\"MARGIN-TOP: 4px; FONT-SIZE: 13px; LINE-HEIGHT: 1.4em\"></p></span><br />&nbsp;"
     assert_equal expected, @val.validate(:html, src)
   end
+  def test_validate_html__pre
+    src = "<pre>     fooo     </pre>"
+    expected = "<pre>     fooo     </pre>"
+    assert_equal expected, @val.validate(:html, src)
+  end
 end
