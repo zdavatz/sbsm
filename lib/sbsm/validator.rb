@@ -198,7 +198,7 @@ module SBSM
 			value
 		end
     def validate_html(value)
-      _validate_html(value.gsub(/\s+/, ' '))
+      _validate_html(value)
     end
     def _validate_html(value, valid=self.class.const_get(:ALLOWED_TAGS))
 			doc = Hpricot(value.gsub(/<\?xml[^>]+>/, ''), :fixup_tags => true)
