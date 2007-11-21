@@ -322,9 +322,10 @@ module SBSM
 				@active_state.touch
 				cap_max_states
 			rescue StandardError => err
+        @state = @state.previous
 				puts "error in SBSM::Session#process: #@request_path"
 				puts err.class, err.message
-				puts err.backtrace
+				puts err.backtrace[0,5]
 				$stdout.flush
 			ensure
 				@user_input_imported = false
@@ -390,7 +391,7 @@ module SBSM
 		rescue StandardError => err
       puts "error in SBSM::Session#to_html: #@request_path"
       puts err.class, err.message
-      puts err.backtrace
+      puts err.backtrace[0,5]
       $stdout.flush
 			[ err.class, err.message ].join("\n")
 		end
