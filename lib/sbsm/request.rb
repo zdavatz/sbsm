@@ -80,6 +80,7 @@ module SBSM
 				'session_path'			=>	'/',
       }
       if(is_crawler?)
+        sleep 0.5
         sid = [ENV['DEFAULT_FLAVOR'], @cgi.params['language'], @cgi.user_agent].join('-')
         args.store('session_id', sid)
       end
