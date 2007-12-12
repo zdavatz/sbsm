@@ -41,7 +41,7 @@ module SBSM
 	end
 	class State
 		attr_reader :errors, :infos, :events, :previous, :warnings, :model
-		attr_accessor :next, :request_path
+		attr_accessor :next, :request_path, :redirected
 		DIRECT_EVENT = nil
 		ZONE = nil
 		ZONES = []
@@ -165,9 +165,13 @@ module SBSM
 			view.to_html(context)
 		end
 		def trigger(event)
-			@errors = {}
-			@infos = []
-			@warnings = []
+      if(@redirected)
+        @redirected = false
+      else
+        @errors = {}
+        @infos = []
+        @warnings = []
+      end
 			state = if(event && !event.to_s.empty? && self.respond_to?(event))
 				_trigger(event)
 			elsif(klass = @events[event])

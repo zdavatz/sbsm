@@ -52,7 +52,6 @@ module SBSM
       reset_input()
 			reset_cookie()
       @app = app
-			@html_packets = nil
       @key = key
 			@validator = validator
 			@attended_states = {}
@@ -174,7 +173,6 @@ module SBSM
 			# attempting to read the cgi-params more than once results in a
 			# DRbConnectionRefused Exception. Therefore, do it only once...
 			return if(@user_input_imported) 
-      reset_input()
       request.params.each { |key, value| 
 				#puts "importing #{key} -> #{value}"
 				index = nil
@@ -279,15 +277,6 @@ module SBSM
 		def navigation
 			@user.navigation
 		end
-		def next_html_packet
-			@html_packets = to_html unless @html_packets
-			if(@html_packets.empty?)
-				## return nil
-				@html_packets = nil
-			else
-				@html_packets.slice!(0, self::class::DRB_LOAD_LIMIT)
-			end
-		end
 		def passthru(*args)
 			@request.passthru(*args)
 		end
@@ -343,8 +332,11 @@ module SBSM
 			end
 			@active_thread = Thread.current
 =end
-			reset_input()
-			@html_packets = nil
+      if @redirected
+        @redirected = false
+      else
+        reset_input()
+      end
 		end
 		def reset_cookie
 			@cookie_input = {}

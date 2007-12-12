@@ -5,6 +5,7 @@ module SBSM
   module Redirector
     def http_headers
       if(redirect?) 
+        @redirected = @state.redirected = true
         event, args = @state.direct_event
         { 
           "Location" => lookandfeel._event_url(event, args || {}),

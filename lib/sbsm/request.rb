@@ -86,10 +86,6 @@ module SBSM
 			@session = CGI::Session.new(@cgi, args)
 			@proxy = @session[:proxy]
 			res = @proxy.drb_process(self)
-			#res = ''
-			#while(snip = @proxy.next_html_packet)
-			#	res << snip
-			#end
 			cookie_input = @proxy.cookie_input
 			# view.to_html can call passthru instead of sending data
 			if(@passthru) 
