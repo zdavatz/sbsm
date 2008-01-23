@@ -326,12 +326,6 @@ class TestSession < Test::Unit::TestCase
 		assert_equal(expected, @session.state) 
 		assert_equal(expected, @session.attended_states[expected.object_id])
 	end
-	def test_next_html_packet
-		assert_equal('0123456789', @session.next_html_packet)
-		assert_equal('0123456789', @session.next_html_packet)
-		assert_equal('0123456789', @session.next_html_packet)
-		assert_equal(nil, @session.next_html_packet)
-	end
 	def test_logout
 		state = StubSessionBarState.new(@session, nil)
 		@session.attended_states.store(state.object_id, state)

@@ -6,7 +6,10 @@ module SBSM
     def http_headers
       if(redirect?) 
         @redirected = @state.redirected = true
-        event, args = @state.direct_event
+        event, *args = @state.direct_event
+        if(args.first.is_a? Hash)
+          args = args.first
+        end
         { 
           "Location" => lookandfeel._event_url(event, args || {}),
         }
