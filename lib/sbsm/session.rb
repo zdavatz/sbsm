@@ -178,7 +178,7 @@ module SBSM
 				index = nil
 				@unsafe_input.push([key.to_s.dup, value.to_s.dup])
 				unless(key.nil? || key.empty?)
-					if match = /([^\[]+)\[([^\]]+)\]/.match(key)
+					if match = /([^\[]+)((\[[^\]]+\])+)/.match(key)
 						key = match[1]
 						index = match[2]
 						#puts key, index
@@ -192,7 +192,16 @@ module SBSM
 					else
 						valid = @validator.validate(key, value)
 						if(index)
-							(@valid_input[key] ||= {}).store(index, valid)
+              target = (@valid_input[key] ||= {})
+              indices = []
+              index.scan(/[^\[\]]+/) { |idx|
+                indices.push idx
+              }
+              last = indices.pop
+              indices.each { |idx|
+                target = (target[idx] ||= {})
+              }
+              target.store(last, valid)
 						else
 							@valid_input[key] = valid
 						end
@@ -260,7 +269,10 @@ module SBSM
 		end
 		def http_headers
 			@state.http_headers
-		rescue NameError, StandardError
+		rescue NameError, StandardError => err
+      puts "error in SBSM::Session#http_headers: #@request_path"
+      puts err.class, err.message
+      puts err.backtrace[0,5]
 			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
