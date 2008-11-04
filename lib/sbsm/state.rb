@@ -64,7 +64,6 @@ module SBSM
 			@session = session
 			@model = model
 			@events = self::class::GLOBAL_MAP.dup.update(self::class::EVENT_MAP.dup)
-			@view = nil
 			@default_view = self::class::VIEW
 			@errors = {}
 			@infos = []
@@ -87,7 +86,6 @@ module SBSM
 		def __checkout
 			return if(@checked_out)
 			@checked_out = true
-			reset_view
 			@model = nil
 			if(@next.respond_to?(:unset_previous))
 				@next.unset_previous
@@ -131,7 +129,7 @@ module SBSM
 			super
 		end
 		def http_headers
-			view.http_headers
+			@http_headers || view.http_headers
 		end
 		def info?
 			!@infos.empty?
@@ -147,9 +145,6 @@ module SBSM
 				state.next = self
 				@previous = state
 			end
-		end
-		def reset_view
-			@view = nil
 		end
 		def sort
 			return self unless @model.respond_to?(:sort!)
@@ -210,16 +205,16 @@ module SBSM
 			end
 		end
 		def view
-			@view ||= begin
-				klass = @default_view
-				if(klass.is_a?(Hash))
-					klass = klass.fetch(@session.user.class) {
-						klass[:default]
-					}
-				end
-				model = @filter ? @filter.call(@model) : @model
-				klass.new(model, @session)	
-			end
+      klass = @default_view
+      if(klass.is_a?(Hash))
+        klass = klass.fetch(@session.user.class) {
+          klass[:default]
+        }
+      end
+      model = @filter ? @filter.call(@model) : @model
+      view = klass.new(model, @session)
+      @http_headers = view.http_headers
+      view
 		end
 		def volatile?
 			self::class::VOLATILE

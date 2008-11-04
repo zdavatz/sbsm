@@ -95,9 +95,6 @@ module SBSM
     def cgi
       @@cgi
     end
-    def clear_view
-      @state.reset_view if @state
-    end
 		def client_activex?
       (ua = user_agent) && /MSIE/.match(ua) && /Win/i.match(ua)
 		end
