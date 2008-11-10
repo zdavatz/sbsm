@@ -266,6 +266,8 @@ module SBSM
 		end
 		def http_headers
 			@state.http_headers
+    rescue DRb::DRbConnError
+      raise
 		rescue NameError, StandardError => err
       puts "error in SBSM::Session#http_headers: #@request_path"
       puts err.class, err.message
@@ -319,6 +321,8 @@ module SBSM
 				@zone = @active_state.zone
 				@active_state.touch
 				cap_max_states
+      rescue DRb::DRbConnError
+        raise
 			rescue StandardError => err
         @state = @state.previous
 				puts "error in SBSM::Session#process: #@request_path"
@@ -389,6 +393,8 @@ module SBSM
     end
 		def to_html
 			@state.to_html(@@cgi)
+    rescue DRb::DRbConnError
+      raise
 		rescue StandardError => err
       puts "error in SBSM::Session#to_html: #@request_path"
       puts err.class, err.message
