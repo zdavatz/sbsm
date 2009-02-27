@@ -14,6 +14,7 @@ module SBSM
           "Location" => lookandfeel._event_url(event, args || {}),
         }
       else
+        @redirected = @state.redirected = false
         super 
       end
     end
