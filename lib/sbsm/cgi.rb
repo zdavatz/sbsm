@@ -50,8 +50,8 @@ class CGI
     lines = string.gsub(/(?!\A)<(?!\/(pre|textarea))(?:.)*?>/ni, "\n\\0").gsub(/<(?!(pre|textarea))(?:.)*?>(?!\n)/ni, "\\0\n")
 	  end_pos = 0
 		preformatted = []
-		while end_pos = lines.index(/<\/pre/ni, end_pos)
-			start_pos = lines.rindex(/<pre(\s+[^>]+)?>/ni, end_pos)
+		while (end_pos = lines.index(/<\/pre\s*>/ni, end_pos)) \
+      && (start_pos = lines.rindex(/<pre(\s+[^>]+)?>/ni, end_pos))
 			start_pos += $~[0].length
 			preformatted.push(lines[ start_pos ... end_pos ])
 			lines[ start_pos ... end_pos ] = ''
@@ -66,7 +66,7 @@ class CGI
     pretty = lines.gsub(/^((?:#{Regexp::quote(shift)})*)__(?=<\/?\w)/n, '\1')
 		pos = 0
 		preformatted.each { |pre|
-			if(pos = pretty.index(/<\/pre/ni, pos))
+			if(pos = pretty.index(/<\/pre\s*>/ni, pos))
 				pretty[pos,0] = pre
 				pos += pre.length + 6
 			end
