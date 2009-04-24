@@ -37,7 +37,7 @@ module SBSM
 					}
 				end
         lnf
-			rescue Exception => e
+			rescue StandardError => e
 				puts e.class
 				puts e.message
 				puts e.backtrace

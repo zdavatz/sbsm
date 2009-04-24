@@ -66,7 +66,7 @@ module SBSM
 					else
 						str
 					end
-				rescue Exception => e
+				rescue StandardError => e
 					e.message
 				end.to_s
 			}

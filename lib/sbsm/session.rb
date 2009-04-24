@@ -324,7 +324,7 @@ module SBSM
       rescue DRb::DRbConnError
         raise
 			rescue StandardError => err
-        @state = @state.previous
+        #@state = @state.previous
 				puts "error in SBSM::Session#process: #@request_path"
 				puts err.class, err.message
 				puts err.backtrace[0,5]
