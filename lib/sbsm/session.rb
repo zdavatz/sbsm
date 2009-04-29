@@ -27,6 +27,7 @@ require 'sbsm/drb'
 require 'sbsm/state'
 require 'sbsm/lookandfeelfactory'
 require 'delegate'
+require 'localmemcache'
 
 module SBSM
   class	Session < SimpleDelegator
@@ -59,6 +60,7 @@ module SBSM
 			logout()
 			@unknown_user_class = @user.class
 			@variables = {}
+      @requests = {}
 		  #ARGV.push('') # satisfy cgi-offline prompt 
       #@cgi = CGI.new('html4')
 			super(app)
@@ -122,9 +124,21 @@ module SBSM
 		def direct_event
 			@state.direct_event
 		end
-    def drb_process(request)
+    def drb_cancel(uuid)
+      if (id = @requests.delete(uuid)) && (thread = ObjectSpace._id2ref(id)) \
+        && thread.status
+        thread.exit
+        ''
+      end
+    rescue StandardError => e
+      puts e.class, e.message
+    end
+    def drb_process(request, uuid)
+      @requests[uuid] = Thread.current.object_id
       process(request)
       to_html
+    ensure
+      @requests.delete(uuid)
     end
 		def error(key)
 			@state.error(key) if @state.respond_to?(:error)
@@ -221,6 +235,8 @@ module SBSM
 			@is_crawler ||= if @request.respond_to?(:is_crawler?)
                         @request.is_crawler?
                       end
+		rescue DRb::DRbConnError
+      false
 		end
 		def language
 			cookie_set_or_get(:language) || default_language
@@ -266,9 +282,7 @@ module SBSM
 		end
 		def http_headers
 			@state.http_headers
-    rescue DRb::DRbConnError
-      raise
-		rescue NameError, StandardError => err
+		rescue DRb::DRbConnError, NameError, StandardError => err
       puts "error in SBSM::Session#http_headers: #@request_path"
       puts err.class, err.message
       puts err.backtrace[0,5]
@@ -290,6 +304,7 @@ module SBSM
 		end
 		def passthru(*args)
 			@request.passthru(*args)
+    rescue DRb::DRbConnError
 		end
 		def persistent_user_input(key)
 			if(value = user_input(key))

@@ -27,6 +27,7 @@ require 'sbsm/drb'
 require 'cgi/session'
 require 'cgi/drbsession'
 require 'delegate'
+require 'digest/md5'
 
 module SBSM
   class Request < SimpleDelegator
@@ -38,6 +39,8 @@ module SBSM
 			@drb_uri = drb_uri
 			@thread = nil
 			@request = Apache.request
+      parts = [ object_id, remote_host, unparsed_uri, Time.now.to_i ]
+      @uuid = Digest::MD5.hexdigest(parts.join)
 			super(@cgi)
     end
 		def cookies
@@ -86,52 +89,60 @@ module SBSM
       end
 			@session = CGI::Session.new(@cgi, args)
 			@proxy = @session[:proxy]
-			res = @proxy.drb_process(self)
-			cookie_input = @proxy.cookie_input
-			# view.to_html can call passthru instead of sending data
-			if(@passthru) 
-				unless(cookie_input.empty?)
-					cookie = generate_cookie(cookie_input) 
-					@request.headers_out.add('Set-Cookie', cookie.to_s)
-				end
-				# the variable @passthru is set by a trusted source
-				basename = File.basename(@passthru)
-				fullpath = File.expand_path(@passthru, 
-					@request.server.document_root)
-				fullpath.untaint
-				subreq = @request.lookup_file(fullpath)
-				@request.content_type = subreq.content_type
-				@request.headers_out.add('Content-Disposition', 
-					"#@disposition; filename=#{basename}")
-				@request.headers_out.add('Content-Length', 
-					File.size(fullpath).to_s)
-				begin
-					File.open(fullpath) { |fd| @request.send_fd(fd) }
+      piped = false
+      trap "PIPE", proc{
+        @proxy.drb_cancel(@uuid) rescue DRb::DRbConnError
+        piped = true
+      }
+			res = @proxy.drb_process(self, @uuid)
+      return if piped
+      cookie_name = @proxy.cookie_name
+      cookie_input = @proxy.cookie_input
+      # view.to_html can call passthru instead of sending data
+      if(@passthru)
+        unless(cookie_input.empty?)
+          cookie = generate_cookie(cookie_input, cookie_name)
+          @request.headers_out.add('Set-Cookie', cookie.to_s)
+        end
+        # the variable @passthru is set by a trusted source
+        basename = File.basename(@passthru)
+        fullpath = File.expand_path(@passthru,
+          @request.server.document_root)
+        fullpath.untaint
+        subreq = @request.lookup_file(fullpath)
+        @request.content_type = subreq.content_type
+        @request.headers_out.add('Content-Disposition',
+          "#@disposition; filename=#{basename}")
+        @request.headers_out.add('Content-Length',
+          File.size(fullpath).to_s)
+        begin
+          File.open(fullpath) { |fd| @request.send_fd(fd) }
         rescue Errno::ENOENT, IOError => err
           @request.log_reason(err.message, @passthru)
           return Apache::NOT_FOUND
         end
-			else
-				begin
-					headers = @proxy.http_headers
-					unless(cookie_input.empty?)
-						cookie = generate_cookie(cookie_input) 
-						headers.store('Set-Cookie', [cookie])
-					end
-					@cgi.out(headers) { 
-						(@cgi.params.has_key?("pretty")) ? CGI.pretty( res ) : res
-					}
-				rescue StandardError => e
-					handle_exception(e)
-				end
-			end
-		end
-		def generate_cookie(cookie_input)
+      else
+        begin
+          return if piped
+          headers = @proxy.http_headers
+          unless(cookie_input.empty?)
+            cookie = generate_cookie(cookie_input, cookie_name)
+            headers.store('Set-Cookie', [cookie])
+          end
+          @cgi.out(headers) {
+            (@cgi.params.has_key?("pretty")) ? CGI.pretty( res ) : res
+          }
+        rescue StandardError => e
+          handle_exception(e)
+        end
+      end
+    end
+		def generate_cookie(cookie_input, cookie_name)
 			cookie_pairs = cookie_input.collect { |*pair| 
 					pair.join('=') 
 			}
 			cookie_hash = {
-				"name"		=>	@proxy.cookie_name || 'sbsm-persistent-cookie',
+				"name"		=>	cookie_name || 'sbsm-persistent-cookie',
 				"value"		=>	cookie_pairs,
 				"path"		=>	"/",
 				"expires"	=>	(Time.now + (60 * 60 * 24 * 365 * 10)),
@@ -145,9 +156,9 @@ module SBSM
 					e.class,
 					e.message,
 				].join(" - ")
-				@request.server.log_error(msg)
+				@request.server.log_error("%s", msg)
 				e.backtrace.each { |line|
-					@request.server.log_error(line)
+					@request.server.log_error("%s", line)
 				}
 			end
 			hdrs = {
