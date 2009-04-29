@@ -27,7 +27,6 @@ require 'sbsm/drb'
 require 'sbsm/state'
 require 'sbsm/lookandfeelfactory'
 require 'delegate'
-require 'localmemcache'
 
 module SBSM
   class	Session < SimpleDelegator
