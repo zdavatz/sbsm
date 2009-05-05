@@ -47,6 +47,35 @@ module SBSM
 		SERVER_NAME = nil
 		ARGV.push('') # satisfy cgi-offline prompt 
 		@@cgi = CGI.new('html4')
+    def Session.reset_stats
+      @@stats = {}
+    end
+    reset_stats
+    def Session.show_stats
+      puts sprintf("%8s %8s %8s %6s %10s Request-Path",
+                   "Min", "Max", "Avg", "Num", "Total")
+      grand_total = requests = all_max = all_min = 0
+      @@stats.collect do |path, times|
+        total = times.inject do |a, b| a + b end
+        grand_total += total
+        size = times.size
+        requests += size
+        max = times.max
+        all_max = max > all_max ? max : all_max
+        min = times.min
+        all_min = min < all_min ? min : all_min
+        [min, max, total / size, size, total, path]
+      end.sort.each do |data|
+        puts sprintf("%8.2f %8.2f %8.2f %6i %10.2f %s", *data)
+      end
+      puts sprintf("%8s %8s %8s %6s %10s Request-Path",
+                   "Min", "Max", "Avg", "Num", "Total")
+      puts sprintf("%8.2f %8.2f %8.2f %6i %10.2f",
+                   all_min, all_max,
+                   requests > 0 ? grand_total / requests : 0,
+                   requests, grand_total)
+      ''
+    end
     def initialize(key, app, validator=nil)
 			touch()
       reset_input()
@@ -133,9 +162,12 @@ module SBSM
       puts e.class, e.message
     end
     def drb_process(request, uuid)
+      start = Time.now
       @requests[uuid] = Thread.current.object_id
       process(request)
-      to_html
+      html = to_html
+      (@@stats[@request_path] ||= []).push(Time.now - start)
+      html
     ensure
       @requests.delete(uuid)
     end
