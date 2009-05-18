@@ -50,7 +50,7 @@ module SBSM
       set_dictionary(@language)
 		end
 		def attributes(key)
-			self::class::HTML_ATTRIBUTES.fetch(key.to_sym, {}).dup
+      self::class::HTML_ATTRIBUTES.fetch(key.to_sym, {}).dup rescue {}
 		end
 		def base_url
 			[@session.http_protocol + ':/', @session.server_name, @language, @flavor].compact.join("/")
