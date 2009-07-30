@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# State Based Session Management	
+# State Based Session Management
 #	Copyright (C) 2004 Hannes Wyss
 #
 # This library is free software; you can redistribute it and/or
@@ -20,19 +20,20 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
-# Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com 
+# Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 
 require 'sbsm/cgi'
 require 'sbsm/drb'
 require 'sbsm/state'
 require 'sbsm/lookandfeelfactory'
+require 'sbsm/redefine_19_cookie'
 require 'delegate'
 
 module SBSM
   class	Session < SimpleDelegator
-		attr_reader :user, :active_thread, :app, :key, :cookie_input, 
+		attr_reader :user, :active_thread, :app, :key, :cookie_input,
 			:unsafe_input, :valid_input, :request_path
-		include DRbUndumped 
+		include DRbUndumped
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = nil
 		DEFAULT_LANGUAGE = nil
@@ -42,16 +43,20 @@ module SBSM
     EXPIRES = 60 * 60
 		LF_FACTORY = nil
 		LOOKANDFEEL = Lookandfeel
-		CAP_MAX_THRESHOLD = 20
-		MAX_STATES = 10
+		CAP_MAX_THRESHOLD = 8
+		MAX_STATES = 4
 		SERVER_NAME = nil
-		ARGV.push('') # satisfy cgi-offline prompt 
+		ARGV.push('') # satisfy cgi-offline prompt
 		@@cgi = CGI.new('html4')
     def Session.reset_stats
       @@stats = {}
     end
     reset_stats
-    def Session.show_stats
+    @@stats_ptrn = /./
+    def Session.show_stats ptrn=@@stats_ptrn
+      if ptrn.is_a?(String)
+        ptrn = /#{ptrn}/i
+      end
       puts sprintf("%8s %8s %8s %6s %10s Request-Path",
                    "Min", "Max", "Avg", "Num", "Total")
       grand_total = requests = all_max = all_min = 0
@@ -66,7 +71,10 @@ module SBSM
         all_min = min < all_min ? min : all_min
         [min, max, total / size, size, total, path]
       end.sort.each do |data|
-        puts sprintf("%8.2f %8.2f %8.2f %6i %10.2f %s", *data)
+        line = sprintf("%8.2f %8.2f %8.2f %6i %10.2f %s", *data)
+        if ptrn.match(line)
+          puts line
+        end
       end
       puts sprintf("%8s %8s %8s %6s %10s Request-Path",
                    "Min", "Max", "Avg", "Num", "Total")
@@ -88,13 +96,13 @@ module SBSM
 			logout()
 			@unknown_user_class = @user.class
 			@variables = {}
-      @requests = {}
-		  #ARGV.push('') # satisfy cgi-offline prompt 
+      @mutex = Mutex.new
+		  #ARGV.push('') # satisfy cgi-offline prompt
       #@cgi = CGI.new('html4')
 			super(app)
     end
     def age(now=Time.now)
-      now - @mtime 
+      now - @mtime
     end
 		def cap_max_states
 			if(@attended_states.size > self::class::CAP_MAX_THRESHOLD)
@@ -105,8 +113,7 @@ module SBSM
 					state.__checkout
 					@attended_states.delete(state.object_id)
 				}
-				## start GC if we are maxing out:
-				Object.new
+        @attended_states.size
 			end
 		end
 		def __checkout
@@ -125,12 +132,15 @@ module SBSM
     def cgi
       @@cgi
     end
+    @@msie_ptrn = /MSIE/
+    @@win_ptrn = /Win/i
 		def client_activex?
-      (ua = user_agent) && /MSIE/.match(ua) && /Win/i.match(ua)
+      (ua = user_agent) && @@msie_ptrn.match(ua) && @@win_ptrn.match(ua)
 		end
+    @@nt5_ptrn = /Windows\s*NT\s*(\d+\.\d+)/i
 		def client_nt5?
       (ua = user_agent) \
-        && (match = /Windows\s*NT\s*(\d+\.\d+)/i.match(user_agent)) \
+        && (match = @@nt5_ptrn.match(user_agent)) \
         && (match[1].to_f >= 5)
 		end
 		def cookie_set_or_get(key)
@@ -144,7 +154,7 @@ module SBSM
 			@cookie_input[key]
 		end
 		def cookie_name
-			self::class::PERSISTENT_COOKIE_NAME	
+			self::class::PERSISTENT_COOKIE_NAME
 		end
 		def default_language
 			self::class::DEFAULT_LANGUAGE
@@ -152,24 +162,14 @@ module SBSM
 		def direct_event
 			@state.direct_event
 		end
-    def drb_cancel(uuid)
-      if (id = @requests.delete(uuid)) && (thread = ObjectSpace._id2ref(id)) \
-        && thread.status
-        thread.exit
-        ''
-      end
-    rescue StandardError => e
-      puts e.class, e.message
-    end
-    def drb_process(request, uuid)
+    def drb_process(request)
       start = Time.now
-      @requests[uuid] = Thread.current.object_id
-      process(request)
-      html = to_html
+      html = @mutex.synchronize do
+        process(request)
+        to_html
+      end
       (@@stats[@request_path] ||= []).push(Time.now - start)
       html
-    ensure
-      @requests.delete(uuid)
     end
 		def error(key)
 			@state.error(key) if @state.respond_to?(:error)
@@ -211,21 +211,23 @@ module SBSM
 				}
 			end
 		end
+    @@hash_ptrn = /([^\[]+)((\[[^\]]+\])+)/
+    @@index_ptrn = /[^\[\]]+/
     def import_user_input(request)
 			# attempting to read the cgi-params more than once results in a
 			# DRbConnectionRefused Exception. Therefore, do it only once...
-			return if(@user_input_imported) 
-      request.params.each { |key, value| 
+			return if(@user_input_imported)
+      request.params.each { |key, value|
 				#puts "importing #{key} -> #{value}"
 				index = nil
 				@unsafe_input.push([key.to_s.dup, value.to_s.dup])
 				unless(key.nil? || key.empty?)
-					if match = /([^\[]+)((\[[^\]]+\])+)/.match(key)
+					if match = @@hash_ptrn.match(key)
 						key = match[1]
 						index = match[2]
 						#puts key, index
 					end
-					key = key.intern 
+					key = key.intern
 					if(key == :confirm_pass)
 						pass = request.params["pass"]
 						#puts "pass:#{pass} - confirm:#{value}"
@@ -236,7 +238,7 @@ module SBSM
 						if(index)
               target = (@valid_input[key] ||= {})
               indices = []
-              index.scan(/[^\[\]]+/) { |idx|
+              index.scan(@@index_ptrn) { |idx|
                 indices.push idx
               }
               last = indices.pop
@@ -266,8 +268,6 @@ module SBSM
 			@is_crawler ||= if @request.respond_to?(:is_crawler?)
                         @request.is_crawler?
                       end
-		rescue DRb::DRbConnError
-      false
 		end
 		def language
 			cookie_set_or_get(:language) || default_language
@@ -306,14 +306,16 @@ module SBSM
 				lf_factory = self::class::LF_FACTORY
 				if(lf_factory && lf_factory.include?(user_input))
 					user_input
-				else	
+				else
 					self::class::DEFAULT_FLAVOR
 				end
 			end
 		end
 		def http_headers
 			@state.http_headers
-		rescue DRb::DRbConnError, NameError, StandardError => err
+    rescue DRb::DRbConnError
+      raise
+		rescue NameError, StandardError => err
       puts "error in SBSM::Session#http_headers: #@request_path"
       puts err.class, err.message
       puts err.backtrace[0,5]
@@ -335,7 +337,6 @@ module SBSM
 		end
 		def passthru(*args)
 			@request.passthru(*args)
-    rescue DRb::DRbConnError
 		end
 		def persistent_user_input(key)
 			if(value = user_input(key))
@@ -352,9 +353,9 @@ module SBSM
 				@validator.reset_errors() if @validator
 				import_user_input(request)
 				import_cookies(request)
-				@state = active_state.trigger(event()) 
+				@state = active_state.trigger(event())
         #FIXME: is there a better way to distinguish returning states?
-        #       ... we could simply refuse to init if event == :sort, but that 
+        #       ... we could simply refuse to init if event == :sort, but that
         #       would not solve the problem cleanly, I think.
         unless(@state.request_path)
           @state.request_path = @request_path
@@ -423,7 +424,7 @@ module SBSM
 		end
 		def server_name
 			@server_name ||= if @request.respond_to?(:server_name)
-				@request.server_name 
+				@request.server_name
 			else
 				self::class::SERVER_NAME
 			end
@@ -444,18 +445,19 @@ module SBSM
 		rescue StandardError => err
       puts "error in SBSM::Session#to_html: #@request_path"
       puts err.class, err.message
-      puts err.backtrace[0,5]
+      puts err.backtrace#[0,5]
       $stdout.flush
 			[ err.class, err.message ].join("\n")
 		end
     def user_agent
       @user_agent ||= (@request.user_agent if @request.respond_to?(:user_agent))
     end
+    @@input_ptrn = /([^\[]+)\[([^\]]+)\]/
     def user_input(*keys)
 			if(keys.size == 1)
 				index = nil
 				key = keys.first.to_s
-				if match = /([^\[]+)\[([^\]]+)\]/.match(key)
+				if match = @@input_ptrn.match(key)
 					key = match[1]
 					index = match[2]
 				end
@@ -507,7 +509,7 @@ module SBSM
 		def zone
 			@valid_input[:zone] || @state.zone || self::class::DEFAULT_ZONE
 		end
-		def zones 
+		def zones
 			@active_state.zones
 		end
 		def zone_navigation
@@ -517,7 +519,7 @@ module SBSM
 			super
 		end
 		def <=>(other)
-			self.weighted_mtime <=> other.weighted_mtime	
+			self.weighted_mtime <=> other.weighted_mtime
 		end
 		def [](key)
 			@variables[key]

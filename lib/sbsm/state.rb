@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# State Based Session Management	
+# State Based Session Management
 #	Copyright (C) 2004 Hannes Wyss
 #
 # This library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
-# State -- sbsm -- 22.10.2002 -- hwyss@ywesee.com 
+# State -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 
 module SBSM
 	class ProcessingError < RuntimeError
@@ -99,7 +99,7 @@ module SBSM
 		def create_error(msg, key, val)
 			ProcessingError.new(msg.to_s, key, val)
 		end
-		def default 
+		def default
 			self
 		end
 		def direct_event
@@ -119,15 +119,27 @@ module SBSM
 				@errors.store(key, error)
 			end
 		end
-		def extend(mod)
-			if(mod.constants.include?('VIRAL'))
-				@viral_modules.push(mod)
-			end
-			if(mod.constants.include?('EVENT_MAP'))
-				@events.update(mod::EVENT_MAP)
-			end
-			super
-		end
+    if RUBY_VERSION >= '1.9'
+      def extend(mod)
+        if(mod.constants.include?(:VIRAL))
+          @viral_modules.push(mod)
+        end
+        if(mod.constants.include?(:EVENT_MAP))
+          @events.update(mod::EVENT_MAP)
+        end
+        super
+      end
+    else
+      def extend(mod)
+        if(mod.constants.include?('VIRAL'))
+          @viral_modules.push(mod)
+        end
+        if(mod.constants.include?('EVENT_MAP'))
+          @events.update(mod::EVENT_MAP)
+        end
+        super
+      end
+    end
 		def http_headers
 			@http_headers || view.http_headers
 		end
@@ -174,12 +186,12 @@ module SBSM
 			end
 			state ||= self.default
 			if(state.respond_to?(:previous=))
-				state.previous = self 
+				state.previous = self
 			end
-			state 
+			state
 		end
     def _trigger(event)
-      self.send(event) 
+      self.send(event)
     end
 		def unset_previous
 			@previous = nil
@@ -188,18 +200,24 @@ module SBSM
 			@warnings.select { |warning| warning.key == key }.first
 		end
 		def warning?
-			!@warnings.empty?		
+			!@warnings.empty?
 		end
 		def user_input(keys=[], mandatory=[])
 			keys = [keys] unless keys.is_a?(Array)
 			mandatory = [mandatory] unless mandatory.is_a?(Array)
 			if(hash = @session.user_input(*keys))
-				hash.each { |key, value| 
-					if(error_check_and_store(key, value, mandatory))
-						hash.delete(key)
-					end
-				}
-				hash
+        if keys.size == 1
+          unless(error_check_and_store(keys.first, hash, mandatory))
+            hash
+          end
+        else
+          hash.each { |key, value|
+            if(error_check_and_store(key, value, mandatory))
+              hash.delete(key)
+            end
+          }
+          hash
+        end
 			else
 				{}
 			end
@@ -219,10 +237,10 @@ module SBSM
 		def volatile?
 			self::class::VOLATILE
 		end
-		def zone 
+		def zone
 			self::class::ZONE
 		end
-		def zones 
+		def zones
 			self::class::ZONES
 		end
 		def zone_navigation
@@ -248,7 +266,7 @@ module SBSM
 					1
 				elsif (bval.nil?)
 					-1
-				else 
+				else
 					aval <=> bval
 				end
 				return res if(res.nonzero?)
@@ -260,9 +278,9 @@ module SBSM
 			if(sortvalue = @session.user_input(:sortvalue))
         sortvalue = sortvalue.to_sym
         if(@sortby.first == sortvalue)
-          @sort_reverse = !@sort_reverse 
+          @sort_reverse = !@sort_reverse
         else
-          @sort_reverse = self.class::REVERSE_MAP[sortvalue] 
+          @sort_reverse = self.class::REVERSE_MAP[sortvalue]
         end
         @sortby.delete(sortvalue)
         @sortby.unshift(sortvalue)

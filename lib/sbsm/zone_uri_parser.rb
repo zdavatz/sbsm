@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'rockit/rockit'
 module SBSM
   # Parser for Uri
@@ -6,7 +7,7 @@ module SBSM
   # and licensed under GPL
   # but this parser is under LGPL
   tokens = [
-    t1 = EofToken.new("EOF",/^(¤~~¤¤~^^~3493746103)/),
+    t1 = EofToken.new("EOF",/^(Â¤~~Â¤Â¤~^^~3493746103)/),
     t2 = Token.new("SLASH",/^(\/)/),
     t3 = Token.new("OTHER",/^([^\/]+)/),
     t4 = Token.new("LANG",/^([a-z]{2})/)

@@ -93,7 +93,17 @@ module SBSM
 		def validate(key, value)
 			value = value.pop if value.is_a? Array
 			return nil if value.nil?
-			if(value.is_a? DRb::DRbObject)
+      if value.is_a?(StringIO)
+				if(@files.include?(key))
+					return validate_file(key, value)
+				else
+					begin
+						value = value.read
+					rescue StandardError => e
+						p e
+					end
+				end
+			elsif(value.is_a? DRb::DRbObject)
 				value = value[0]
 				if(@files.include?(key))
 					return validate_file(key, value)
@@ -168,8 +178,9 @@ module SBSM
       end
 		end
 		alias :confirm_pass :pass
+    @@state_id_ptrn = /-?\d+/
 		def state_id(value)
-			if(match = /-?\d+/.match(value))
+			if(match = @@state_id_ptrn.match(value))
 				match[0].to_i
 			else
 				nil
@@ -200,8 +211,9 @@ module SBSM
     def validate_html(value)
       _validate_html(value)
     end
+    @@xml_ptrn = /<\?xml[^>]+>/
     def _validate_html(value, valid=self.class.const_get(:ALLOWED_TAGS))
-			doc = Hpricot(value.gsub(/<\?xml[^>]+>/, ''), :fixup_tags => true)
+			doc = Hpricot(value.gsub(@@xml_ptrn, ''), :fixup_tags => true)
       (doc/"*").each { |element|
         unless(element.is_a?(Hpricot::Text) \
                || (element.respond_to?(:name) \
@@ -209,11 +221,14 @@ module SBSM
           element.swap _validate_html(element.inner_html.to_s)
         end
       }
-      doc.to_html
+      valid = doc.to_html
+      valid.force_encoding 'UTF-8' if valid.respond_to?(:force_encoding)
+      valid
     end
+    @@numeric_ptrn = /\d+(\.\d{1,2})?/
 		def validate_numeric(key, value)
 			return if(value.empty?)
-			if(match = /\d+(\.\d{1,2})?/.match(value))
+			if(match = @@numeric_ptrn.match(value))
 				match[0]
 			else
 				raise InvalidDataError.new("e_invalid_#{key}", key, value)

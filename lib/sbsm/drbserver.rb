@@ -96,12 +96,21 @@ module SBSM
 		def clean
       now = Time.now
 			@sessions.delete_if { |key, s| 
-				begin
-					(!s.respond_to?(:expired?)) \
-						|| s.expired?(now) && s.__checkout
-				rescue
-					true
-				end
+        begin
+          if s.respond_to?(:expired?)
+            if s.expired?(now)
+              s.__checkout
+              true
+            else
+              s.cap_max_states
+              false
+            end
+          else
+            true
+          end
+        rescue
+          true
+        end
 			}
 			#cap_max_sessions(now)
 		end
