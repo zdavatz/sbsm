@@ -156,6 +156,13 @@ module SBSM
 			if(@previous.nil? && state.respond_to?(:next=))
 				state.next = self
 				@previous = state
+        while state
+          if state.previous == self
+            state.unset_previous
+          end
+          state = state.previous
+        end
+        @previous
 			end
 		end
 		def sort
@@ -194,6 +201,9 @@ module SBSM
       self.send(event)
     end
 		def unset_previous
+      if @previous.respond_to?(:next=)
+        @previous.next = nil
+      end
 			@previous = nil
 		end
 		def warning(key)
