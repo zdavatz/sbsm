@@ -1,5 +1,5 @@
 === 1.0.0 / 16.12.2010
 
-* sbsm is not Ruby 1.9 ready.
+* sbsm is now Ruby 1.9 ready.
 
   * Birthday!
