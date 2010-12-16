@@ -23,7 +23,8 @@
 # Index -- sbsm -- 04.03.2003 -- hwyss@ywesee.com 
 
 module SBSM
-	class Index
+VERSION = '1.0.0'
+  class Index
 		def initialize
 			@values = []
 			@children = []
