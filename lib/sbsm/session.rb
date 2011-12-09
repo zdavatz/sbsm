@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 #
 # State Based Session Management
 #	Copyright (C) 2004 Hannes Wyss
@@ -17,10 +18,11 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
+#	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 ZÃ¼rich, Switzerland
 #	hwyss@ywesee.com
 #
-# Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
+# SBSM::Session -- sbsm -- 09.12.2012 -- mhatakeyama@ywesee.com
+# SBSM::Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 
 require 'sbsm/cgi'
 require 'sbsm/drb'
@@ -201,15 +203,17 @@ module SBSM
 		end
 		def import_cookies(request)
 			reset_cookie()
-			if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
-				cuki.each { |cuki_str|
-					CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
-						key = key.intern
-						valid = @validator.validate(key, val.compact.last)
-						@cookie_input.store(key, valid)
-					}
-				}
-			end
+      if RUBY_VERSION < "1.9"
+        if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
+          cuki.each { |cuki_str|
+            CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
+              key = key.intern
+              valid = @validator.validate(key, val.compact.last)
+              @cookie_input.store(key, valid)
+            }
+          }
+        end
+      end
 		end
     @@hash_ptrn = /([^\[]+)((\[[^\]]+\])+)/
     @@index_ptrn = /[^\[\]]+/
