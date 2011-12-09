@@ -1,3 +1,11 @@
+=== 1.0.2 / 09.12.2011
+
+* Updated session.rb to be compatible for both Ruby 1.8 and 1.9.3-p0
+
+=== 1.0.1 / 08.12.2011
+
+* Fix the number of argument error of DRbObject respond_to method
+
 === 1.0.0 / 16.12.2010
 
 * sbsm is now Ruby 1.9 ready.
