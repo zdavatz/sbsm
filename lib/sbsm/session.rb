@@ -21,7 +21,7 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
-# SBSM::Session -- sbsm -- 09.12.2012 -- mhatakeyama@ywesee.com
+# SBSM::Session -- sbsm -- 22.12.2011 -- mhatakeyama@ywesee.com
 # SBSM::Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 
 require 'sbsm/cgi'
@@ -252,6 +252,7 @@ module SBSM
               target.store(last, valid)
 						else
 							@valid_input[key] = valid
+              "dummy" # Some statement is necessary here to avoid Date data loading error on Ruby 1.9.3
 						end
 					end
 				end
