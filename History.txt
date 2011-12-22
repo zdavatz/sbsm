@@ -1,3 +1,7 @@
+=== 1.0.3 / 22.12.2011
+
+* Fix Date object loading error. Without this active agents and sequence data will not be saved in ch.oddb.org
+
 === 1.0.2 / 09.12.2011
 
 * Updated session.rb to be compatible for both Ruby 1.8 and 1.9.3-p0
