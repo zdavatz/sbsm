@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
-# TransHandler -- sbsm -- 23.09.2004 -- hwyss@ywesee.com
+# SBSM::TransHandler -- sbsm -- 16.01.2012 -- mhatakeyama@ywesee.com
+# SBSM::TransHandler -- sbsm -- 23.09.2004 -- hwyss@ywesee.com
 
 $USING_STRSCAN = true
-require 'rockit/rockit'
 require 'cgi'
 require 'singleton'
 require 'yaml'
@@ -46,6 +46,30 @@ module SBSM
 				request.uri = HANDLER_URI
 			end
 		end
+    def simple_parse(uri)
+      # /language/flavor/event/key/value/key/value/...
+      items = uri.split('/')
+      items.shift
+      values = {}
+      lang = items.shift
+      values.store(:language, lang) if lang
+      flavor = items.shift
+      values.store(:flavor, flavor) if flavor
+      event = items.shift
+      values.store(:event, event) if event
+      until items.empty?
+        key = items.shift
+        value = items.shift
+        values.store(key, value)
+      end
+      values
+    end
+    def simple_parse_uri(request)
+			values = request.notes
+      simple_parse(request.uri).each do |key, value|
+        values.add(key.to_s, CGI.unescape(value.to_s))
+      end
+    end
 		def parse_uri(request)
 			@uri_parser ||= self.uri_parser 
 			ast = @uri_parser.parse(request.uri)
@@ -77,7 +101,11 @@ module SBSM
       when @@empty_check
         request.uri = config['redirect']['/'] || HANDLER_URI
       when @@lang_check
-        self.parse_uri(request)
+        begin
+          self.parse_uri(request)
+        rescue LoadError
+          simple_parse_uri(request)
+        end
         request.uri = HANDLER_URI
       end
       Apache::DECLINED
