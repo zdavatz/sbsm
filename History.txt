@@ -1,3 +1,7 @@
+=== 1.0.4 / 16.01.2012
+
+* Updated trans_handler.rb. If rockit library is not found, then simple_parse_uri method is used to parse uri.
+
 === 1.0.3 / 22.12.2011
 
 * Fix Date object loading error. Without this active agents and sequence data will not be saved in ch.oddb.org
