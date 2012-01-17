@@ -20,7 +20,6 @@ lib/sbsm/index.rb
 lib/sbsm/lookandfeel.rb
 lib/sbsm/lookandfeelfactory.rb
 lib/sbsm/lookandfeelwrapper.rb
-lib/sbsm/redefine_19_cookie.rb
 lib/sbsm/redirector.rb
 lib/sbsm/request.rb
 lib/sbsm/session.rb
