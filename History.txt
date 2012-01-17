@@ -1,3 +1,7 @@
+=== 1.0.5 / 17.01.2012
+
+* Removed redefine_19_cookie.rb
+
 === 1.0.4 / 16.01.2012
 
 * Updated trans_handler.rb. If rockit library is not found, then simple_parse_uri method is used to parse uri.
