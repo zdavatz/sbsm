@@ -21,14 +21,13 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
-# SBSM::Session -- sbsm -- 22.12.2011 -- mhatakeyama@ywesee.com
+# SBSM::Session -- sbsm -- 17.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 
 require 'sbsm/cgi'
 require 'sbsm/drb'
 require 'sbsm/state'
 require 'sbsm/lookandfeelfactory'
-require 'sbsm/redefine_19_cookie'
 require 'delegate'
 
 module SBSM
