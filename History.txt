@@ -1,3 +1,13 @@
+=== 1.0.6 / 20.01.2012
+
+* Added untaint to __FILE__ and request.server.document_root in trans_handler.rb
+* this is to get rid of the Ruby 1.9.3*  error when mod_ruby is compiled against
+* Ruby 1.9.3
+
+	mod_ruby:
+  	/usr/local/lib64/ruby/gems/1.9.1/gems/sbsm-1.0.5/lib/sbsm/trans_handler.rb:21:in
+  	`expand_path': Insecure operation - expand_path (SecurityError)
+
 === 1.0.5 / 17.01.2012
 
 * Removed redefine_19_cookie.rb
