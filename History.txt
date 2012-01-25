@@ -1,3 +1,7 @@
+=== 1.0.7 / 24.01.2012
+
+* Fix untaint for trans_hander.rb
+
 === 1.0.6 / 20.01.2012
 
 * Added untaint to __FILE__ and request.server.document_root in trans_handler.rb
