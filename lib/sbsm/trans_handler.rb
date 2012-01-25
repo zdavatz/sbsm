@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# SBSM::TransHandler -- sbsm -- 20.01.2012 -- mhatakeyama@ywesee.com
+# SBSM::TransHandler -- sbsm -- 25.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::TransHandler -- sbsm -- 23.09.2004 -- hwyss@ywesee.com
 
 $USING_STRSCAN = true
@@ -19,9 +19,9 @@ module SBSM
 			@parser_name = name
 			@parser_method = "_#{name}_parser"
 			@grammar_path = File.expand_path("../../data/#{name}.grammar", 
-				File.dirname(__FILE__.untaint))
+				File.dirname(__FILE__).untaint)
 			@parser_path = File.expand_path("#{name}_parser.rb", 
-				File.dirname(__FILE__.untaint))
+				File.dirname(__FILE__).untaint)
 		end
     def config(request)
       config = Hash.new { {} } 
