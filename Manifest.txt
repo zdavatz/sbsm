@@ -1,6 +1,5 @@
 History.txt
 LICENCE.txt
-Manifest.txt
 README.txt
 Rakefile
 data/_flavored_uri.grammar
