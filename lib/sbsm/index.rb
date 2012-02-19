@@ -23,7 +23,6 @@
 # Index -- sbsm -- 04.03.2003 -- hwyss@ywesee.com 
 
 module SBSM
-VERSION = '1.0.8'
   class Index
 		def initialize
 			@values = []
