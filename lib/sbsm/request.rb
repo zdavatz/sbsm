@@ -20,7 +20,7 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
-# SBSM::Request -- sbsm -- 17.01.2012 -- mhatakeyama@ywesee.com
+# SBSM::Request -- sbsm -- 20.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Request -- sbsm -- hwyss@ywesee.com
 
 require 'sbsm/cgi'
@@ -32,7 +32,7 @@ require 'delegate'
 module SBSM
   class Request < SimpleDelegator
     include DRbUndumped
-		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|jeeves|spider|\.{6}/i
+		CRAWLER_PATTERN = /archiver|slurp|bot|crawler|jeeves|spider|\.{6}|windows/i
     attr_reader :cgi
     def initialize(drb_uri, html_version = "html4", cgiclass = CGI)
       @cgi = cgiclass.new(html_version)
