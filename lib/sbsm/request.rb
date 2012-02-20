@@ -80,6 +80,9 @@ module SBSM
 				'drbsession_uri'		=>	@drb_uri,
 				'session_path'			=>	'/',
       }
+      if unparsed_uri =~ /pointer/
+        return
+      end
       if(is_crawler?)
         sleep 2.0
         sid = [ENV['DEFAULT_FLAVOR'], @cgi.params['language'], @cgi.user_agent].join('-')
