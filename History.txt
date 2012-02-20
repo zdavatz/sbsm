@@ -1,3 +1,7 @@
+=== 1.1.0 / 20.02.2012
+
+* Drop any request containing pointer in it.
+
 === 1.0.9 / 20.02.2012
 
 * Slow down greedy Windows-Clients.
