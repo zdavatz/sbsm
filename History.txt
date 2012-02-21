@@ -1,3 +1,8 @@
+=== 1.1.1 / 22.02.2012
+
+*  Removed CRAWLER_PATTERN constant from request.rb and used a local varible,
+*  crawler_pattern, in Requst#is_crawler? method
+
 === 1.1.0 / 20.02.2012
 
 * Drop any request containing pointer in it.
