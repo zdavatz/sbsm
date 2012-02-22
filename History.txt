@@ -1,3 +1,7 @@
+=== 1.1.2 / 22.02.2012
+
+* Added # -*- coding: ascii-8bit -*- to flavored_uri_parser.rb
+
 === 1.1.1 / 22.02.2012
 
 *  Removed CRAWLER_PATTERN constant from request.rb and used a local varible,
