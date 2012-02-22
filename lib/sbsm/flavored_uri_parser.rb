@@ -1,3 +1,4 @@
+# -*- coding: ascii-8bit -*-
 require 'rockit/rockit'
 module SBSM
   # Parser for Uri
