@@ -76,7 +76,6 @@ module SBSM
 		private
     def lock
       lock_file = '/tmp/sbsm_lock'
-      flag_file = '/tmp/sbsm_drop_flag'
       open(lock_file, 'a') do |st|
         st.flock(File::LOCK_EX)
         yield
@@ -86,9 +85,11 @@ module SBSM
     def drb_server_threads
       threads = 0
       status = '/var/www/oddb.org/doc/resources/downloads/status'
-      open(status) do |file|
-        if file.gets =~ /threads:\s+(\d+)/
-          threads = $1.to_i
+      if File.exist?(status)
+        open(status) do |file|
+          if file.gets =~ /threads:\s+(\d+)/
+            threads = $1.to_i
+          end
         end
       end
       threads
