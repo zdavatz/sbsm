@@ -133,7 +133,7 @@ module SBSM
       end
     end
     def is_drop?
-      if unparsed_uri =~ /pointer/ or (drop_flag && is_crawler?)
+      if unparsed_uri =~ /pointer/ or (is_crawler? && drop_flag)
         true
       end
     end
