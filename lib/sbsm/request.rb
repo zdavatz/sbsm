@@ -20,7 +20,7 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
-# SBSM::Request -- sbsm -- 21.01.2012 -- mhatakeyama@ywesee.com
+# SBSM::Request -- sbsm -- 24.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Request -- sbsm -- hwyss@ywesee.com
 
 require 'sbsm/cgi'
@@ -74,13 +74,77 @@ module SBSM
 			@request.unparsed_uri
 		end
 		private
+    def lock
+      lock_file = '/tmp/sbsm_lock'
+      flag_file = '/tmp/sbsm_drop_flag'
+      open(lock_file, 'a') do |st|
+        st.flock(File::LOCK_EX)
+        yield
+        st.flock(File::LOCK_UN)
+      end
+    end
+    def drb_server_threads
+      threads = 0
+      status = '/var/www/oddb.org/doc/resources/downloads/status'
+      open(status) do |file|
+        if file.gets =~ /threads:\s+(\d+)/
+          threads = $1.to_i
+        end
+      end
+      threads
+    end
+    def drop_flag(flag = nil)
+      file = '/tmp/sbsm_drop_flag'
+      if flag != nil # write
+        lock do 
+          open(file, 'w') do |f|
+            f.print flag.to_s
+          end
+        end
+      else    # read
+        unless File.exist?(file)
+          lock do 
+            open(file, 'w') do |f|
+              f.print false
+              flag = false
+            end
+          end
+        else
+          open(file, 'r') do |f|
+            flag = if f.gets.chomp =~ /true/
+                     true
+                   else
+                     false
+                   end
+          end
+        end
+      end
+      flag
+    end
+    def check_threads
+      time = Time.now.sec.to_i % 5 
+      if time == 0
+        #if drb_server_threads > 50
+        if drb_server_threads > 30
+          drop_flag true
+        else
+          drop_flag false
+        end
+      end
+    end
+    def is_drop?
+      if unparsed_uri =~ /pointer/ or (drop_flag && is_crawler?)
+        true
+      end
+    end
 		def drb_process
       args = {
         'database_manager'	=>	CGI::Session::DRbSession,
 				'drbsession_uri'		=>	@drb_uri,
 				'session_path'			=>	'/',
       }
-      if unparsed_uri =~ /pointer/
+      check_threads
+      if is_drop?
         return
       end
       if(is_crawler?)
