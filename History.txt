@@ -1,3 +1,7 @@
+=== 1.1.3 / 24.02.2012
+
+* Drop crawler requests if drb server threads goes over 50
+
 === 1.1.2 / 22.02.2012
 
 * Added # -*- coding: ascii-8bit -*- to flavored_uri_parser.rb
