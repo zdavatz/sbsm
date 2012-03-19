@@ -20,6 +20,7 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
+# SBSM::Request -- sbsm -- 19.03.2012 -- yasaka@ywesee.com
 # SBSM::Request -- sbsm -- 24.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Request -- sbsm -- hwyss@ywesee.com
 
@@ -44,7 +45,7 @@ module SBSM
       @cgi.cookies
 		end
     def is_crawler?
-		  crawler_pattern = /archiver|slurp|bot|crawler|jeeves|spider|\.{6}|windows/i
+		  crawler_pattern = /archiver|slurp|bot|crawler|jeeves|spider|\.{6}/i
 			!!crawler_pattern.match(@cgi.user_agent)
 		end
 		def passthru(path, disposition='attachment')
