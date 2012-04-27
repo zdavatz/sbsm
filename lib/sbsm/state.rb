@@ -20,7 +20,8 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
-# State -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
+# SBSM::State -- sbsm -- 27.04.2012 -- yasaka@ywesee.com
+# SBSM::State -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 
 module SBSM
 	class ProcessingError < RuntimeError
@@ -41,7 +42,7 @@ module SBSM
 	end
 	class State
 		attr_reader :errors, :infos, :events, :previous, :warnings, :model
-		attr_accessor :next, :request_path, :redirected
+    attr_accessor :next, :request_path, :redirected, :http_headers
 		DIRECT_EVENT = nil
 		ZONE = nil
 		ZONES = []
@@ -240,9 +241,7 @@ module SBSM
         }
       end
       model = @filter ? @filter.call(@model) : @model
-      view = klass.new(model, @session)
-      @http_headers = view.http_headers
-      view
+      klass.new(model, @session)
 		end
 		def volatile?
 			self::class::VOLATILE
