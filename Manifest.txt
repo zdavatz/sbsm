@@ -31,6 +31,7 @@ lib/sbsm/user.rb
 lib/sbsm/validator.rb
 lib/sbsm/viralstate.rb
 lib/sbsm/zone_uri_parser.rb
+lib/version.rb
 test/data/dos_file.txt
 test/data/lnf_file.txt
 test/data/mac_file.txt
