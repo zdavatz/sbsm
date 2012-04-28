@@ -1,3 +1,7 @@
+=== 1.1.6 / 28.04.2012
+
+* Updated http_headers in state class
+
 === 1.1.5 / 19.03.2012
 
 * Re-allow windows user to first process
