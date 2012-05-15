@@ -70,7 +70,6 @@ module SBSM
 			@infos = []
 			@warnings = []
       @viral_modules = []
-      @http_headers = {}
 			touch()
 		end
     def init
@@ -242,7 +241,9 @@ module SBSM
         }
       end
       model = @filter ? @filter.call(@model) : @model
-      klass.new(model, @session)
+      view = klass.new(model, @session)
+      @http_headers = view.http_headers unless @http_headers
+      view
 		end
 		def volatile?
 			self::class::VOLATILE
