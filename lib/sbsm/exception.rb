@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 #
-# State Based Session Management	
-#	Copyright (C) 2004 Hannes Wyss
+# State Based Session Management
+# Copyright (C) 2004 Hannes Wyss
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,8 +18,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-#	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
-#	hwyss@ywesee.com
+# ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 ZÃ¼rich, Switzerland
+# hwyss@ywesee.com
 #
 # Exception -- sbsm -- 22.10.2002 -- hwyss@ywesee.com 
 

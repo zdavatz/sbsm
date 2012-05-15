@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 # TestTransHandler -- sbsm -- 23.09.2004 -- hwyss@ywesee.com
 
 $: << File.dirname(__FILE__)

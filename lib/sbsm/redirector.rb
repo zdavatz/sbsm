@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 # Redirector -- sbsm -- 02.11.2006 -- hwyss@ywesee.com
 
 module SBSM

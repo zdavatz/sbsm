@@ -1,4 +1,4 @@
-#
+# encoding: utf-8
 # DRbSession - CGI::Session session database manager using DRb.
 # Copyright (C) 2001 by Tietew. All Rights Reserved.
 #

@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 # SBSM::TransHandler -- sbsm -- 25.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::TransHandler -- sbsm -- 23.09.2004 -- hwyss@ywesee.com
 
