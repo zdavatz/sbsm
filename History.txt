@@ -1,3 +1,8 @@
+=== 1.1.7 / 15.05.2012
+
+* Updated for http_headers in view
+* Added default value of http_headers
+
 === 1.1.6 / 28.04.2012
 
 * Updated http_headers in state class
