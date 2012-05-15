@@ -20,7 +20,7 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
-# SBSM::State -- sbsm -- 27.04.2012 -- yasaka@ywesee.com
+# SBSM::State -- sbsm -- 15.05.2012 -- yasaka@ywesee.com
 # SBSM::State -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 
 module SBSM
@@ -70,6 +70,7 @@ module SBSM
 			@infos = []
 			@warnings = []
       @viral_modules = []
+      @http_headers = {}
 			touch()
 		end
     def init
