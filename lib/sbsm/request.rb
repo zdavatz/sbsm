@@ -21,7 +21,7 @@
 # ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 # hwyss@ywesee.com
 #
-# SBSM::Request -- sbsm -- 19.03.2012 -- yasaka@ywesee.com
+# SBSM::Request -- sbsm -- 26.09.2012 -- yasaka@ywesee.com
 # SBSM::Request -- sbsm -- 24.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Request -- sbsm -- hwyss@ywesee.com
 
@@ -29,6 +29,7 @@ require 'sbsm/cgi'
 require 'sbsm/drb'
 require 'cgi/session'
 require 'cgi/drbsession'
+require 'cgi/cookie'
 require 'delegate'
 
 module SBSM
@@ -187,7 +188,7 @@ module SBSM
 					headers = @proxy.http_headers
 					unless(cookie_input.empty?)
 						cookie = generate_cookie(cookie_input)
-						headers.store('Set-Cookie', [cookie])
+						headers.store('Set-Cookie', cookie.to_s)
 					end
 					@cgi.out(headers) {
 						(@cgi.params.has_key?("pretty")) ? CGI.pretty( res ) : res

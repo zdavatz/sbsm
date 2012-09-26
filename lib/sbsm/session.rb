@@ -21,6 +21,7 @@
 #	ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 #	hwyss@ywesee.com
 #
+# SBSM::Session -- sbsm -- 26.09.2012 -- yasaka@ywesee.com
 # SBSM::Session -- sbsm -- 17.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 
@@ -202,16 +203,14 @@ module SBSM
 		end
 		def import_cookies(request)
 			reset_cookie()
-      if RUBY_VERSION < "1.9"
-        if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
-          cuki.each { |cuki_str|
-            CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
-              key = key.intern
-              valid = @validator.validate(key, val.compact.last)
-              @cookie_input.store(key, valid)
-            }
+      if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
+        cuki.each { |cuki_str|
+          CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
+            key = key.intern
+            valid = @validator.validate(key, val.compact.last)
+            @cookie_input.store(key, valid)
           }
-        end
+        }
       end
 		end
     @@hash_ptrn = /([^\[]+)((\[[^\]]+\])+)/
