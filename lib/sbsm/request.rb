@@ -29,7 +29,6 @@ require 'sbsm/cgi'
 require 'sbsm/drb'
 require 'cgi/session'
 require 'cgi/drbsession'
-require 'cgi/cookie'
 require 'delegate'
 
 module SBSM
