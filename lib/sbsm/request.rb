@@ -21,9 +21,11 @@
 # ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 # hwyss@ywesee.com
 #
-# SBSM::Request -- sbsm -- 26.09.2012 -- yasaka@ywesee.com
+# SBSM::Request -- sbsm -- 27.09.2012 -- yasaka@ywesee.com
 # SBSM::Request -- sbsm -- 24.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Request -- sbsm -- hwyss@ywesee.com
+
+require 'cgi'
 
 require 'sbsm/cgi'
 require 'sbsm/drb'
