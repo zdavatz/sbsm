@@ -21,7 +21,7 @@
 # ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 # hwyss@ywesee.com
 #
-# SBSM::Request -- sbsm -- 27.09.2012 -- yasaka@ywesee.com
+# SBSM::Request -- sbsm -- 24.10.2012 -- yasaka@ywesee.com
 # SBSM::Request -- sbsm -- 24.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Request -- sbsm -- hwyss@ywesee.com
 
@@ -51,11 +51,12 @@ module SBSM
 		  crawler_pattern = /archiver|slurp|bot|crawler|jeeves|spider|\.{6}/i
 			!!crawler_pattern.match(@cgi.user_agent)
 		end
-		def passthru(path, disposition='attachment')
-			@passthru = path
+    def passthru(path, disposition='attachment')
+      # the variable @passthru is set by a trusted source
+      @passthru    = path.untaint
       @disposition = disposition
-			''
-		end
+      ''
+    end
 		def process
 			begin
 				@cgi.params.store('default_flavor', ENV['DEFAULT_FLAVOR'])
@@ -167,11 +168,10 @@ module SBSM
 					cookie = generate_cookie(cookie_input)
 					@request.headers_out.add('Set-Cookie', cookie.to_s)
 				end
-				# the variable @passthru is set by a trusted source
-				basename = File.basename(@passthru)
-				fullpath = File.expand_path(@passthru,
-					@request.server.document_root)
-				fullpath.untaint
+        basename = File.basename(@passthru)
+        fullpath = File.expand_path(
+          @passthru,
+          @request.server.document_root.untaint)
 				subreq = @request.lookup_file(fullpath)
 				@request.content_type = subreq.content_type
 				@request.headers_out.add('Content-Disposition',
