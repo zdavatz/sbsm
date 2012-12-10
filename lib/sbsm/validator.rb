@@ -142,7 +142,7 @@ module SBSM
 					validate_string(value)
         elsif(@files.include?(key))
           StringIO.new(value)
-				elsif(self.respond_to?(key, true))
+				elsif(!Object.methods.include?(key) and self.respond_to?(key, true))
 					self.send(key, value)
 				end
 			rescue InvalidDataError => e
