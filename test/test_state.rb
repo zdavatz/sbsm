@@ -51,7 +51,7 @@ class StubStateState3
 	end
 end
 class StubStateView
-	attr_reader :model, :session
+	attr_reader :model, :session, :http_headers
 	def initialize(model, session)
 		@model, @session = model, session
 	end
