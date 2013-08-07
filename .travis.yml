@@ -4,12 +4,27 @@ notifications:
   email:
   - ngiger@ywesee.com
 rvm:
-# - 1.8.7 Unit-tests have problems, as order of fields are different compared with ruby 1.9. Legacy
-- 1.9.2
-- 1.9.3
-- 2.0.0
-# - jruby has some errors in the unittest and is very verbose about @tag not defined
-# - ruby-head # excluded at the moment because it does not find a bundler version
+  - ruby-head
+  - 2.0.0
+  - 1.9.3
+  - 1.9.2
+  - 1.8.7
+  - rbx-19mode
+  - rbx-18mode
+  - jruby-head
+  - jruby-19mode
+  - jruby-18mode
+  - ree
+matrix:
+  allow_failures:
+    - rvm: 1.8.7
+    - rvm: ruby-head
+    - rvm: rbx-19mode
+    - rvm: rbx-18mode
+    - rvm: jruby-head
+    - rvm: jruby-19mode
+    - rvm: jruby-18mode
+    - rvm: ree
 # whitelist of branches to build
 branches:
   only:
