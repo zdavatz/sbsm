@@ -1,0 +1,16 @@
+---
+language: ruby
+notifications:
+  email:
+  - ngiger@ywesee.com
+rvm:
+# - 1.8.7 Unit-tests have problems, as order of fields are different compared with ruby 1.9. Legacy
+- 1.9.2
+- 1.9.3
+- 2.0.0
+# - jruby has some errors in the unittest and is very verbose about @tag not defined
+# - ruby-head # excluded at the moment because it does not find a bundler version
+# whitelist of branches to build
+branches:
+  only:
+    - master

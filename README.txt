@@ -14,6 +14,7 @@ Application framework for state based session management
 
 * Ruby 1.8
 * Ruby 1.9
+* Ruby 2.0
 
 == INSTALL:
 

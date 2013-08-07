@@ -20,9 +20,12 @@ Hoe.spec 'sbsm' do
   # you'll never have to touch them again!
   # (delete this comment too, of course)
 
-developer('Masaomi Hatakeyama, Zeno R.R. Davatz', 'mhatakeyama@ywesee.com, zdavatz@ywesee.com')
-
-  # self.rubyforge_name = 'sbsmx' # if different than 'sbsm'
+  license('GPL v2.1')
+  developer('Masaomi Hatakeyama, Zeno R.R. Davatz', 'mhatakeyama@ywesee.com, zdavatz@ywesee.com')
+  test_globs = [ "#{File.dirname(__FILE__)}/test/test_*.rb" ]
 end
+
+require 'minitest/reporters'
+MiniTest::Reporters.use!
 
 # vim: syntax=ruby
