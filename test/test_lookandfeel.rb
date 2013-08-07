@@ -154,8 +154,10 @@ class TestLookandfeel < Test::Unit::TestCase
 		assert_equal("%d.%m.%Y", lookandfeel2.lookup(:date_format))
 	end
 	def test_rfc1123
-		time = Time.local(2002,11,20,9,45,23)
-		expected = 'Wed, 20 Nov 2002 08:45:23 GMT'
+    time = Time.gm(2002,11,20,9,45,23)
+    expected = 'Wed, 20 Nov 2002 09:45:23 UTC'
+    time = Time.local(2002,11,20,9,45,23)
+    expected = "Wed, 20 Nov 2002 #{sprintf('%02d', 9 - time.gmt_offset/3600)}:45:23 UTC"
 		assert_equal(expected, time.rfc1123)
 	end
 	def test_base_url
