@@ -83,8 +83,16 @@ class TestValidator < Test::Unit::TestCase
 		assert_equal(:logout, @val.validate(:event, 'logout'))
 		assert_equal(:logout, @val.validate(:event, ['logout']))
 	end
+  def test_InvalidDataError
+    tst=[]; 0.upto(1000).each{|x| tst << x}
+    key = 'key: ' +tst.join(',')
+    value = SBSM::InvalidDataError.new(:dummy, key, 'value: '+ tst.join(';'))
+    max_length = 200
+    assert(key.size >= max_length)
+    assert(value.to_s.size < max_length, "InvalidDataError must limit output to less < #{max_length} chars. actual #{value.to_s.size }")
+  end
 	def test_email1
-		assert_equal('e_invalid_email_address', @val.validate(:email, 'test').message)
+		assert_equal('e_invalid_email_address email test', @val.validate(:email, 'test').message)
 		assert_equal('test@com', @val.validate(:email, 'test@com'))
 		assert_equal('test@test.com', @val.validate(:email, 'test@test.com'))
 		assert_equal(SBSM::InvalidDataError, @val.validate(:email, 'test@test@test').class)
