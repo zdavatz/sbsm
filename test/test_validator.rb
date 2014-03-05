@@ -84,7 +84,7 @@ class TestValidator < Test::Unit::TestCase
 		assert_equal(:logout, @val.validate(:event, ['logout']))
 	end
 	def test_email1
-		assert_equal('e_invalid_email_address', @val.validate(:email, 'test').message)
+		assert_equal('e_invalid_email_address email test', @val.validate(:email, 'test').message)
 		assert_equal('test@com', @val.validate(:email, 'test@com'))
 		assert_equal('test@test.com', @val.validate(:email, 'test@test.com'))
 		assert_equal(SBSM::InvalidDataError, @val.validate(:email, 'test@test@test').class)

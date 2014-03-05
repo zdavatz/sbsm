@@ -36,7 +36,7 @@ module SBSM
 		attr_reader :key, :value
 		alias :data :value 
 		def initialize(msg, key, value)
-			super(msg.to_s)
+			super("#{msg.to_s} #{key} #{value}")
 			@key = key
 			@value = value
 		end
