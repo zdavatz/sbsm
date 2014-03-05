@@ -25,7 +25,7 @@ Hoe.spec 'sbsm' do
   test_globs = [ "#{File.dirname(__FILE__)}/test/test_*.rb" ]
 end
 
-require 'minitest/reporters'
-MiniTest::Reporters.use!
+#require 'minitest/reporters'
+#MiniTest::Reporters.use!
 
 # vim: syntax=ruby
