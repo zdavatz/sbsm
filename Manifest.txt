@@ -1,5 +1,10 @@
+.gitignore
+.travis.yml
+Gemfile
+Gemfile.lock
 History.txt
 LICENCE.txt
+Manifest.txt
 README.txt
 Rakefile
 data/_flavored_uri.grammar
@@ -36,7 +41,6 @@ test/data/dos_file.txt
 test/data/lnf_file.txt
 test/data/mac_file.txt
 test/stub/cgi.rb
-test/suite.rb
 test/test_drbserver.rb
 test/test_index.rb
 test/test_lookandfeel.rb
