@@ -3,6 +3,7 @@ language: ruby
 notifications:
   email:
   - ngiger@ywesee.com
+bundler_args: --without debugger
 rvm:
   - ruby-head
   - 2.0.0
