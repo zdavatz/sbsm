@@ -24,7 +24,7 @@
 # Validator -- sbsm -- 15.11.2002 -- hwyss@ywesee.com 
 
 require 'digest/md5'
-require 'rmail'
+require 'mail'
 require 'date'
 require 'drb/drb'
 require 'uri'
@@ -152,13 +152,19 @@ module SBSM
 		private
 		def email(value)
 			return if(value.empty?)
-			parsed = RMail::Address.parse(value).first
-      if(parsed.nil?)
+			parsed = Mail::Address.new(value)
+			if(parsed.nil?)
 			  raise InvalidDataError.new(:e_invalid_email_address, :email, value)
-      elsif(parsed.domain)
-				parsed.address
+				elsif (parsed.domain)
+				parsed.to_s
 			else
-				raise InvalidDataError.new(:e_domainless_email_address, :email, value)
+				raise InvalidDataError.new(:e_invalid_email_address, :email, value)
+			end
+		rescue => e
+			if e.class == SBSM::InvalidDataError
+				raise e
+			else
+				raise InvalidDataError.new(:e_invalid_email_address, :email, value)
 			end
 		end
 		def filename(value)
