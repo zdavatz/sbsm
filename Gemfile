@@ -14,7 +14,7 @@ group :development, :test do
   gem 'test-unit'
 end
 
-group :development do
+group :debugger do
   gem 'racc'
   gem 'travis-lint'
   gem 'pry'

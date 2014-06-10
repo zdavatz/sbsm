@@ -27,7 +27,7 @@ module SBSM
   class Index
 		def initialize
 			@values = []
-			@children = []
+			@children = {}
 		end
 		def delete(key, value)
 			if (key.size == 0)

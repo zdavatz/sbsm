@@ -86,13 +86,16 @@ module SBSM
 			@previous
 		end
 		def __checkout
+      @checked_out ||= nil
 			return if(@checked_out)
 			@checked_out = true
 			@model = nil
+      @next ||= nil
 			if(@next.respond_to?(:unset_previous))
 				@next.unset_previous
 			end
 			@next = nil
+      @previous ||= nil
 			if(@previous.respond_to?(:__checkout))
 				@previous.__checkout
 			end
@@ -143,6 +146,7 @@ module SBSM
       end
     end
 		def http_headers
+      @http_headers ||= nil
 			@http_headers || view.http_headers
 		end
 		def info?
@@ -155,6 +159,7 @@ module SBSM
 			value.nil? || (value.respond_to?(:empty?) && value.empty?)
 		end
 		def previous=(state)
+      @previous ||= nil
 			if(@previous.nil? && state.respond_to?(:next=))
 				state.next = self
 				@previous = state
@@ -181,6 +186,7 @@ module SBSM
 			view.to_html(context)
 		end
 		def trigger(event)
+      @redirected ||= nil
       if(@redirected)
         @redirected = false
       else
@@ -241,9 +247,10 @@ module SBSM
           klass[:default]
         }
       end
+      @filter ||= nil
       model = @filter ? @filter.call(@model) : @model
       view = klass.new(model, @session)
-      @http_headers = view.http_headers unless @http_headers
+      @http_headers ||= view.http_headers
       view
 		end
 		def volatile?

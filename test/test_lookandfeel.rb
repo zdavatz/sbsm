@@ -41,6 +41,7 @@ class StubLookandfeelSession
 	def initialize(*args)
 		@persistent_user_input = {}	
 		@user_input = nil
+    @is_crawler = nil
 	end
 	def default_language
 		"de"

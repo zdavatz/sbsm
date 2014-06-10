@@ -41,7 +41,7 @@ class TestIndex < Test::Unit::TestCase
 		o2 = SBSM::Index.new
 		o2.values = ['bar']
 		o1 = SBSM::Index.new
-    omit("Could not find any checkout which did not have: TypeError: can't convert String into Integer")
+#    omit("Could not find any checkout which did not have: TypeError: can't convert String into Integer")
 		o1.children[?o] = o2
 		f = SBSM::Index.new
 		f.children[?o] = o1

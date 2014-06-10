@@ -220,7 +220,8 @@ module SBSM
     def import_user_input(request)
 			# attempting to read the cgi-params more than once results in a
 			# DRbConnectionRefused Exception. Therefore, do it only once...
-			return if(@user_input_imported)
+      @user_input_imported ||= nil
+      return if(@user_input_imported)
       request.params.each { |key, value|
 				#puts "importing #{key} -> #{value}"
 				index = nil
@@ -327,6 +328,7 @@ module SBSM
 			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
+      @request ||= nil
 			@http_protocol ||=	if(@request.respond_to?(:server_port) \
 														&& @request.server_port == 443)
 														'https'
