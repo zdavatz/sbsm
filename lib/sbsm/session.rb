@@ -205,6 +205,7 @@ module SBSM
 		end
 		def import_cookies(request)
 			reset_cookie()
+      return if request.cookies.is_a?(DRb::DRbUnknown)
       if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
         cuki.each { |cuki_str|
           CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
