@@ -1,3 +1,16 @@
+=== 1.2.6 / 02.07.2014
+
+* Revert "Tried migrating to ruby 2.1.2"
+* Fix sbsm when being called from oddbd
+* Put pry-debugger in separate Gemgroup
+* Tried migrating to ruby 2.1.2
+
+=== 1.2.5 / 26.05.2014
+
+* Use Mail instead of (outdated, last release in 2008) RMail for verification of e-mail addresses
+* updated Rakefile so I can release the gem
+Updated Manifest.txt
+
 === 1.2.4 / 05.03.2014
 
 * Many fixes by Niklaus Giger. See "git log"
