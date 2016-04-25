@@ -26,7 +26,7 @@
 $: << File.dirname(__FILE__)
 $: << File.expand_path("../lib", File.dirname(__FILE__))
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'sbsm/validator'
 
 class Validator < SBSM::Validator
@@ -48,20 +48,18 @@ class Validator < SBSM::Validator
   HTML = [ :html ]
 end
 
-class TestValidator < Test::Unit::TestCase
+class TestValidator < Minitest::Test
   def setup
     @val = Validator.new
   end
 	def test_reset_errors
 		assert_equal({}, @val.errors)
 		@val.errors = {:foo=>:bar}
-		assert_nothing_raised {
-			@val.reset_errors
-		}
+    @val.reset_errors
 		assert_equal({}, @val.errors)
 	end
 	def test_validate
-		assert_nothing_raised { @val.validate(:something, :other) }
+		assert_equal(nil, @val.validate(:something, :other) )
 	end
 	def test_boolean
 		assert_equal(true, @val.validate(:bool, 'true'))

@@ -21,9 +21,8 @@
 # ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 # hwyss@ywesee.com
 #
-# TestLookandfeel -- sbsm -- 15.11.2002 -- hwyss@ywesee.com 
-
-require 'test/unit'
+# TestLookandfeel -- sbsm -- 15.11.2002 -- hwyss@ywesee.com
+require 'minitest/autorun'
 require 'sbsm/lookandfeel'
 require 'date'
 require 'sbsm/lookandfeelwrapper'
@@ -35,11 +34,12 @@ class StubLookandfeelState
 	end
 end
 class StubLookandfeelSession
-	attr_accessor :persistent_user_input, :user_input, :state, 
+	attr_accessor :persistent_user_input, :user_input, :state,
 		:is_crawler
 	DEFAULT_LANGUAGE = "de"
 	def initialize(*args)
-		@persistent_user_input = {}	
+		@persistent_user_input = {}
+    @is_crawler = nil
 		@user_input = nil
 	end
 	def default_language
@@ -54,8 +54,8 @@ class StubLookandfeelSession
 	end
 	def navigation
 		[
-			StubLookandfeelState.new(:foo), 
-			StubLookandfeelState.new(:bar), 
+			StubLookandfeelState.new(:foo),
+			StubLookandfeelState.new(:bar),
 			StubLookandfeelState.new(:baz),
 		]
 	end
@@ -114,7 +114,7 @@ class LookandfeelWrapper2 < SBSM::LookandfeelWrapper
 	ENABLED = [:baz]
 end
 
-class TestLookandfeel < Test::Unit::TestCase
+class TestLookandfeel < Minitest::Test
 	def setup
 		@session = StubLookandfeelSession.new
 		@lookandfeel = LookandfeelBase.new(@session)
@@ -164,17 +164,15 @@ class TestLookandfeel < Test::Unit::TestCase
 		assert_equal("http://test.com/de/gcc", @lookandfeel.base_url)
 	end
 	def test_event_url
-		# state_id is 4, because @session.state = nil
-		assert_equal("http://test.com/de/gcc/foo/state_id/4/bar/baz", 
-			@lookandfeel.event_url(:foo, {:bar => 'baz'}))
+		assert_match(/http:\/\/test.com\/de\/gcc\/foo\/state_id\/\d\/bar\/baz/,@lookandfeel.event_url(:foo, {:bar => 'baz'}))
 	end
 	def test_event_url__crawler
 		@session.is_crawler = true
-		assert_equal("http://test.com/de/gcc/foo/bar/baz", 
+		assert_equal("http://test.com/de/gcc/foo/bar/baz",
 			@lookandfeel.event_url(:foo, {:bar => 'baz'}))
 	end
 	def test_event_url__state_id_given
-		assert_equal("http://test.com/de/gcc/foo/bar/baz/state_id/mine", 
+		assert_equal("http://test.com/de/gcc/foo/bar/baz/state_id/mine",
 			@lookandfeel.event_url(:foo, [:bar, 'baz', :state_id, 'mine']))
 	end
 	def test_format_price
@@ -191,7 +189,7 @@ class TestLookandfeel < Test::Unit::TestCase
 		assert_equal(['de', 'fr'], @lookandfeel.languages)
 	end
 end
-class TestLookandfeelWrapper < Test::Unit::TestCase
+class TestLookandfeelWrapper < Minitest::Test
 	def setup
 		@lookandfeel = LookandfeelBase.new(StubLookandfeelSession.new)
 		@wrapped = LookandfeelWrapper1.new(@lookandfeel)
@@ -212,7 +210,7 @@ class TestLookandfeelWrapper < Test::Unit::TestCase
 		assert_equal([:foo, :bar, :baz], result)
 	end
 	def test_flavor
-		assert_equal('gcc', @wrapped.flavor)	
+		assert_equal('gcc', @wrapped.flavor)
 	end
 	def test_resource1
 		lnf = SBSM::LookandfeelWrapper.new(@lookandfeel)

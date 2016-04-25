@@ -26,7 +26,7 @@
 $: << File.dirname(__FILE__)
 $: << File.expand_path("../lib", File.dirname(__FILE__))
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'sbsm/state'
 
 class StubStateState1
@@ -98,7 +98,7 @@ class UserState < State
 	}
 end
 
-class TestState < Test::Unit::TestCase
+class TestState < Minitest::Test
 	def setup
 		@state = State.new(nil, nil)
 	end
@@ -152,7 +152,7 @@ class TestState < Test::Unit::TestCase
 		assert_equal(2, @state.warnings.size)
 	end
 end
-class TestUserState < Test::Unit::TestCase
+class TestUserState < Minitest::Test
 	def test_no_user_view_defined
 		state = State.new(StubStateSession.new, nil)
 		assert_equal(StubStateView, state.view.class)

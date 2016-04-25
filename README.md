@@ -1,6 +1,6 @@
 = sbsm
 
-* http://scm.ywesee.com/?p=sbsm/.git;a=summary
+* https://github.com/zdavatz/sbsm
 
 == DESCRIPTION:
 
@@ -12,9 +12,7 @@ Application framework for state based session management
 
 == REQUIREMENTS:
 
-* Ruby 1.8
-* Ruby 1.9
-* Ruby 2.0
+* Ruby 2.3
 
 == INSTALL:
 
@@ -24,10 +22,8 @@ or
 
 De-Compress archive and enter its top directory. Then type:
 
-* ruby setup.rb config
-* ruby setup.rb setup
-* su
-* ruby setup.rb install
+* gem install bundler
+* bundle exec rake install:local
 
 You can also install files into your favorite directory by supplying setup.rb some options. Try "ruby setup.rb --help".
 
@@ -36,6 +32,7 @@ You can also install files into your favorite directory by supplying setup.rb so
 * Masaomi Hatakeyama
 * Zeno Davatz
 * Hannes Wyss (upto Version 1.0)
+* Niklaus Giger (Port to Ruby 2.3.0)
 
 == LICENSE:
 

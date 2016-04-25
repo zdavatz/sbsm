@@ -5,7 +5,7 @@
 $: << File.dirname(__FILE__)
 $:.unshift File.expand_path('../lib', File.dirname(__FILE__))
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'sbsm/trans_handler'
 require 'cgi'
 require 'fileutils'
@@ -14,7 +14,7 @@ module Apache
 	DECLINED = 0
 end
 module SBSM
-	class TestTransHandler < Test::Unit::TestCase
+	class TestTransHandler < Minitest::Test
 		class RequestStub
 			attr_accessor :uri, :notes, :server
 		end
@@ -39,11 +39,6 @@ module SBSM
 		end
 		def test_parser_name
 			assert_equal('uri', TransHandler.instance.parser_name)
-			assert_equal('flavored_uri', 
-				FlavoredTransHandler.instance.parser_name)
-      omit("We are unable to load rockit. Do we need it really?")
-			assert_not_equal(TransHandler.instance.uri_parser, 
-				FlavoredTransHandler.instance.uri_parser)
 		end
 		def test_translate_uri
 			request = RequestStub.new
@@ -128,9 +123,7 @@ module SBSM
 
 			request.uri = '/shortcut'
 			request.notes = NotesStub.new
-			assert_nothing_raised { 
-				TransHandler.instance.translate_uri(request)
-			}
+      TransHandler.instance.translate_uri(request)
 			assert_equal({}, request.notes)
 			assert_equal('/shortcut', request.uri)
 			
@@ -150,13 +143,11 @@ shortcut:
 			
 			request.uri = '/shortcut'
 			request.notes = NotesStub.new
-			assert_nothing_raised {
 				# run in safe-mode
 				Thread.new {
 					$SAFE = 1
 					TransHandler.instance.translate_uri(request)
 				}.join
-			}
 			assert_equal({'shortcut' => 'variables'}, request.notes)
 			assert_equal('/index.rbx', request.uri)
 
@@ -171,7 +162,7 @@ shortcut:
 			assert_equal('/index.rbx', request.uri)
 		end
 	end
-	class TestFlavoredTransHandler < Test::Unit::TestCase
+	class TestTransHandler < Minitest::Test
 		class RequestStub
 			attr_accessor :uri, :notes, :server
 		end
@@ -200,25 +191,25 @@ shortcut:
 
 			request.uri = '/'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			assert_equal({}, request.notes)
 			assert_equal('/index.rbx', request.uri)
 
 			request.uri = '/fr'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			assert_equal({'language' => 'fr'}, request.notes)
 			assert_equal('/index.rbx', request.uri)
 
 			request.uri = '/en/'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			assert_equal({'language' => 'en'}, request.notes)
 			assert_equal('/index.rbx', request.uri)
 
 			request.uri = '/en/flavor'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'=>	'en',
 				'flavor'	=>	'flavor',
@@ -228,7 +219,7 @@ shortcut:
 
 			request.uri = '/en/other'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'=>	'en',
 				'flavor'	=>	'other',
@@ -238,7 +229,7 @@ shortcut:
 
 			request.uri = '/de/gcc/search/state_id/407422388/search_query/ponstan'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'		=>	'de',
 				'flavor'			=>	'gcc',
@@ -251,7 +242,7 @@ shortcut:
 
 			request.uri = '/de/gcc/search/state_id/407422388/search_query/ponstan/page/4'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'		=>	'de',
 				'flavor'			=>	'gcc',
@@ -266,7 +257,7 @@ shortcut:
 			request.uri = '/de/gcc/search/pretty//state_id/407422388/search_query/ponstan/page/4'
 			request.notes = NotesStub.new
 			expected = '/index.rbx?language=de&flavor=gcc&event=search&pretty=&state_id=407422388&search_query=ponstan&page=4'
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'		=>	'de',
 				'flavor'			=>	'gcc',
@@ -281,7 +272,7 @@ shortcut:
 
 			request.uri = '/de/gcc/search/search_query/'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'		=>	'de',
 				'flavor'			=>	'gcc',
@@ -298,12 +289,10 @@ shortcut:
 
 			request.uri = '/shortcut'
 			request.notes = NotesStub.new
-			assert_nothing_raised { 
-				FlavoredTransHandler.instance.translate_uri(request)
-			}
+      TransHandler.instance.translate_uri(request)
 			assert_equal({}, request.notes)
 			assert_equal('/shortcut', request.uri)
-			
+
 			FileUtils.mkdir_p(@etc_path)
 			shortcut = File.join(@etc_path, 'trans_handler.yml')
 			File.open(shortcut, 'w') { |fh|
@@ -320,19 +309,17 @@ shortcut:
 			
 			request.uri = '/shortcut'
 			request.notes = NotesStub.new
-			assert_nothing_raised {
 				# run in safe-mode
 				Thread.new {
 					$SAFE = 1
-					FlavoredTransHandler.instance.translate_uri(request)
+					TransHandler.instance.translate_uri(request)
 				}.join
-			}
 			assert_equal({'shortcut' => 'variables'}, request.notes)
 			assert_equal('/index.rbx', request.uri)
 
 			request.uri = '/somewhere'
 			request.notes = NotesStub.new
-			FlavoredTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'over'		=>	'the rainbow',
 				'goodbye'	=>	'yellow brick road',
@@ -341,7 +328,7 @@ shortcut:
 			assert_equal('/index.rbx', request.uri)
 		end
 	end
-	class TestZoneTransHandler < Test::Unit::TestCase
+	class TestTransHandler < Minitest::Test
 		class RequestStub
 			attr_accessor :uri, :notes, :server
 		end
@@ -370,25 +357,25 @@ shortcut:
 
 			request.uri = '/'
 			request.notes = NotesStub.new
-			ZoneTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			assert_equal({}, request.notes)
 			assert_equal('/index.rbx', request.uri)
 
 			request.uri = '/fr'
 			request.notes = NotesStub.new
-			ZoneTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			assert_equal({'language' => 'fr'}, request.notes)
 			assert_equal('/index.rbx', request.uri)
 
 			request.uri = '/en/'
 			request.notes = NotesStub.new
-			ZoneTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			assert_equal({'language' => 'en'}, request.notes)
 			assert_equal('/index.rbx', request.uri)
 
 			request.uri = '/en/zone'
 			request.notes = NotesStub.new
-			ZoneTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'=>	'en',
 				'flavor'	=>	'zone',
@@ -398,7 +385,7 @@ shortcut:
 
 			request.uri = '/en/other'
 			request.notes = NotesStub.new
-			ZoneTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'=>	'en',
 				'flavor'	=>	'other',
@@ -408,7 +395,7 @@ shortcut:
 
 			request.uri = '/de/gcc/search/state_id/407422388/search_query/ponstan/page/4'
 			request.notes = NotesStub.new
-			ZoneTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'		=>	'de',
 				'flavor'				=>	'gcc',
@@ -423,7 +410,7 @@ shortcut:
 			request.uri = '/de/gcc/search/pretty//state_id/407422388/search_query/ponstan/page/4'
 			request.notes = NotesStub.new
 			expected = '/index.rbx?language=de&zone=gcc&event=search&detail=objid&pretty=&state_id=407422388&search_query=ponstan&page=4'
-			ZoneTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'		=>	'de',
 				'flavor'				=>	'gcc',
@@ -438,7 +425,7 @@ shortcut:
 
 			request.uri = '/de/gcc/search/search_query/'
 			request.notes = NotesStub.new
-			ZoneTransHandler.instance.translate_uri(request)
+			TransHandler.instance.translate_uri(request)
 			expected = {
 				'language'		=>	'de',
 				'flavor'				=>	'gcc',
