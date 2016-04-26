@@ -23,7 +23,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rack'
   spec.add_dependency 'mail'
   spec.add_dependency 'hpricot'
-  spec.add_dependency 'rockit' # , '0.3.8'
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
