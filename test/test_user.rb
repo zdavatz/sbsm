@@ -26,7 +26,7 @@
 $: << File.dirname(__FILE__)
 $: << File.expand_path("../lib", File.dirname(__FILE__))
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'sbsm/user'
 require 'sbsm/state'
 
@@ -35,7 +35,7 @@ class User < SBSM::User
 	NAVIGATION = [StubUserState]
 end
 
-class TestUser < Test::Unit::TestCase
+class TestUser < Minitest::Test
 	def setup
 		@user = User.new
 	end

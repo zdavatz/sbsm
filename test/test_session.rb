@@ -23,7 +23,7 @@
 #
 # TestSession -- sbsm -- 22.10.2002 -- hwyss@ywesee.com 
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'sbsm/session'
 #require 'htmlgrid/component'
 
@@ -130,7 +130,7 @@ class StubSessionSession < SBSM::Session
 	end
 end
 
-class TestSession < Test::Unit::TestCase
+class TestSession < Minitest::Test
 	def setup
 		@session = Session.new("test", StubSessionApp.new, StubSessionValidator.new)
 		@request = StubSessionRequest.new
@@ -154,13 +154,13 @@ class TestSession < Test::Unit::TestCase
 		req2["event"] = "foo"	
 		@session.process(req2)
 		state2 = @session.state
-		assert_not_equal(state1, state2)
+		refute_equal(state1, state2)
 		req3 = StubSessionRequest.new
 		req3["event"] = :bar	
 		@session.process(req3)
 		state3 = @session.state
-		assert_not_equal(state1, state3)
-		assert_not_equal(state2, state3)
+		refute_equal(state1, state3)
+		refute_equal(state2, state3)
 		attended = {
 			state1.object_id => state1,
 			state2.object_id => state2,
@@ -172,9 +172,9 @@ class TestSession < Test::Unit::TestCase
 		@session.process(req4)
 		@session.cap_max_states
 		state4 = @session.state
-		assert_not_equal(state1, state4)
-		assert_not_equal(state2, state4)
-		assert_not_equal(state3, state4)
+		refute_equal(state1, state4)
+		refute_equal(state2, state4)
+		refute_equal(state3, state4)
 		attended = {
 			state2.object_id => state2,
 			state3.object_id => state3,

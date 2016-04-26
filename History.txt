@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 === 1.2.6 / 02.07.2014
 
 * Revert "Tried migrating to ruby 2.1.2"
@@ -10,6 +11,12 @@
 * Use Mail instead of (outdated, last release in 2008) RMail for verification of e-mail addresses
 * updated Rakefile so I can release the gem
 Updated Manifest.txt
+=======
+=== 1.2.5 / 25.04.2016
+
+* Port to Ruby 2.3.0. Removed dependency to rockit and hoe.
+* Prepared for travis
+>>>>>>> 1bbbe509cb6fbf2222596abe767d1f7e81205b52
 
 === 1.2.4 / 05.03.2014
 

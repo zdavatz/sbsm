@@ -11,7 +11,8 @@ require 'yaml'
 module SBSM
 	class AbstractTransHandler
 		attr_reader :parser_name
-		CONFIG_PATH = '../etc/trans_handler.yml'
+    CONFIG_PATH = '../etc/trans_handler.yml'
+
 		@@empty_check ||= nil
 		@@lang_check ||= nil
 		@@uri_parser ||= nil
@@ -27,7 +28,7 @@ module SBSM
     def config(request)
       config = Hash.new { {} } 
 			begin
-        path = File.expand_path(CONFIG_PATH, request.server.document_root.untaint)
+        path = File.expand_path(CONFIG_PATH.untaint, request.server.document_root.untaint)
         path.untaint
         config.update(YAML.load(File.read(path)))
         config
@@ -78,7 +79,9 @@ module SBSM
 			ast.children_names.each { |name|
 				case name
 				when'language', 'flavor', 'event', 'zone'
-					values.add(name, ast.send(name).value)
+#                              puts __LINE__
+#                              require 'pry'; binding.pry
+# 					values.add(name, ast.send(name).value)
 				when 'variables'
 					ast.variables.each { |pair|
 						key = pair.key.value
@@ -131,18 +134,6 @@ module SBSM
 		include Singleton
 		def initialize
 			super('uri')
-		end
-	end
-	class FlavoredTransHandler < AbstractTransHandler
-		include Singleton
-		def initialize
-			super('flavored_uri')
-		end
-	end
-	class ZoneTransHandler < AbstractTransHandler
-		include Singleton
-		def initialize
-			super('zone_uri')
 		end
 	end
 end

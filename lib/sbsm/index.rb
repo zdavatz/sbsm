@@ -32,15 +32,15 @@ module SBSM
 		def delete(key, value)
 			if (key.size == 0)
 				@values.delete(value)
-			elsif (child = @children.at(key[0]))
+			elsif (child = @children.at(key.chars.first.ord))
 				child.delete(key[1..-1], value)
 			end
 		end
 		def fetch(key)
 			if(key.size == 1)
-				@values + @children[key[0]].to_a
-			elsif(key.size > 1 && @children.at(key[0]))
-				@children.at(key[0])[key[1..-1]]
+				@values + @children[key.chars.first.ord].to_a
+			elsif(key.size > 1 && @children.at(key.chars.first.ord))
+				@children.at(key.chars.first.ord)[key[1..-1]]
 			else
 				[]
 			end
@@ -53,8 +53,8 @@ module SBSM
 			if(key.size == 0)
 				@values += values
 			else
-				@children[key[0]] ||= self.class.new
-				@children.at(key[0]).store(key[1..-1], *values)
+				@children[key.chars.first.ord] ||= self.class.new
+				@children.at(key.chars.first.ord).store(key[1..-1], *values)
 			end
 		end
 		def to_a

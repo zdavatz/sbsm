@@ -27,10 +27,10 @@
 $: << File.dirname(__FILE__)
 $: << File.expand_path('../lib', File.dirname(__FILE__))
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'sbsm/drbserver'
 
-class TestDRbServer < Test::Unit::TestCase
+class TestDRbServer < Minitest::Test
 	class DRbServer < ::SBSM::DRbServer
 		attr_reader :sessions
 		CAP_MAX_THRESHOLD = 3
@@ -45,7 +45,7 @@ class TestDRbServer < Test::Unit::TestCase
 		assert_equal({'test1'=>ses1}, @server.sessions)
 		ses2 = @server['test2']
 		assert_instance_of(SBSM::Session, ses2)
-		assert_not_equal(ses1, ses2)
+		refute_equal(ses1, ses2)
 		expected = {
 			'test1'	=>	ses1,
 			'test2'	=>	ses2,
@@ -53,8 +53,8 @@ class TestDRbServer < Test::Unit::TestCase
 		assert_equal(expected, @server.sessions)
 		ses3 = @server['test3']
 		assert_instance_of(SBSM::Session, ses3)
-		assert_not_equal(ses1, ses3)
-		assert_not_equal(ses2, ses3)
+		refute_equal(ses1, ses3)
+		refute_equal(ses2, ses3)
 		expected = {
 			'test1'	=>	ses1,
 			'test2'	=>	ses2,
@@ -63,8 +63,8 @@ class TestDRbServer < Test::Unit::TestCase
 		assert_equal(expected, @server.sessions)
 		ses4 = @server['test4']
 		assert_instance_of(SBSM::Session, ses4)
-		assert_not_equal(ses1, ses4)
-		assert_not_equal(ses2, ses4)
+		refute_equal(ses1, ses4)
+		refute_equal(ses2, ses4)
 		expected = {
 			'test2'	=>	ses2,
 			'test3'	=>	ses3,

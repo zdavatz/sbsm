@@ -1,22 +1,20 @@
-= sbsm
+# sbsm
 
-* http://scm.ywesee.com/?p=sbsm/.git;a=summary
+* https://github.com/zdavatz/sbsm
 
-== DESCRIPTION:
+## DESCRIPTION:
 
 Application framework for state based session management
 
-== FEATURES/PROBLEMS:
+## FEATURES/PROBLEMS:
 
 * Could be replaced by Ramaze one day. But lets see.
 
-== REQUIREMENTS:
+## REQUIREMENTS:
 
-* Ruby 1.8
-* Ruby 1.9
-* Ruby 2.0
+* Ruby 2.3
 
-== INSTALL:
+## INSTALL:
 
 * gem install sbsm
 
@@ -24,19 +22,22 @@ or
 
 De-Compress archive and enter its top directory. Then type:
 
-* ruby setup.rb config
-* ruby setup.rb setup
-* su
-* ruby setup.rb install
+* gem install bundler
+* bundle exec rake install:local
 
 You can also install files into your favorite directory by supplying setup.rb some options. Try "ruby setup.rb --help".
 
-== DEVELOPERS:
+## TESTING
+
+* bundle exec test/suite.rb
+
+## DEVELOPERS:
 
 * Masaomi Hatakeyama
 * Zeno Davatz
 * Hannes Wyss (upto Version 1.0)
+* Niklaus Giger (Port to Ruby 2.3.0)
 
-== LICENSE:
+## LICENSE:
 
 * GPLv2.1
