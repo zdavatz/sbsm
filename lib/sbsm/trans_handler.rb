@@ -79,8 +79,6 @@ module SBSM
 			ast.children_names.each { |name|
 				case name
 				when'language', 'flavor', 'event', 'zone'
-#                              puts __LINE__
-#                              require 'pry'; binding.pry
 # 					values.add(name, ast.send(name).value)
 				when 'variables'
 					ast.variables.each { |pair|

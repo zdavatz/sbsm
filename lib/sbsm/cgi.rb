@@ -75,6 +75,7 @@ class CGI
 		pretty
   end
 	def CGI::escapeHTML(string)
-		string.to_s.gsub(/&(?![^;]{2,6};)/, '&amp;').gsub(/\"/, '&quot;').gsub(/>/, '&gt;').gsub(/</, '&lt;')
+    s = string.to_s.frozen? ? string.to_s : string.to_s.force_encoding('UTF-8')
+		s.gsub(/&(?![^;]{2,6};)/, '&amp;').gsub(/\"/, '&quot;').gsub(/>/, '&gt;').gsub(/</, '&lt;')
 	end
 end

@@ -1,6 +1,12 @@
-=== 1.2.5 / 25.04.2016
+=== 1.2.5 / 04.05.2016
 
+* Made it suitable to work with ydim-html
 * Port to Ruby 2.3.0. Removed dependency to rockit and hoe.
+* Prepared for travis
+
+=== 1.2.5 / 25.11.2014
+
+* Port to Ruby 2.1.2
 * Prepared for travis
 
 === 1.2.4 / 05.03.2014
