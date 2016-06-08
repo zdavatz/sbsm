@@ -344,13 +344,15 @@ class TestSession < Minitest::Test
 		assert_equal('gcc', lnf.flavor)
 		assert_instance_of(SBSM::Lookandfeel, lnf)
 		lnf2 = @session.lookandfeel
-		assert_equal(lnf, lnf2)
-		@session.persistent_user_input = {
+    assert_equal('gcc', lnf2.flavor)
+    assert_equal('en', lnf2.language)
+    @session.persistent_user_input = {
 			:flavor => 'other',
 		}
 		lnf3 = @session.lookandfeel
 		assert_instance_of(SBSM::Lookandfeel, lnf)
-		assert_equal(lnf, lnf3) ## flavor does not change!
+    assert_equal('gcc', lnf3.flavor)
+    assert_equal('en', lnf3.language) ## flavor does not change!
 	end
 	def test_lookandfeel2
 		session = StubSessionSession.new("test", StubSessionApp.new, StubSessionValidator.new)
