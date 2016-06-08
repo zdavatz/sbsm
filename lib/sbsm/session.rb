@@ -39,8 +39,8 @@ module SBSM
 			:unsafe_input, :valid_input, :request_path
 		include DRbUndumped
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
-		DEFAULT_FLAVOR = nil
-		DEFAULT_LANGUAGE = nil
+		DEFAULT_FLAVOR = 'sbsm'
+		DEFAULT_LANGUAGE = 'en'
 		DEFAULT_STATE = State
 		DEFAULT_ZONE = nil
 		DRB_LOAD_LIMIT = 255 * 102400
