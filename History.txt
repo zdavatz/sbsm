@@ -1,3 +1,6 @@
+=== 1.2.9 / 20.07.2016
+* Remove ARGV violation
+
 === 1.2.8 / 09.06.2016
 * As we need a DEFAULT_LANGUAGE and DEFAULT_FLAVOR they are forced to 'en', resp. 'sbsm'
 
