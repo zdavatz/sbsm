@@ -50,7 +50,6 @@ module SBSM
 		CAP_MAX_THRESHOLD = 8
 		MAX_STATES = 4
 		SERVER_NAME = nil
-		ARGV.push('') # satisfy cgi-offline prompt
 		@@cgi = CGI.new('html4')
     def Session.reset_stats
       @@stats = {}
