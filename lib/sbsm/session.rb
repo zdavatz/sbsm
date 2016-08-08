@@ -36,7 +36,7 @@ require 'delegate'
 module SBSM
   class	Session < SimpleDelegator
 		attr_reader :user, :active_thread, :app, :key, :cookie_input,
-			:unsafe_input, :valid_input, :request_path
+			:unsafe_input, :valid_input, :request_path, :cgi
 		include DRbUndumped
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = 'sbsm'
@@ -50,7 +50,6 @@ module SBSM
 		CAP_MAX_THRESHOLD = 8
 		MAX_STATES = 4
 		SERVER_NAME = nil
-		@@cgi = CGI.new('html4')
     def Session.reset_stats
       @@stats = {}
     end
@@ -100,8 +99,7 @@ module SBSM
 			@unknown_user_class = @user.class
 			@variables = {}
       @mutex = Mutex.new
-		  #ARGV.push('') # satisfy cgi-offline prompt
-      #@cgi = CGI.new('html4')
+      @cgi = CGI.initialize_without_offline_prompt('html4')
 			super(app)
     end
     def age(now=Time.now)
@@ -132,9 +130,6 @@ module SBSM
 			@active_thread = nil
 			true
 		end
-    def cgi
-      @@cgi
-    end
     @@msie_ptrn = /MSIE/
     @@win_ptrn = /Win/i
 		def client_activex?
@@ -444,7 +439,7 @@ module SBSM
       self
     end
 		def to_html
-			@state.to_html(@@cgi)
+			@state.to_html(cgi)
     rescue DRb::DRbConnError
       raise
 		rescue StandardError => err

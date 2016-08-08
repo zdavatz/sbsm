@@ -27,6 +27,21 @@ require 'cgi'
 require 'drb/drb'
 
 class CGI
+  # Lets satisfy cgi-offline prompt, even if request does not have
+  # REQUEST_METHOD. (It must be mostly for test purpose).
+  # See http://ruby-doc.org/stdlib-2.3.1/libdoc/cgi/rdoc/CGI.html#method-c-new
+  def self.initialize_without_offline_prompt(*args)
+    cgi_input = true
+    unless ENV.has_key?('REQUEST_METHOD')
+      cgi_input = false
+      ENV['REQUEST_METHOD'] = 'GET'
+    end
+    cgi = CGI.new(*args)
+    unless cgi_input
+      ENV.delete('REQUEST_METHOD')
+    end
+    cgi
+  end
 	module TagMaker
     def nOE_element_def(element, append = nil)
       s = <<-END

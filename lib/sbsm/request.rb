@@ -38,7 +38,7 @@ module SBSM
     include DRbUndumped
     attr_reader :cgi
     def initialize(drb_uri, html_version = "html4", cgiclass = CGI)
-      @cgi = cgiclass.new(html_version)
+      @cgi = CGI.initialize_without_offline_prompt('html4')
 			@drb_uri = drb_uri
 			@thread = nil
 			@request = Apache.request
