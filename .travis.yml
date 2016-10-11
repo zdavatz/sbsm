@@ -12,13 +12,10 @@ sudo: false
 before_install:
   - gem --version
 
-script: bundle exec test/suite.rb
-
 bundler_args: --without debugger
 
 rvm:
   - ruby-head
-  - 2.1.7
   - 2.2.3
   - 2.3.0
 matrix:
