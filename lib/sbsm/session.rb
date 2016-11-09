@@ -103,7 +103,7 @@ module SBSM
 			@variables = {}
       @mutex = Mutex.new
       @cgi = CGI.initialize_without_offline_prompt('html4')
-      SBSM.info "session initialized #{self} key #{key} app #{app.class}  #{validator.class} with @cgi #{@cgi}"
+      SBSM.debug "session initialized #{self} key #{key} app #{app.class}  #{validator.class} with @cgi #{@cgi}"
 			super(app)
     end
     def age(now=Time.now)
@@ -111,8 +111,7 @@ module SBSM
     end
 		def cap_max_states
 			if(@attended_states.size > self::class::CAP_MAX_THRESHOLD)
-				#puts "too many states in session! Keeping only #{self::class::MAX_STATES}"
-				#$stdout.flush
+				SBSM.info "too many states in session! Keeping only #{self::class::MAX_STATES}"
 				sorted = @attended_states.values.sort
 				sorted[0...(-self::class::MAX_STATES)].each { |state|
 					state.__checkout
@@ -169,7 +168,7 @@ module SBSM
     def drb_process(app, rack_request)
       start = Time.now
       @request_path ||= rack_request.path
-      SBSM.info("rack_request #{rack_request.class} #{@request_path} #{rack_request.request_method} #{@cgi}")
+      SBSM.debug("rack_request #{rack_request.class} #{@request_path} #{rack_request.request_method} #{@cgi}")
       rack_request.params.each { |key, val| @cgi.params.store(key, val) }
       @trans_handler.translate_uri(rack_request)
       html = @mutex.synchronize do
@@ -177,7 +176,6 @@ module SBSM
         to_html
       end
       (@@stats[@request_path] ||= []).push(Time.now - start)
-      SBSM.info "drb_process in pid #{Process.pid} file #{__FILE__}"
       html
     rescue  => err
         SBSM.info "Error in drb_process #{err.backtrace[0..5].join("\n")}"
@@ -196,7 +194,6 @@ module SBSM
 			@valid_input[:event]
 		end
     def event_bound_user_input(key)
-      SBSM.info "pry needed? #{key}"
       @event_user_input ||= {}
       evt = state.direct_event
       @event_user_input[evt] ||= {}
@@ -220,7 +217,6 @@ module SBSM
           key = key.intern
           valid = @validator.validate(key, val.compact.last)
           @cookie_input.store(key, valid)
-          puts "sbsm/session #{__LINE__}: @cookie_input.store #{key} #{valid}"
         }
       end
 		end
@@ -270,7 +266,6 @@ module SBSM
 				end
 				#puts "imported #{key} -> #{value} => #{@valid_input[key].inspect}"
       end
-      SBSM.info "imported #{@valid_input}"
 			@user_input_imported = true
       @valid_input
 			#puts @unsafe_input.inspect
@@ -296,14 +291,14 @@ module SBSM
 		end
 		def login
 			if(user = @app.login(self))
-          SBSM.info "user is #{user}  #{request_path.inspect}"
+          SBSM.debug "user is #{user}  #{request_path.inspect}"
 				@user = user
       else
-        SBSM.info "login no user #{request_path.inspect}"
+        SBSM.debug "login no user #{request_path.inspect}"
 			end
 		end
 		def logout
-      SBSM.info "logout #{request_path.inspect} setting @state #{self::class::DEFAULT_STATE.new(self, @user)}"
+      SBSM.debug "logout #{request_path.inspect} setting @state #{self::class::DEFAULT_STATE.new(self, @user)}"
 			__checkout
 			@user = @app.unknown_user()
 			@active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
@@ -339,9 +334,7 @@ module SBSM
     rescue DRb::DRbConnError
       raise
 		rescue NameError, StandardError => err
-      puts "#{__LINE__}: error in SBSM::Session#http_headers: #@request_path"
-      puts err.class, err.message
-      puts err.backtrace[0,5]
+      SBSM.info "NameError, StandardError: #@request_path"
 			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
@@ -374,13 +367,10 @@ module SBSM
         @request = rack_request
         @request_method ||= @request.request_method
         @request_path = @request.path
-        SBSM.info "session.request.path is #{@request.path}"
         @validator.reset_errors() if @validator && @validator.respond_to?(:reset_errors)
         import_user_input(rack_request)
         import_cookies(rack_request)
-        SBSM.info "In @state #{state.class} handling request #{@request.request_method} state_id is #{@valid_input[:state_id]} for #{@request_path}"
         @state = active_state.trigger(event())
-        SBSM.info "@state set to #{state.class}"
         #FIXME: is there a better way to distinguish returning states?
         #       ... we could simply refuse to init if event == :sort, but that
         #       would not solve the problem cleanly, I think.
@@ -388,40 +378,22 @@ module SBSM
           @state.request_path = @request_path
           @state.init
         end
-        SBSM.info "Changing to #{@state.class} unless #{@state.volatile?}"
         unless @state.volatile?
+          SBSM.debug "Changing to #{@state.class}"
           @active_state = @state
           @attended_states.store(@state.object_id, @state)
         end
-        SBSM.info "changed to #{@active_state.class} @attended_states #{@attended_states.keys}"
         @zone = @active_state.zone
         @active_state.touch
         cap_max_states
       rescue DRb::DRbConnError
         raise
-#			rescue StandardError => err
-        #@state = @state.previous
-#				puts "#{__LINE__}: error in SBSM::Session#process: #@request_path"
-#				puts err.class, err.message
-#				puts err.backtrace[0,5]
-#				$stdout.flush
 			ensure
 				@user_input_imported = false
 			end
 			''
 		end
 		def reset
-=begin
-			if(@active_thread \
-				&& @active_thread.alive? \
-				&& @active_thread != Thread.current)
-				begin
-					#@active_thread.exit
-				rescue StandardError
-				end
-			end
-			@active_thread = Thread.current
-=end
       if @redirected
         @redirected = false
       else
@@ -472,10 +444,7 @@ module SBSM
     rescue DRb::DRbConnError
       raise
 		rescue StandardError => err
-      puts "#{__LINE__}: error in SBSM::Session#to_html: #@request_path"
-      puts err.class, err.message
-      puts err.backtrace#[0,5]
-      $stdout.flush
+      SBSM.info "StandardError: #@request_path"
 			[ err.class, err.message ].join("\n")
 		end
     def user_agent
@@ -516,12 +485,9 @@ module SBSM
 		end
     # CGI::SessionHandler compatibility
     def restore
-      SBSM.info "restore was called for #{self.inspect}  #{self.class}"
-      SBSM.info "pry needed? #{self.is_a?(NilClass)}"
       hash = {
         :proxy	=>	self,
       }
-			# hash.extend(DRbUndumped) # added for Ruby1.8 compliance
       hash
     end
     def update
@@ -557,7 +523,6 @@ module SBSM
 		end
 		private
 		def active_state
-      SBSM.info "active_state was #{@active_state.class} attended #{@attended_states.keys}  state_id #{@valid_input[:state_id]} or #{@active_state}"
 			if(state_id = @valid_input[:state_id])
 				@attended_states[state_id]
 			end || @active_state

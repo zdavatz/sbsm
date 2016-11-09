@@ -102,7 +102,6 @@ module SBSM
           request.env[key.to_s] = value ? value : ''
         request.update_param(key.to_s, CGI.unescape(value.to_s))
       end
-      SBSM.info "request.params now #{request.params}"
     end
     # The default parser for an URI
     # === arguments
@@ -147,7 +146,6 @@ module SBSM
         end
         request.uri = @handler_uri
       end
-      SBSM.info "#{request.path} -> #{request.uri.inspect} res #{res}"
       Apache::DECLINED
 		end
 		def uri_parser(grammar_path=@grammar_path, parser_path=@parser_path)

@@ -74,7 +74,6 @@ module SBSM
       else
         session_id = rand((2**(0.size * 8 -2) -1)*10240000000000).to_s(16)
       end
-      SBSM.info "cookies are #{request.cookies} for session_id #{session_id}"
       file_name = File.expand_path(File.join('doc', request.path))
       if File.file?(file_name)
         if /css/i.match(File.basename(file_name))
@@ -87,6 +86,7 @@ module SBSM
       end
 
       return [400, {}, []] if /favicon.ico/i.match(request.path)
+      SBSM.debug "#{request.path}: cookies are #{request.cookies} for session_id #{session_id}"
       @drb_uri ||= @app.drb_uri
       args = {
         'database_manager'  =>  CGI::Session::DRbSession,
@@ -105,7 +105,7 @@ module SBSM
       response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
       response.set_cookie(PERSISTENT_COOKIE_NAME, session_id)
       @proxy.cookie_input.each{|key, value| response.set_cookie(key, value) }
-      SBSM.info "finish session_id #{session_id}: header #{response.headers}"
+      SBSM.debug "finish session_id #{session_id}: header #{response.headers}"
       response.finish
     end
   end

@@ -6,14 +6,12 @@
 module SBSM
   module Redirector
     def http_headers
-      SBSM.info "pry needed?"
       if(redirect?)
         @redirected = @state.redirected = true
         event, *args = @state.direct_event
         if(args.first.is_a? Hash)
           args = args.first
         end
-      puts "http_headers redrect => #{lookandfeel._event_url(event, args || {})}"
         {
           "Location" => lookandfeel._event_url(event, args || {}),
         }
@@ -23,7 +21,6 @@ module SBSM
       end
     end
     def redirect?
-      puts "redirect? #{@state.direct_event.inspect} @request_method #{@request_method.inspect}"
       direct = @state.direct_event
       if(direct.is_a?(Array))
         direct = direct.first

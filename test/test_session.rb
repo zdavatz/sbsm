@@ -145,7 +145,6 @@ class TestSession < Minitest::Test
     assert_equal("5", hash["2"])
     assert_equal("6", hash["3"])
   end
-  if true
 	def test_attended_states_store
 		@session.process(@request)
 		state = @session.state
@@ -382,5 +381,4 @@ class TestSession < Minitest::Test
 		}
 		assert_equal('gcc', session.flavor)
 	end
-end
 end

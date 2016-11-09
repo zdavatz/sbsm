@@ -81,7 +81,6 @@ module SBSM
 			t
 		end
 		def async(&block)
-      SBSM.info "pry needed?"
 			@async.add(Thread.new(&block))
 		end
 		def cap_max_sessions(now = Time.now)

@@ -37,14 +37,12 @@ module SBSM
     def trigger(event)
       newstate = super
       if(event==:logout)
-        SBSM.info "require 'pry'; binding.pry"
         @session.logout
       else
 				infect(newstate)
       end
       newstate
     rescue DRb::DRbError, RangeError
-        SBSM.info "require 'pry'; binding.pry"
       @session.logout
       home
     end

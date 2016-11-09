@@ -26,12 +26,21 @@ require 'chrono_logger'
 require 'sbsm/version'
 module SBSM
   @@logger = ChronoLogger.new("/tmp/sbsm_#{VERSION}.log.%Y%m%d")
+  @@logger.level= :warn
+  def self.logger=(logger)
+    @@logger = logger
+  end
+  def self.logger
+    @@logger
+  end
   # a simple logger, which makes it easy to compare the timing of the entries
   # by the different process. Should probably later be replaced by a Rack based logger
   def self.info(msg)
     info = "#{File.basename(caller[0])} #{msg}"
-    x = caller.dup
-    @@logger.info(info)
-    # puts info # handy for debugging
+    @@logger.info(info) if @@logger
+  end
+  def self.debug(msg)
+    info = "#{File.basename(caller[0])} #{msg}"
+    @@logger.debug(info) if @@logger
   end
 end

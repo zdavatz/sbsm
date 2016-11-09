@@ -181,9 +181,7 @@ module SBSM
         @infos = []
         @warnings = []
       end
-      SBSM.info "triggered event #{event}"
 			state = if(event && !event.to_s.empty? && self.respond_to?(event))
-        SBSM.info "triggered #{event} respond_to? #{self.respond_to?(event)}"
 				_trigger(event)
 			elsif(klass = @events[event])
 				klass.new(@session, @model)
@@ -211,7 +209,6 @@ module SBSM
 			!@warnings.empty?
 		end
 		def user_input(keys=[], mandatory=[])
-      SBSM.info "user_input #{keys} #{mandatory}"
 			keys = [keys] unless keys.is_a?(Array)
 			mandatory = [mandatory] unless mandatory.is_a?(Array)
 			if(hash = @session.user_input(*keys))

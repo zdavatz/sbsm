@@ -23,7 +23,6 @@ class CGI
       end
       
       def restore
-        # SBSM.info "caller is #{caller.join("\n")}"
         @obj.restore
       end
       def update
