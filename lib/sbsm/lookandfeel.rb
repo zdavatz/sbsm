@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-#
+#--
 # State Based Session Management
 # Copyright (C) 2004 Hannes Wyss
 #
@@ -22,7 +22,7 @@
 # hwyss@ywesee.com
 #
 # Lookandfeel -- sbsm -- hwyss@ywesee.com
-
+#++
 require 'sbsm/time'
 require 'cgi'
 

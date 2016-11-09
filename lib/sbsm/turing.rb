@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+#--
 # Turing -- SBSM -- 15.05.2009 -- hwyss@ywesee.com
+#++
 # Use a Hash instead of a PStore to manage Captchas
-
 require 'turing'
 require 'thread'
 

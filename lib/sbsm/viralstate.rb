@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+#--
 #
 # State Based Session Management
 # Copyright (C) 2004 Hannes Wyss
@@ -22,6 +23,7 @@
 # hwyss@ywesee.com
 #
 # ViralState -- sbsm -- 16.04.2004 -- hwyss@ywesee.com 
+#++
 
 module SBSM
 	module ViralState
