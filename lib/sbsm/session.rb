@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-#
+#--
 # State Based Session Management
 #	Copyright (C) 2004 Hannes Wyss
 #
@@ -24,19 +24,21 @@
 # SBSM::Session -- sbsm -- 27.09.2012 -- yasaka@ywesee.com
 # SBSM::Session -- sbsm -- 17.01.2012 -- mhatakeyama@ywesee.com
 # SBSM::Session -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
+#++
 
 require 'cgi'
-
 require 'sbsm/cgi'
 require 'sbsm/drb'
 require 'sbsm/state'
 require 'sbsm/lookandfeelfactory'
 require 'delegate'
+require 'sbsm/trans_handler'
 
 module SBSM
   class	Session < SimpleDelegator
-		attr_reader :user, :active_thread, :app, :key, :cookie_input,
+		attr_reader :user, :active_thread, :key, :cookie_input,
 			:unsafe_input, :valid_input, :request_path, :cgi
+    attr_writer :trans_handler, :app, :validator
 		include DRbUndumped
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = 'sbsm'
@@ -90,6 +92,7 @@ module SBSM
 			touch()
       reset_input()
 			reset_cookie()
+      raise "Must pass key and app and validator to session" unless key && app # && validator
       @app = app
       @key = key
 			@validator = validator
@@ -100,6 +103,7 @@ module SBSM
 			@variables = {}
       @mutex = Mutex.new
       @cgi = CGI.initialize_without_offline_prompt('html4')
+      SBSM.info "session initialized #{self} key #{key} app #{app.class}  #{validator.class} with @cgi #{@cgi}"
 			super(app)
     end
     def age(now=Time.now)
@@ -152,22 +156,32 @@ module SBSM
 			@cookie_input[key]
 		end
 		def cookie_name
-			self::class::PERSISTENT_COOKIE_NAME
+			# self::class::PERSISTENT_COOKIE_NAME
+      nil
 		end
 		def default_language
 			self::class::DEFAULT_LANGUAGE
 		end
 		def direct_event
+      # used when
 			@state.direct_event
 		end
-    def drb_process(request)
+    def drb_process(app, rack_request)
       start = Time.now
+      @request_path ||= rack_request.path
+      SBSM.info("rack_request #{rack_request.class} #{@request_path} #{rack_request.request_method} #{@cgi}")
+      rack_request.params.each { |key, val| @cgi.params.store(key, val) }
+      @trans_handler.translate_uri(rack_request)
       html = @mutex.synchronize do
-        process(request)
+        process(rack_request)
         to_html
       end
       (@@stats[@request_path] ||= []).push(Time.now - start)
+      SBSM.info "drb_process in pid #{Process.pid} file #{__FILE__}"
       html
+    rescue  => err
+        SBSM.info "Error in drb_process #{err.backtrace[0..5].join("\n")}"
+        raise err
     end
 		def error(key)
 			@state.error(key) if @state.respond_to?(:error)
@@ -182,6 +196,7 @@ module SBSM
 			@valid_input[:event]
 		end
     def event_bound_user_input(key)
+      SBSM.info "pry needed? #{key}"
       @event_user_input ||= {}
       evt = state.direct_event
       @event_user_input[evt] ||= {}
@@ -200,40 +215,41 @@ module SBSM
 		def import_cookies(request)
 			reset_cookie()
       return if request.cookies.is_a?(DRb::DRbUnknown)
-      if(cuki = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
-        cuki.each { |cuki_str|
-          CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
-            key = key.intern
-            valid = @validator.validate(key, val.compact.last)
-            @cookie_input.store(key, valid)
-          }
+      if(cuki_str = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
+        CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
+          key = key.intern
+          valid = @validator.validate(key, val.compact.last)
+          @cookie_input.store(key, valid)
+          puts "sbsm/session #{__LINE__}: @cookie_input.store #{key} #{valid}"
         }
       end
 		end
     @@hash_ptrn = /([^\[]+)((\[[^\]]+\])+)/
     @@index_ptrn = /[^\[\]]+/
-    def import_user_input(request)
+    def import_user_input(rack_req)
 			# attempting to read the cgi-params more than once results in a
 			# DRbConnectionRefused Exception. Therefore, do it only once...
 			return if(@user_input_imported)
-      request.params.each { |key, value|
-				#puts "importing #{key} -> #{value}"
+      hash = rack_req.env.merge rack_req.params
+      hash.each do |key, value|
+        next if /^rack\./.match(key)
 				index = nil
 				@unsafe_input.push([key.to_s.dup, value.to_s.dup])
 				unless(key.nil? || key.empty?)
 					if match = @@hash_ptrn.match(key)
 						key = match[1]
 						index = match[2]
-						#puts key, index
+            #puts key, index
 					end
 					key = key.intern
 					if(key == :confirm_pass)
-						pass = request.params["pass"]
-						#puts "pass:#{pass} - confirm:#{value}"
+						pass = rack_req.params["pass"]
+						# puts "pass:#{pass} - confirm:#{value}"
 						@valid_input[key] = @valid_input[:set_pass] \
 							= @validator.set_pass(pass, value)
 					else
 						valid = @validator.validate(key, value)
+            # puts "Checking #{key} -> #{value}  valid #{valid.inspect} index #{index.inspect}"
 						if(index)
               target = (@valid_input[key] ||= {})
               indices = []
@@ -247,13 +263,16 @@ module SBSM
               target.store(last, valid)
 						else
 							@valid_input[key] = valid
+              # puts "@valid_input #{key} -> #{value}  valid #{valid.inspect} index #{index.inspect}"
               "dummy" # Some statement is necessary here to avoid Date data loading error on Ruby 1.9.3
 						end
 					end
 				end
 				#puts "imported #{key} -> #{value} => #{@valid_input[key].inspect}"
-      }
+      end
+      SBSM.info "imported #{@valid_input}"
 			@user_input_imported = true
+      @valid_input
 			#puts @unsafe_input.inspect
 			#puts @valid_input.inspect
 			#$stdout.flush
@@ -277,10 +296,14 @@ module SBSM
 		end
 		def login
 			if(user = @app.login(self))
+          SBSM.info "user is #{user}  #{request_path.inspect}"
 				@user = user
+      else
+        SBSM.info "login no user #{request_path.inspect}"
 			end
 		end
 		def logout
+      SBSM.info "logout #{request_path.inspect} setting @state #{self::class::DEFAULT_STATE.new(self, @user)}"
 			__checkout
 			@user = @app.unknown_user()
 			@active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
@@ -316,7 +339,7 @@ module SBSM
     rescue DRb::DRbConnError
       raise
 		rescue NameError, StandardError => err
-      puts "error in SBSM::Session#http_headers: #@request_path"
+      puts "#{__LINE__}: error in SBSM::Session#http_headers: #@request_path"
       puts err.class, err.message
       puts err.backtrace[0,5]
 			{'Content-Type' => 'text/plain'}
@@ -345,15 +368,19 @@ module SBSM
 				@persistent_user_input[key]
 			end
 		end
-		def process(request)
-			begin
-				@request = request
-        @request_method = request.request_method
-        @request_path = @request.unparsed_uri
-				@validator.reset_errors() if @validator
-				import_user_input(request)
-				import_cookies(request)
-				@state = active_state.trigger(event())
+    def process(rack_request)
+      begin
+        @request_method =rack_request.request_method
+        @request = rack_request
+        @request_method ||= @request.request_method
+        @request_path = @request.path
+        SBSM.info "session.request.path is #{@request.path}"
+        @validator.reset_errors() if @validator && @validator.respond_to?(:reset_errors)
+        import_user_input(rack_request)
+        import_cookies(rack_request)
+        SBSM.info "In @state #{state.class} handling request #{@request.request_method} state_id is #{@valid_input[:state_id]} for #{@request_path}"
+        @state = active_state.trigger(event())
+        SBSM.info "@state set to #{state.class}"
         #FIXME: is there a better way to distinguish returning states?
         #       ... we could simply refuse to init if event == :sort, but that
         #       would not solve the problem cleanly, I think.
@@ -361,21 +388,23 @@ module SBSM
           @state.request_path = @request_path
           @state.init
         end
-				unless @state.volatile?
-					@active_state = @state
-					@attended_states.store(@state.object_id, @state)
-				end
-				@zone = @active_state.zone
-				@active_state.touch
-				cap_max_states
+        SBSM.info "Changing to #{@state.class} unless #{@state.volatile?}"
+        unless @state.volatile?
+          @active_state = @state
+          @attended_states.store(@state.object_id, @state)
+        end
+        SBSM.info "changed to #{@active_state.class} @attended_states #{@attended_states.keys}"
+        @zone = @active_state.zone
+        @active_state.touch
+        cap_max_states
       rescue DRb::DRbConnError
         raise
-			rescue StandardError => err
+#			rescue StandardError => err
         #@state = @state.previous
-				puts "error in SBSM::Session#process: #@request_path"
-				puts err.class, err.message
-				puts err.backtrace[0,5]
-				$stdout.flush
+#				puts "#{__LINE__}: error in SBSM::Session#process: #@request_path"
+#				puts err.class, err.message
+#				puts err.backtrace[0,5]
+#				$stdout.flush
 			ensure
 				@user_input_imported = false
 			end
@@ -443,7 +472,7 @@ module SBSM
     rescue DRb::DRbConnError
       raise
 		rescue StandardError => err
-      puts "error in SBSM::Session#to_html: #@request_path"
+      puts "#{__LINE__}: error in SBSM::Session#to_html: #@request_path"
       puts err.class, err.message
       puts err.backtrace#[0,5]
       $stdout.flush
@@ -487,13 +516,12 @@ module SBSM
 		end
     # CGI::SessionHandler compatibility
     def restore
-			#puts "restore was called"
-			#@unix_socket = DRb.start_service('drbunix:', self)
+      SBSM.info "restore was called for #{self.inspect}  #{self.class}"
+      SBSM.info "pry needed? #{self.is_a?(NilClass)}"
       hash = {
-				#:proxy   =>  DRbObject.new(self, @unix_socket.uri)
-				:proxy	=>	self,
+        :proxy	=>	self,
       }
-			hash.extend(DRbUndumped) # added for Ruby1.8 compliance
+			# hash.extend(DRbUndumped) # added for Ruby1.8 compliance
       hash
     end
     def update
@@ -529,6 +557,7 @@ module SBSM
 		end
 		private
 		def active_state
+      SBSM.info "active_state was #{@active_state.class} attended #{@attended_states.keys}  state_id #{@valid_input[:state_id]} or #{@active_state}"
 			if(state_id = @valid_input[:state_id])
 				@attended_states[state_id]
 			end || @active_state

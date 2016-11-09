@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+#--
 #
 # State Based Session Management
 # Copyright (C) 2004 Hannes Wyss
@@ -22,6 +23,7 @@
 # hwyss@ywesee.com
 #
 # DrbServer -- sbsm -- hwyss@ywesee.com
+#++
 
 require 'delegate'
 require 'sbsm/drb'
@@ -29,6 +31,8 @@ require 'sbsm/session'
 require 'sbsm/user'
 require 'thread'
 require 'digest/md5'
+require 'sbsm/logger'
+require 'sbsm/validator'
 
 module SBSM
 	class DRbServer < SimpleDelegator
@@ -77,11 +81,12 @@ module SBSM
 			t
 		end
 		def async(&block)
+      SBSM.info "pry needed?"
 			@async.add(Thread.new(&block))
 		end
 		def cap_max_sessions(now = Time.now)
 			if(@sessions.size > self::class::CAP_MAX_THRESHOLD)
-				puts "too many sessions! Keeping only #{self::class::MAX_SESSIONS}"
+				SBSM.info "too many sessions! Keeping only #{self::class::MAX_SESSIONS}"
         sess = nil
 				sorted = @sessions.values.sort
 				sorted[0...(-self::class::MAX_SESSIONS)].each { |sess|
@@ -90,7 +95,7 @@ module SBSM
 				}
         if(sess)
           age = sess.age(now)
-          puts sprintf("deleted all sessions that had not been accessed for more than %im %is", age / 60, age % 60)
+          SBSM.info sprintf("deleted all sessions that had not been accessed for more than %im %is", age / 60, age % 60)
         end
 			end
 		end
@@ -145,19 +150,19 @@ module SBSM
 		def unknown_user
 			self::class::UNKNOWN_USER.new
 		end
-		def [](key)
-			@mutex.synchronize {
-				unless((s = @sessions[key]) && !s.expired?)
-					args = [key, self]
-					if(klass = self::class::VALIDATOR)
-						args.push(klass.new)
-					end
-					s = @sessions[key] = self::class::SESSION.new(*args.compact)
-				end
-				s.reset()
-				s.touch()
-				s
-			}
-		end
+    def [](key)
+      @mutex.synchronize {
+        unless((s = @sessions[key]) && !s.expired?)
+          args = [key, self]
+          if(klass = self::class::VALIDATOR)
+            args.push(klass.new)
+          end
+          s = @sessions[key] = self::class::SESSION.new(*args.compact)
+        end
+        s.reset()
+        s.touch()
+        s
+      }
+    end
 	end
 end

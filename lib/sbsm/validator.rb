@@ -67,6 +67,8 @@ module SBSM
 			@patterns = self::class::PATTERNS.dup
 			@strings = self::class::STRINGS.dup
 			@uris = self::class::URIS.dup
+      SBSM.info "@events #{@events}"
+
 		end	
 		def error?
 			!@errors.empty?
@@ -190,8 +192,10 @@ module SBSM
     @@state_id_ptrn = /-?\d+/
 		def state_id(value)
 			if(match = @@state_id_ptrn.match(value))
+        SBSM.info "Returning state_id #{match[0]} for #{value} using #{@@state_id_ptrn}"
 				match[0].to_i
 			else
+        SBSM.info "Invalid state_id for #{value} using #{@@state_id_ptrn}"
 				nil
 			end
 		end

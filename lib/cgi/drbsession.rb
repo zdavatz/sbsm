@@ -1,12 +1,14 @@
 # encoding: utf-8
+#--
 # DRbSession - CGI::Session session database manager using DRb.
 # Copyright (C) 2001 by Tietew. All Rights Reserved.
-#
+#++
 require 'drb/drb'
-
+require 'sbsm/logger'
 class CGI
   class Session
     class DRbSession
+      attr_reader :obj
       def initialize(session, option={})
         unless uri = option['drbsession_uri']
           raise ArgumentError, "drbsession_uri not specified"
@@ -21,6 +23,7 @@ class CGI
       end
       
       def restore
+        # SBSM.info "caller is #{caller.join("\n")}"
         @obj.restore
       end
       def update

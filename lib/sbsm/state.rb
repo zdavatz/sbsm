@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
-#
+#--
 # State Based Session Management
 # Copyright (C) 2004 Hannes Wyss
 #
@@ -23,6 +23,8 @@
 #
 # SBSM::State -- sbsm -- 15.05.2012 -- yasaka@ywesee.com
 # SBSM::State -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
+#++
+require 'sbsm/logger'
 
 module SBSM
 	class ProcessingError < RuntimeError
@@ -121,29 +123,19 @@ module SBSM
 				@errors.store(key, error)
 			end
 		end
-    if RUBY_VERSION >= '1.9'
-      def extend(mod)
-        if(mod.constants.include?(:VIRAL))
-          @viral_modules.push(mod)
-        end
-        if(mod.constants.include?(:EVENT_MAP))
-          @events.update(mod::EVENT_MAP)
-        end
-        super
+    def extend(mod)
+      if(mod.constants.include?(:VIRAL))
+        @viral_modules.push(mod)
       end
-    else
-      def extend(mod)
-        if(mod.constants.include?('VIRAL'))
-          @viral_modules.push(mod)
-        end
-        if(mod.constants.include?('EVENT_MAP'))
-          @events.update(mod::EVENT_MAP)
-        end
-        super
+      if(mod.constants.include?(:EVENT_MAP))
+        @events.update(mod::EVENT_MAP)
       end
+      super
     end
 		def http_headers
-			@http_headers || view.http_headers
+      return @http_headers if @http_headers
+      name = view
+      name ? view.http_headers : {}
 		end
 		def info?
 			!@infos.empty?
@@ -178,7 +170,8 @@ module SBSM
 			@mtime = Time.now
 		end
 		def to_html(context)
-			view.to_html(context)
+      name = view
+      name ? name.to_html(context) : ''
 		end
 		def trigger(event)
       if(@redirected)
@@ -188,7 +181,9 @@ module SBSM
         @infos = []
         @warnings = []
       end
+      SBSM.info "triggered event #{event}"
 			state = if(event && !event.to_s.empty? && self.respond_to?(event))
+        SBSM.info "triggered #{event} respond_to? #{self.respond_to?(event)}"
 				_trigger(event)
 			elsif(klass = @events[event])
 				klass.new(@session, @model)
@@ -197,6 +192,7 @@ module SBSM
 			if(state.respond_to?(:previous=))
 				state.previous = self
 			end
+      # puts "state.rb #{__LINE__} state #{state.inspect}"
 			state
 		end
     def _trigger(event)
@@ -215,6 +211,7 @@ module SBSM
 			!@warnings.empty?
 		end
 		def user_input(keys=[], mandatory=[])
+      SBSM.info "user_input #{keys} #{mandatory}"
 			keys = [keys] unless keys.is_a?(Array)
 			mandatory = [mandatory] unless mandatory.is_a?(Array)
 			if(hash = @session.user_input(*keys))
@@ -236,6 +233,7 @@ module SBSM
 		end
 		def view
       klass = @default_view
+      return nil unless @default_view
       if(klass.is_a?(Hash))
         klass = klass.fetch(@session.user.class) {
           klass[:default]
