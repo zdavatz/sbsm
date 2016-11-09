@@ -3,8 +3,11 @@
 require 'simplecov'
 
 $: << File.dirname(File.expand_path(__FILE__))
-SimpleCov.start
-
+SimpleCov.start do
+  add_filter "/test/"
+  add_filter "/gems/"
+end
+require 'sbsm/logger'
 Dir.foreach(File.dirname(__FILE__)) do |file|
   if /^test_.*\.rb$/o.match(file)
     require file

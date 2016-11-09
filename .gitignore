@@ -1,4 +1,8 @@
+.ruby-version
+Gemfile.lock
+etc/
 .bundle/
+doc/
 vendor/
 pkg/
 coverage/

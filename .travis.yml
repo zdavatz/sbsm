@@ -20,4 +20,6 @@ rvm:
   - 2.3.0
 matrix:
   allow_failures:
+    # On november 1 had failure compiling the child_processes
     - rvm: ruby-head
+    - rvm: 2.2.3

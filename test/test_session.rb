@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
+#--
 #
 # State Based Session Management
 # Copyright (C) 2004 Hannes Wyss
@@ -22,10 +23,12 @@
 # hwyss@ywesee.com
 #
 # TestSession -- sbsm -- 22.10.2002 -- hwyss@ywesee.com 
+#++
 
 require 'minitest/autorun'
 require 'sbsm/session'
-#require 'htmlgrid/component'
+require 'rack'
+require 'rack/test'
 
 class StubSessionUnknownUser
 end
@@ -54,16 +57,9 @@ class StubSessionValidator
 		false
 	end
 end
-class StubSessionRequest < Hash
-	attr_accessor :unparsed_uri
-	def params
-		self
-	end
-	def cookies
-		{}
-	end
-  def request_method
-    'GET'
+class StubSessionRequest < Rack::Request
+  def initialize(path='')
+    super(Rack::MockRequest.env_for("http://example.com:8080/#{path}", {}))
   end
 end
 class StubSessionView 
@@ -131,11 +127,25 @@ class StubSessionSession < SBSM::Session
 end
 
 class TestSession < Minitest::Test
+  include Rack::Test::Methods
 	def setup
 		@session = Session.new("test", StubSessionApp.new, StubSessionValidator.new)
 		@request = StubSessionRequest.new
 		@state = StubSessionState.new(@session, nil)
 	end
+  def test_user_input_hash
+    @request["hash[1]"] = "4"
+    @request["hash[2]"] = "5"
+    @request["hash[3]"] = "6"
+    @session.process(@request)
+    hash = @session.user_input(:hash)
+    assert_equal(Hash, hash.class)
+    assert_equal(3, hash.size)
+    assert_equal("4", hash["1"])
+    assert_equal("5", hash["2"])
+    assert_equal("6", hash["3"])
+  end
+  if true
 	def test_attended_states_store
 		@session.process(@request)
 		state = @session.state
@@ -206,7 +216,7 @@ class TestSession < Minitest::Test
 			state.object_id =>	state,
 		}
 		@session.active_state = @state
-		@request.store('state_id', state.object_id.next)
+		# @request.params.store('state_id', state.object_id.next)
 		@session.process(@request)
 		assert_equal(@state, @session.active_state)
 	end
@@ -221,7 +231,7 @@ class TestSession < Minitest::Test
 			state.object_id =>	state,
 		}
 		@session.state = @state
-		@request.store('state_id', state.object_id)
+		@request.params.store('state_id', state.object_id)
 		@session.process(@request)
 		assert_equal(state, @session.active_state)
 	end
@@ -231,12 +241,12 @@ class TestSession < Minitest::Test
 		state.volatile = volatile
 		@session.active_state = state
 		@session.state = state
-		@request.store('event', :volatile)
+		@request.params.store('event', :volatile)
 		newstate = @session.process(@request)
 		assert_equal(:volatile, @session.event)
 		assert_equal(volatile, @session.state)
 		assert_equal(state, @session.active_state)
-		@request.store('event', :foo)
+		@request.params.store('event', :foo)
 		newstate = @session.process(@request)
 		assert_equal(state.foo, @session.state)
 		assert_equal(state.foo, @session.active_state)
@@ -321,8 +331,8 @@ class TestSession < Minitest::Test
 		}
 		@session.state = @state
 		expected = state.foo
-		@request.store('state_id', state.object_id)
-		@request.store('event', :foo)
+		@request.params.store('state_id', state.object_id)
+		@request.params.store('event', :foo)
 		@session.process(@request)
 		assert_equal(expected, @session.state) 
 		assert_equal(expected, @session.attended_states[expected.object_id])
@@ -372,4 +382,5 @@ class TestSession < Minitest::Test
 		}
 		assert_equal('gcc', session.flavor)
 	end
+end
 end
