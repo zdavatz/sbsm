@@ -27,6 +27,7 @@
 
 require 'minitest/autorun'
 require 'fileutils'
+require 'tempfile'
 require 'sbsm/logger'
 begin
   require 'pry'
@@ -34,42 +35,24 @@ rescue LoadError
 end
 class TestLogger < Minitest::Test
   def setup
-    @saved_loger = SBSM.logger.clone
-    @default_name = Time.now.strftime("/tmp/sbsm_#{SBSM::VERSION}.log.%Y%m%d")
-    FileUtils.rm_f(@default_name)
+    @saved_loger = SBSM.logger ? SBSM.logger : nil
+    @temp_file = Tempfile.new('foo')
+    @temp_file.write("TestLogger TempFile")
+    @temp_file.flush
+    @default_name = @temp_file.path
     # we reload the logger class as it initializes the logger to a default value
     load 'sbsm/logger.rb'
-    assert(File.exist?(@default_name))
   end
   def teardown
     SBSM.logger= @saved_loger
+    @temp_file.unlink
   end
 
-  def test_default_levels
+  def test_default_levels_with_no_loggin
     saved_length = File.size(@default_name)
     SBSM.debug("debug #{__LINE__}")
     assert_equal(saved_length, File.size(@default_name))
     SBSM.info("info #{__LINE__}")
-    assert_equal(saved_length, File.size(@default_name))
-
-    SBSM.logger.level = :info
-    SBSM.info("info #{__LINE__}")
-    assert(saved_length < File.size(@default_name))
-    saved_length = File.size(@default_name)
-    SBSM.debug("debug #{__LINE__}")
-    saved_length = File.size(@default_name)
-
-    SBSM.logger.level = :debug
-    SBSM.info("info #{__LINE__}")
-    assert(saved_length < File.size(@default_name))
-    saved_length = File.size(@default_name)
-    SBSM.debug("debug #{__LINE__}")
-    assert(saved_length < File.size(@default_name))
-
-    saved_length = File.size(@default_name)
-    SBSM.logger.level = :warn
-    SBSM.info("info #{__LINE__}")
-    SBSM.debug("debug #{__LINE__}")
     assert_equal(saved_length, File.size(@default_name))
   end
 

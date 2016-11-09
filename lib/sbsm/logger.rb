@@ -25,8 +25,7 @@
 require 'chrono_logger'
 require 'sbsm/version'
 module SBSM
-  @@logger = ChronoLogger.new("/tmp/sbsm_#{VERSION}.log.%Y%m%d")
-  @@logger.level= :warn
+  @@logger = nil
   def self.logger=(logger)
     @@logger = logger
   end
