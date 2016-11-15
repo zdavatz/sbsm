@@ -103,7 +103,7 @@ module SBSM
 			@variables = {}
       @mutex = Mutex.new
       @cgi = CGI.initialize_without_offline_prompt('html4')
-      SBSM.debug "session initialized #{self} key #{key} app #{app.class}  #{validator.class} with @cgi #{@cgi}"
+      SBSM.debug "session initialized #{self} key #{key} app #{app.class}  #{@validator.class} th #{@trans_handler.class} with @cgi #{@cgi}"
 			super(app)
     end
     def age(now=Time.now)

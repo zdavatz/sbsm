@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rack'
   spec.add_dependency 'mail'
   spec.add_dependency 'hpricot'
+  spec.add_dependency 'mimemagic'
   spec.add_dependency 'chrono_logger'
 
   spec.add_development_dependency "bundler"

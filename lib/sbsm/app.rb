@@ -28,6 +28,8 @@ require 'cgi/session'
 require 'sbsm/cgi'
 require 'cgi/drbsession'
 require 'sbsm/drbserver'
+require 'mimemagic'
+
 module SBSM
   ###
   # App a base class for Webrick server
@@ -36,7 +38,7 @@ module SBSM
     PERSISTENT_COOKIE_NAME = "cookie-persistent-sbsm-1.3.1"
     SBSM.info "PERSISTENT_COOKIE_NAME #{PERSISTENT_COOKIE_NAME}"
 
-    attr_reader :sbsm, :my_self, :validator
+    attr_reader :sbsm, :my_self, :trans_handler, :validator, :drb_uri
 
     OPTIONS = [ :app, :config_file, :trans_handler, :validator, :persistence_layer, :server_uri, :session, :unknown_user ]
     COOKIE_ID = 'sbsm-persistent-cookie-id'
@@ -58,11 +60,12 @@ module SBSM
     # Look at steinwies.ch
     # * https://github.com/zdavatz/steinwies.ch (simple, mostly static files, one form, no persistence layer)
     #
-    def initialize(app:, validator:, trans_handler:, persistence_layer: nil)
+    def initialize(app:, validator:, trans_handler:, drb_uri:, persistence_layer: nil)
       @app = app
+      @drb_uri = drb_uri
       @trans_handler = trans_handler
       @validator = validator
-      SBSM.info "initialize @app is now #{@app.class} validator #{validator} th #{trans_handler} "
+      SBSM.info "initialize @app is now #{@app.class} validator #{validator} th #{trans_handler} drb_uri #{drb_uri}"
       super(persistence_layer)
     end
 
@@ -74,13 +77,12 @@ module SBSM
       else
         session_id = rand((2**(0.size * 8 -2) -1)*10240000000000).to_s(16)
       end
+
       file_name = File.expand_path(File.join('doc', request.path))
       if File.file?(file_name)
-        if /css/i.match(File.basename(file_name))
-          response.set_header('Content-Type', 'text/css')
-        else
-          response.set_header('Content-Type', 'text/plain')
-        end
+        mime_type = MimeMagic.by_extension(File.extname(file_name)).type
+        SBSM.info "file_name is #{file_name} checkin base #{File.basename(file_name)} MIME #{mime_type}"
+        response.set_header('Content-Type', mime_type)
         response.write(File.open(file_name, File::RDONLY){|file| file.read})
         return response
       end
