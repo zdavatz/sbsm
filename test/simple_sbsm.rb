@@ -201,7 +201,7 @@ module Demo
     def initialize
       @drb_uri = SERVER_URI
       SBSM.info "SimpleSBSM.new"
-      super(:app => self, :validator => Validator.new, :trans_handler => SBSM::TransHandler.instance)
+      super(:app => self, :validator => Validator.new, :trans_handler => SBSM::TransHandler.instance, :drb_uri => SERVER_URI)
     end
   end
 end

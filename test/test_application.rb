@@ -38,10 +38,11 @@ class MyTest < MiniTest::Unit::TestCase
         last_response.set_cookie SBSM::App::PERSISTENT_COOKIE_NAME, :value => "second_cookie"
     end
     assert last_response.ok?
-    skip 'We must add here an input form or we cannot continue testing'
     assert_match FEEDBACK_HTML_CONTENT, last_response.body
     page = Nokogiri::HTML(last_response.body)
     x = page.css('div')
+    skip 'We must add here an input form or we cannot continue testing'
+
     assert  page.css('input').find{|x| x.attributes['name'].value.eql?('state_id') }.attributes['value'].value
     state_id = page.css('input').find{|x| x.attributes['name'].value.eql?('state_id') }.attributes['value'].value.to_i
     assert state_id > 0
