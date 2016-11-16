@@ -443,9 +443,6 @@ module SBSM
 			@state.to_html(cgi)
     rescue DRb::DRbConnError
       raise
-		rescue StandardError => err
-      SBSM.info "StandardError: #@request_path"
-			[ err.class, err.message ].join("\n")
 		end
     def user_agent
       @user_agent ||= (@request.user_agent if @request.respond_to?(:user_agent))
