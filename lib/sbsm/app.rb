@@ -37,12 +37,9 @@ module SBSM
     include DRbUndumped
     PERSISTENT_COOKIE_NAME = "cookie-persistent-sbsm-1.3.1"
     SBSM.info "PERSISTENT_COOKIE_NAME #{PERSISTENT_COOKIE_NAME}"
-
     attr_reader :sbsm, :my_self, :trans_handler, :validator, :drb_uri
 
     OPTIONS = [ :app, :config_file, :trans_handler, :validator, :persistence_layer, :server_uri, :session, :unknown_user ]
-    COOKIE_ID = 'sbsm-persistent-cookie-id'
-
     OPTIONS.each{ |opt| eval "attr_reader :#{opt}" }
 
     # Base class for a SBSM based WebRick HTTP server
@@ -61,11 +58,11 @@ module SBSM
     # * https://github.com/zdavatz/steinwies.ch (simple, mostly static files, one form, no persistence layer)
     #
     def initialize(app:, validator:, trans_handler:, drb_uri:, persistence_layer: nil)
-      @app = app
+      SBSM.info "initialize app #{app.class} @app is now #{@app.class} validator #{validator} th #{trans_handler} drb_uri #{drb_uri}"
+      @app = app unless @app
       @drb_uri = drb_uri
       @trans_handler = trans_handler
       @validator = validator
-      SBSM.info "initialize @app is now #{@app.class} validator #{validator} th #{trans_handler} drb_uri #{drb_uri}"
       super(persistence_layer)
     end
 
@@ -88,7 +85,6 @@ module SBSM
       end
 
       return [400, {}, []] if /favicon.ico/i.match(request.path)
-      SBSM.debug "#{request.path}: cookies are #{request.cookies} for session_id #{session_id}"
       @drb_uri ||= @app.drb_uri
       args = {
         'database_manager'  =>  CGI::Session::DRbSession,
@@ -98,6 +94,7 @@ module SBSM
       }
       @cgi = CGI.initialize_without_offline_prompt('html4')
       @session = CGI::Session.new(@cgi, args)
+      SBSM.debug "session_id #{session_id} #{request.path}: cookies are #{request.cookies}"
       saved = self[session_id]
       @proxy  = DRbObject.new(saved, server_uri)
       @proxy.trans_handler = @trans_handler

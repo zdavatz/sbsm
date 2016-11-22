@@ -89,22 +89,23 @@ module SBSM
       ''
     end
     def initialize(key, app, validator=nil)
-			touch()
+      SBSM.info "initialize app #{app.class} @app is now #{@app.class} validator #{validator} th #{@trans_handler}" # drb_uri #{drb_uri}"
+      touch()
       reset_input()
-			reset_cookie()
+      reset_cookie()
       raise "Must pass key and app and validator to session" unless key && app # && validator
       @app = app
       @key = key
-			@validator = validator
-			@attended_states = {}
-			@persistent_user_input = {}
-			logout()
-			@unknown_user_class = @user.class
-			@variables = {}
+      @validator = validator
+      @attended_states = {}
+      @persistent_user_input = {}
+      logout()
+      @unknown_user_class = @user.class
+      @variables = {}
       @mutex = Mutex.new
       @cgi = CGI.initialize_without_offline_prompt('html4')
       SBSM.debug "session initialized #{self} key #{key} app #{app.class}  #{@validator.class} th #{@trans_handler.class} with @cgi #{@cgi}"
-			super(app)
+      super(app)
     end
     def age(now=Time.now)
       now - @mtime
@@ -155,8 +156,7 @@ module SBSM
 			@cookie_input[key]
 		end
 		def cookie_name
-			# self::class::PERSISTENT_COOKIE_NAME
-      nil
+			self::class::PERSISTENT_COOKIE_NAME
 		end
 		def default_language
 			self::class::DEFAULT_LANGUAGE
@@ -168,7 +168,6 @@ module SBSM
     def drb_process(app, rack_request)
       start = Time.now
       @request_path ||= rack_request.path
-      SBSM.debug("rack_request #{rack_request.class} #{@request_path} #{rack_request.request_method} #{@cgi}")
       rack_request.params.each { |key, val| @cgi.params.store(key, val) }
       @trans_handler.translate_uri(rack_request)
       html = @mutex.synchronize do
@@ -227,6 +226,7 @@ module SBSM
 			# DRbConnectionRefused Exception. Therefore, do it only once...
 			return if(@user_input_imported)
       hash = rack_req.env.merge rack_req.params
+      hash.merge! rack_req.POST if rack_req.POST
       hash.each do |key, value|
         next if /^rack\./.match(key)
 				index = nil
@@ -246,6 +246,7 @@ module SBSM
 					else
 						valid = @validator.validate(key, value)
             # puts "Checking #{key} -> #{value}  valid #{valid.inspect} index #{index.inspect}"
+            # require 'pry'; binding.pry if /artobject_id/i.match(key)
 						if(index)
               target = (@valid_input[key] ||= {})
               indices = []
@@ -259,18 +260,12 @@ module SBSM
               target.store(last, valid)
 						else
 							@valid_input[key] = valid
-              # puts "@valid_input #{key} -> #{value}  valid #{valid.inspect} index #{index.inspect}"
-              "dummy" # Some statement is necessary here to avoid Date data loading error on Ruby 1.9.3
 						end
 					end
 				end
 				#puts "imported #{key} -> #{value} => #{@valid_input[key].inspect}"
       end
 			@user_input_imported = true
-      @valid_input
-			#puts @unsafe_input.inspect
-			#puts @valid_input.inspect
-			#$stdout.flush
     end
 		def infos
 			@state.infos if @state.respond_to?(:infos)
@@ -391,7 +386,6 @@ module SBSM
 			ensure
 				@user_input_imported = false
 			end
-			''
 		end
 		def reset
       if @redirected

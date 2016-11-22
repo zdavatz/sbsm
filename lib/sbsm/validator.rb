@@ -148,6 +148,7 @@ module SBSM
 					self.send(key, value)
 				end
 			rescue InvalidDataError => e
+        SBSM.debug("#{e.key} #{e}")
 				@errors.store(e.key, e)
 			end
 		end

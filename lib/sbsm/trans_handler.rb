@@ -141,7 +141,7 @@ module SBSM
       when @@lang_check
         begin
           self.parse_uri(request)
-        rescue LoadError
+        rescue LoadError # this happens often
           res = simple_parse_uri(request)
         end
         request.uri = @handler_uri

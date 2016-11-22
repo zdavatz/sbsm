@@ -27,6 +27,7 @@
 
 require 'minitest/autorun'
 require 'sbsm/session'
+require 'sbsm/validator'
 require 'rack'
 require 'rack/test'
 
@@ -58,8 +59,8 @@ class StubSessionValidator
 	end
 end
 class StubSessionRequest < Rack::Request
-  def initialize(path='')
-    super(Rack::MockRequest.env_for("http://example.com:8080/#{path}", {}))
+  def initialize(path='', params = {})
+    super(Rack::MockRequest.env_for("http://example.com:8080/#{path}", params))
   end
 end
 class StubSessionView 
@@ -364,7 +365,7 @@ class TestSession < Minitest::Test
     assert_equal('en', lnf3.language) ## flavor does not change!
 	end
 	def test_lookandfeel2
-		session = StubSessionSession.new("test", StubSessionApp.new, StubSessionValidator.new)
+    session = StubSessionSession.new("test", StubSessionApp.new, StubSessionValidator.new)
 		session.lookandfeel=nil
 		session.persistent_user_input = {
 			:flavor => 'gcc',
@@ -372,7 +373,7 @@ class TestSession < Minitest::Test
 		lnf = session.lookandfeel
 		assert_equal('gcc', session.flavor)
 	end
-	def test_lookandfeel3
+  def test_lookandfeel3
 		session = StubSessionSession.new("test", StubSessionApp.new, StubSessionValidator.new)
 		session.lookandfeel=nil
 		lnf2 = session.lookandfeel
