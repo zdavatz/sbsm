@@ -212,11 +212,12 @@ module SBSM
 			reset_cookie()
       return if request.cookies.is_a?(DRb::DRbUnknown)
       if(cuki_str = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
-        CGI.parse(CGI.unescape(cuki_str)).each { |key, val|
-          key = key.intern
-          valid = @validator.validate(key, val.compact.last)
+        SBSM.debug "cuki_str #{cuki_str}"
+        eval(cuki_str).each { |key, val|
+          valid = @validator.validate(key, val)
           @cookie_input.store(key, valid)
         }
+        SBSM.debug "@cookie_input now #{@cookie_input}"
       end
 		end
     @@hash_ptrn = /([^\[]+)((\[[^\]]+\])+)/
@@ -227,6 +228,7 @@ module SBSM
 			return if(@user_input_imported)
       hash = rack_req.env.merge rack_req.params
       hash.merge! rack_req.POST if rack_req.POST
+      SBSM.debug "hash has #{hash.size } items #{hash.keys}"
       hash.each do |key, value|
         next if /^rack\./.match(key)
 				index = nil
@@ -240,13 +242,12 @@ module SBSM
 					key = key.intern
 					if(key == :confirm_pass)
 						pass = rack_req.params["pass"]
-						# puts "pass:#{pass} - confirm:#{value}"
+						SBSM.debug "pass:#{pass} - confirm:#{value}"
 						@valid_input[key] = @valid_input[:set_pass] \
 							= @validator.set_pass(pass, value)
 					else
 						valid = @validator.validate(key, value)
-            # puts "Checking #{key} -> #{value}  valid #{valid.inspect} index #{index.inspect}"
-            # require 'pry'; binding.pry if /artobject_id/i.match(key)
+            # SBSM.debug "Checking #{key} -> #{value}  valid #{valid.inspect} index #{index.inspect}"
 						if(index)
               target = (@valid_input[key] ||= {})
               indices = []
@@ -263,7 +264,6 @@ module SBSM
 						end
 					end
 				end
-				#puts "imported #{key} -> #{value} => #{@valid_input[key].inspect}"
       end
 			@user_input_imported = true
     end
@@ -293,10 +293,10 @@ module SBSM
 			end
 		end
 		def logout
-      SBSM.debug "logout #{request_path.inspect} setting @state #{self::class::DEFAULT_STATE.new(self, @user)}"
 			__checkout
 			@user = @app.unknown_user()
 			@active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
+      SBSM.debug "logout #{request_path.inspect} setting @state #{@state.object_id} #{@state.class} remember #{persistent_user_input(:remember).inspect}"
       @state.init
 			@attended_states.store(@state.object_id, @state)
 		end
@@ -366,6 +366,7 @@ module SBSM
         import_user_input(rack_request)
         import_cookies(rack_request)
         @state = active_state.trigger(event())
+        SBSM.debug "active_state.trigger state #{@state.object_id} remember #{persistent_user_input(:remember).inspect}"
         #FIXME: is there a better way to distinguish returning states?
         #       ... we could simply refuse to init if event == :sort, but that
         #       would not solve the problem cleanly, I think.
@@ -374,9 +375,11 @@ module SBSM
           @state.init
         end
         unless @state.volatile?
-          SBSM.debug "Changing to #{@state.class}"
+          SBSM.debug "Changing from #{@active_state.object_id} to state #{@state.object_id} remember #{persistent_user_input(:remember).inspect}"
           @active_state = @state
           @attended_states.store(@state.object_id, @state)
+        else
+          SBSM.debug "Stay in volatile state #{@state.object_id}"
         end
         @zone = @active_state.zone
         @active_state.touch
@@ -415,6 +418,7 @@ module SBSM
 			end
 		end
 		def set_cookie_input(key, val)
+      SBSM.debug "cookie_set_or_get #{key} #{val}"
 			@cookie_input.store(key, val)
 		end
 		def server_name

@@ -198,10 +198,11 @@ module Demo
   class SimpleSBSM < SBSM::App
     SESSION = Session
     attr_reader :drb_uri
-    def initialize
+    def initialize(cookie_name: nil)
       @drb_uri = SERVER_URI
       SBSM.info "SimpleSBSM.new"
-      super(:app => self, :validator => Validator.new, :trans_handler => SBSM::TransHandler.instance, :drb_uri => SERVER_URI)
+      super(:app => self, :validator => Validator.new, :trans_handler => SBSM::TransHandler.instance, :drb_uri => SERVER_URI,
+            cookie_name: cookie_name)
     end
   end
 end

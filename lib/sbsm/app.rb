@@ -35,11 +35,9 @@ module SBSM
   # App a base class for Webrick server
   class App < SBSM::DRbServer
     include DRbUndumped
-    PERSISTENT_COOKIE_NAME = "cookie-persistent-sbsm-1.3.1"
-    SBSM.info "PERSISTENT_COOKIE_NAME #{PERSISTENT_COOKIE_NAME}"
     attr_reader :sbsm, :my_self, :trans_handler, :validator, :drb_uri
 
-    OPTIONS = [ :app, :config_file, :trans_handler, :validator, :persistence_layer, :server_uri, :session, :unknown_user ]
+    OPTIONS = [ :app, :config_file, :trans_handler, :validator, :persistence_layer, :server_uri, :session, :unknown_user, :proxy ]
     OPTIONS.each{ |opt| eval "attr_reader :#{opt}" }
 
     # Base class for a SBSM based WebRick HTTP server
@@ -49,28 +47,34 @@ module SBSM
     #
     # === arguments
     #
+    # * +app+ -               The app we should handle requests for
     # * +validator+ -         A Ruby class overriding the SBSM::Validator class
     # * +trans_handler+ -     A Ruby class overriding the SBSM::TransHandler class
     # * +persistence_layer+ - Persistence Layer to use
+    # * +cookie_name+ -       The cookie to save persistent user data
+    # * +drb_uri+ -           URI for DRB-Server of app
     #
     # === Examples
     # Look at steinwies.ch
     # * https://github.com/zdavatz/steinwies.ch (simple, mostly static files, one form, no persistence layer)
     #
-    def initialize(app:, validator:, trans_handler:, drb_uri:, persistence_layer: nil)
-      SBSM.info "initialize app #{app.class} @app is now #{@app.class} validator #{validator} th #{trans_handler} drb_uri #{drb_uri}"
+    def initialize(app:, validator:, trans_handler:, drb_uri:, persistence_layer: nil, cookie_name: nil)
+      SBSM.info "initialize #{$0} app #{app.class} @app is now #{@app.class} validator #{validator} th #{trans_handler} drb_uri #{drb_uri}"
       @app = app unless @app
+      @cookie_name = cookie_name ||  SBSM::Session::PERSISTENT_COOKIE_NAME
       @drb_uri = drb_uri
       @trans_handler = trans_handler
       @validator = validator
       super(persistence_layer)
     end
 
+    SESSION_ID = '_session_id'
+
     def call(env) ## mimick sbsm/lib/app.rb
       request = Rack::Request.new(env)
       response = Rack::Response.new
-      if request.cookies[PERSISTENT_COOKIE_NAME] && request.cookies[PERSISTENT_COOKIE_NAME].length > 1
-        session_id = request.cookies[PERSISTENT_COOKIE_NAME]
+      if request.cookies[SESSION_ID] && request.cookies[SESSION_ID].length > 1
+        session_id = request.cookies[SESSION_ID]
       else
         session_id = rand((2**(0.size * 8 -2) -1)*10240000000000).to_s(16)
       end
@@ -90,11 +94,11 @@ module SBSM
         'database_manager'  =>  CGI::Session::DRbSession,
         'drbsession_uri'    =>  @drb_uri,
         'session_path'      =>  '/',
-        PERSISTENT_COOKIE_NAME => session_id,
+        @cookie_name => session_id,
       }
-      @cgi = CGI.initialize_without_offline_prompt('html4')
-      @session = CGI::Session.new(@cgi, args)
-      SBSM.debug "session_id #{session_id} #{request.path}: cookies are #{request.cookies}"
+      SBSM.debug "starting session_id #{session_id} #{request.path}: cookies #{@cookie_name} are #{request.cookies} @session #{@session.class} @cgi #{@cgi.class}"
+      @cgi = CGI.initialize_without_offline_prompt('html4') unless @cgi
+      @session = CGI::Session.new(@cgi, args) unless @session
       saved = self[session_id]
       @proxy  = DRbObject.new(saved, server_uri)
       @proxy.trans_handler = @trans_handler
@@ -102,9 +106,9 @@ module SBSM
       res = @proxy.drb_process(self, request)
       response.write res
       response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
-      response.set_cookie(PERSISTENT_COOKIE_NAME, session_id)
-      @proxy.cookie_input.each{|key, value| response.set_cookie(key, value) }
-      SBSM.debug "finish session_id #{session_id}: header #{response.headers}"
+      response.set_cookie(@cookie_name, :value =>  @proxy.cookie_input)
+      response.set_cookie(SESSION_ID, :value => session_id)
+      SBSM.debug "finish   session_id #{session_id}: header with cookies #{response.headers} from #{@proxy.cookie_input}"
       response.finish
     end
   end
