@@ -78,7 +78,6 @@ module SBSM
       else
         session_id = rand((2**(0.size * 8 -2) -1)*10240000000000).to_s(16)
       end
-
       file_name = File.expand_path(File.join('doc', request.path))
       if File.file?(file_name)
         mime_type = MimeMagic.by_extension(File.extname(file_name)).type
@@ -100,15 +99,15 @@ module SBSM
       @cgi = CGI.initialize_without_offline_prompt('html4') unless @cgi
       @session = CGI::Session.new(@cgi, args) unless @session
       saved = self[session_id]
-      @proxy  = DRbObject.new(saved, server_uri)
+      @proxy  = DRbObject.new(saved, server_uri) unless @proxy.is_a?(DRbObject)
       @proxy.trans_handler = @trans_handler
-      @proxy.app = @app
+      @proxy.app = @app unless @proxy.app
       res = @proxy.drb_process(self, request)
       response.write res
       response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
       response.set_cookie(@cookie_name, :value =>  @proxy.cookie_input)
       response.set_cookie(SESSION_ID, :value => session_id)
-      SBSM.debug "finish   session_id #{session_id}: header with cookies #{response.headers} from #{@proxy.cookie_input}"
+      SBSM.debug "finish session_id #{session_id}: header with cookies #{response.headers} from #{@proxy.cookie_input}"
       response.finish
     end
   end
