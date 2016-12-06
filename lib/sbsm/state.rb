@@ -190,7 +190,6 @@ module SBSM
 			if(state.respond_to?(:previous=))
 				state.previous = self
 			end
-      # puts "state.rb #{__LINE__} state #{state.inspect}"
 			state
 		end
     def _trigger(event)
@@ -264,7 +263,7 @@ module SBSM
 					aval = a.send(sortby)
 					bval = b.send(sortby)
 				rescue
-          warn "could not sort by #{sortby}"
+          SBSM.warn "could not sort by #{sortby}"
 					next
 				end
 				res = if (aval.nil? && bval.nil?)

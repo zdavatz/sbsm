@@ -212,7 +212,7 @@ module SBSM
 			reset_cookie()
       return if request.cookies.is_a?(DRb::DRbUnknown)
       if(cuki_str = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
-        SBSM.debug "cuki_str #{cuki_str}"
+        SBSM.debug "cuki_str #{self::class::PERSISTENT_COOKIE_NAME} #{cuki_str}"
         eval(cuki_str).each { |key, val|
           valid = @validator.validate(key, val)
           @cookie_input.store(key, valid)
@@ -220,6 +220,7 @@ module SBSM
         SBSM.debug "@cookie_input now #{@cookie_input}"
       end
 		end
+    # should matches stuff like  "hash[1]"
     @@hash_ptrn = /([^\[]+)((\[[^\]]+\])+)/
     @@index_ptrn = /[^\[\]]+/
     def import_user_input(rack_req)
@@ -228,16 +229,28 @@ module SBSM
 			return if(@user_input_imported)
       hash = rack_req.env.merge rack_req.params
       hash.merge! rack_req.POST if rack_req.POST
+      hash.delete('rack.request.form_hash')
       SBSM.debug "hash has #{hash.size } items #{hash.keys}"
       hash.each do |key, value|
         next if /^rack\./.match(key)
 				index = nil
 				@unsafe_input.push([key.to_s.dup, value.to_s.dup])
 				unless(key.nil? || key.empty?)
+          if value.is_a?(Hash)
+            key_sym = key.to_sym
+            if @validator.validate(key_sym, value)
+              @valid_input[key_sym] ||= {}
+              value.each{ |k, v|
+                          @valid_input[key_sym][k] = v
+                        }
+            end
+            next
+          end
+          # Next for
 					if match = @@hash_ptrn.match(key)
 						key = match[1]
 						index = match[2]
-            #puts key, index
+            # puts "key #{key} index #{index}  value #{value}"
 					end
 					key = key.intern
 					if(key == :confirm_pass)

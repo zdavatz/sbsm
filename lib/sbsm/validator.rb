@@ -32,6 +32,7 @@ require 'drb/drb'
 require 'uri'
 require 'stringio'
 require 'hpricot'
+require 'sbsm/logger'
 
 module SBSM
 	class InvalidDataError < RuntimeError

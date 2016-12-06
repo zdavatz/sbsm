@@ -10,7 +10,6 @@ Application framework for state based session management. See lib/sbsm.rb
 
 * Open problems
 ** There is no real integration test using rack-test to prove that a minimal app is working
-** Handling a POST request for handling a form does not work yet
 ** Handling redirects is not tested (and probably will not work)
 ** Handling passthru is not tested (and probably will not work)
 ** I get often the error `Errno::EACCES at / Permission denied @ rb_sysopen - /tmp/sbsm_lock`. Reloading the page once or twices fixes the problem.

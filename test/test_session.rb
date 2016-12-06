@@ -137,7 +137,8 @@ class TestSession < Minitest::Test
   def test_user_input_hash
     @request["hash[1]"] = "4"
     @request["hash[2]"] = "5"
-    @request["hash[3]"] = "6"
+    @request.params["hash[3]"] = "6"
+    @request.params['real_hash'] = {'1' => 'a', '2' => 'b'}
     @session.process(@request)
     hash = @session.user_input(:hash)
     assert_equal(Hash, hash.class)
@@ -145,6 +146,10 @@ class TestSession < Minitest::Test
     assert_equal("4", hash["1"])
     assert_equal("5", hash["2"])
     assert_equal("6", hash["3"])
+    real_hash = @session.user_input(:real_hash)
+    assert_equal(Hash, real_hash.class)
+    assert_equal(2, real_hash.size)
+    assert_equal("b", real_hash['2'])
   end
 	def test_attended_states_store
 		@session.process(@request)
