@@ -1,4 +1,4 @@
-=== 1.3.3-rc1 / 15.11.2016
+=== 1.3.3 / 7.12.2016
 * Hashes are handled differently in mod_ruby and rack add a test for it, but I am unsure
   whether I handle everything is okay, as I had to add article to the STRINGS in davaz.compatible
   to make the app work again
