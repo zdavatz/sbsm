@@ -405,6 +405,7 @@ module SBSM
 		end
 		def reset
       if @redirected
+        SBSM.debug "reached Session::reset"
         @redirected = false
       else
         reset_input()

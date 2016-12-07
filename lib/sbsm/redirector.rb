@@ -7,6 +7,7 @@ module SBSM
   module Redirector
     def http_headers
       if(redirect?)
+        SBSM.debug "reached Redirector::http_headers"
         @redirected = @state.redirected = true
         event, *args = @state.direct_event
         if(args.first.is_a? Hash)
@@ -25,11 +26,13 @@ module SBSM
       if(direct.is_a?(Array))
         direct = direct.first
       end
+      SBSM.debug "reached Redirector::redirect?"
       direct && (@request_method != 'GET' \
                  || ![direct, :sort].include?(event))
     end
     def to_html
       if(redirect?)
+        SBSM.debug "reached Redirector::to_html"
         ''
       else
         super

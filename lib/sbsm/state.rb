@@ -175,6 +175,7 @@ module SBSM
 		end
 		def trigger(event)
       if(@redirected)
+        SBSM.debug "reached State::trigger"
         @redirected = false
       else
         @errors = {}
