@@ -9,6 +9,7 @@ ENV['REQUEST_METHOD'] = 'GET'
 require 'minitest/autorun'
 require 'rack/test'
 require 'sbsm/app'
+require 'sbsm/session'
 require 'simple_sbsm'
 require 'nokogiri'
 begin
@@ -166,5 +167,10 @@ class AppTest < MiniTest::Unit::TestCase
     get '/fr/page/about'
     assert last_response.ok?
     assert_match ABOUT_HTML_CONTENT, last_response.body
+  end
+
+  def test_show_stats
+    # We add it here to get some more or less useful statistics
+    Session.show_stats '/de/page'
   end
 end

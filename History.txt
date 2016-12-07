@@ -1,11 +1,13 @@
-=== 1.3.2 / 6.12.2016
-* Requires the drb_uri-parameter when creating an app
-* Determine the MIME-Type of all returned files by their ending using gem mimemagic
+=== 1.3.3-rc1 / 15.11.2016
 * Hashes are handled differently in mod_ruby and rack add a test for it, but I am unsure
   whether I handle everything is okay, as I had to add article to the STRINGS in davaz.compatible
   to make the app work again
 ** mod_ruby workedwith @request.params["hash[3]"] = "6"
 ** rack works like @request.params['real_hash'] = {'1' => 'a', '2' => 'b'}
+
+=== 1.3.2 / 15.11.2016
+* Requires the drb_uri-parameter when creating an app
+* Determine the MIME-Type of all returned files by their ending using gem mimemagic
 
 === 1.3.1 / 9.11.2016
 * Moved from mod_ruby to using webrick/rack interface
