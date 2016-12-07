@@ -14,6 +14,7 @@ SERVER_NAME = 'localhost:9878'
 # Some string shared with the unit test
 HOME_HTML_CONTENT = 'Überall zu Hause' # mit UTF-8!
 ABOUT_HTML_CONTENT = 'About SBSM: TDD ist great!'
+REDIRECT_HTML_CONTENT = 'This content should be redirected to feedback'
 FEEDBACK_HTML_CONTENT = 'Give us your feedback about SBSM'
 CONFIRM_HTML_CONTENT = 'Please confirm your feedback'
 SENT_HTML_CONTENT = 'Thanks for you feedback! Hope to see you soon'
@@ -26,6 +27,7 @@ module Demo
     EVENTS = %i{
       home
       about
+      redirect
       feedback
     }
     STRINGS = %i{
@@ -38,6 +40,7 @@ module Demo
     EVENTS = %i{
       home
       about
+      redirect
       feedback
     }
     @@class_counter = 0
@@ -62,12 +65,29 @@ module Demo
     end
   end
   class AboutState < GlobalState
+    DIRECT_EVENT = :about
     def initialize(session, user)
       SBSM.info "AboutState #{session}"
       super(session, user)
     end
     def to_html(cgi)
       'About SBSM: TDD ist great!'
+    end
+  end
+  class RedirectState < GlobalState
+    DIRECT_EVENT = :redirect
+    def initialize(session, user)
+      SBSM.info "RedirectState #{session}"
+      super(session, user)
+    end
+    def http_headers
+      {
+        'Status'   => '303 See Other',
+        'Location' => 'feedback',
+      }
+    end
+    def to_html(cgi)
+      REDIRECT_HTML_CONTENT
     end
   end
   class FeedbackMail
@@ -183,6 +203,7 @@ module Demo
     GLOBAL_MAP = {
       :home         => Demo::HomeState,
       :about        => Demo::AboutState,
+      :redirect     => Demo::RedirectState,
       :feedback     => Demo::FeedbackState,
     }
     DIRECT_EVENT = nil

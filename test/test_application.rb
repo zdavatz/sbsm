@@ -94,7 +94,7 @@ class AppTest < MiniTest::Unit::TestCase
     assert last_response.ok?
     assert_match CONFIRM_DONE_HTML_CONTENT, last_response.body
   end
-  if false
+
   def test_session_home
     get '/home'
     assert last_response.ok?
@@ -102,6 +102,15 @@ class AppTest < MiniTest::Unit::TestCase
     assert_match HOME_HTML_CONTENT, last_response.body
     assert_match /utf-8/i, last_response.headers['Content-Type']
   end
+
+  def test_session_redirect
+    get '/de/page/redirect'
+    assert_equal 303,last_response.status
+    assert_equal 'feedback',last_response.headers['Location']
+    assert_match REDIRECT_HTML_CONTENT, last_response.body
+    assert_match /utf-8/i, last_response.headers['Content-Type']
+  end
+
   def test_css_file
     css_content = "html { max-width: 960px; margin: 0 auto; }"
     css_file = File.join('doc/sbsm.css')
@@ -119,7 +128,7 @@ class AppTest < MiniTest::Unit::TestCase
     get '/de/page/about'
     assert last_response.ok?
     assert_match /^About SBSM: TDD ist great!/, last_response.body
-    get '/home'
+    get '/de/page/home'
     assert last_response.ok?
     assert_match HOME_HTML_CONTENT, last_response.body
   end
@@ -142,12 +151,11 @@ class AppTest < MiniTest::Unit::TestCase
     m = /class_counter is (\d+)$/.match(body)
     counter = m[1]
     assert_match /class_counter is (\d+)$/, body
-    # Getting the request a second time must increment the class, but not the member counter
     get '/'
     assert last_response.ok?
     body = last_response.body.clone
     assert_match /^request_path is \/$/, body
-    assert_match /member_counter is 1$/, body
+    assert_match /member_counter is 2$/, body
     assert_match /class_counter is #{counter.to_i+1}$/, body
   end
   def test_session_home_then_fr_about
@@ -158,6 +166,5 @@ class AppTest < MiniTest::Unit::TestCase
     get '/fr/page/about'
     assert last_response.ok?
     assert_match ABOUT_HTML_CONTENT, last_response.body
-  end
   end
 end

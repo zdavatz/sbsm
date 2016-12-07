@@ -105,6 +105,11 @@ module SBSM
       res = @proxy.drb_process(self, request)
       response.write res
       response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
+      response.headers.merge!(@proxy.http_headers)
+      if (result = response.headers.find { |k,v| /status/i.match(k) })
+        response.status = result.last.to_i
+        response.headers.delete(result.first)
+      end
       response.set_cookie(@cookie_name, :value =>  @proxy.cookie_input)
       response.set_cookie(SESSION_ID, :value => session_id)
       SBSM.debug "finish session_id #{session_id}: header with cookies #{response.headers} from #{@proxy.cookie_input}"
