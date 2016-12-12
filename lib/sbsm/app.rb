@@ -99,6 +99,9 @@ module SBSM
       @cgi = CGI.initialize_without_offline_prompt('html4') unless @cgi
       @session = CGI::Session.new(@cgi, args) unless @session
       saved = self[session_id]
+      @start_time = Time.now.to_f
+      GC.start
+      SBSM.debug "GC.start took #{((Time.now.to_f)- @start_time)*1000.0} milliseconds"
       @proxy  = DRbObject.new(saved, server_uri) unless @proxy.is_a?(DRbObject)
       @proxy.trans_handler = @trans_handler
       @proxy.app = @app unless @proxy.app
