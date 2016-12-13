@@ -5,7 +5,6 @@ require 'drb/drb'
 require 'sbsm/logger'
 require 'sbsm/session'
 require 'sbsm/validator'
-require 'sbsm/drbserver'
 require 'sbsm/state'
 require 'sbsm/app'
 
@@ -217,10 +216,6 @@ module Demo
   end
   class Session < SBSM::Session
     DEFAULT_STATE    = HomeState
-    def initialize(key, app, validator=Validator.new)
-      SBSM.info "Session #{app}"
-      super(key, app, validator)
-    end
   end
   class SimpleSBSM < SBSM::App
     SESSION = Session

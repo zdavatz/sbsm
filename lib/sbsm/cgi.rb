@@ -25,7 +25,6 @@
 # CGI redefinitions
 
 require 'cgi'
-require 'drb/drb'
 
 class CGI
   # Lets satisfy cgi-offline prompt, even if request does not have

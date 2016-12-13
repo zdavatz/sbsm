@@ -28,7 +28,6 @@
 require 'digest/md5'
 require 'mail'
 require 'date'
-require 'drb/drb'
 require 'uri'
 require 'stringio'
 require 'hpricot'
@@ -97,6 +96,7 @@ module SBSM
 		def validate(key, value)
 			value = value.pop if value.is_a? Array
 			return nil if value.nil?
+      SBSM.info("validate #{key} #{value.class} #{value}")
       if value.is_a?(StringIO)
 				if(@files.include?(key))
 					return validate_file(key, value)
@@ -107,7 +107,7 @@ module SBSM
 						p e
 					end
 				end
-			elsif(value.is_a? DRb::DRbObject)
+			elsif(value.is_a?(Array)) # TODO::
 				value = value[0]
 				if(@files.include?(key))
 					return validate_file(key, value)

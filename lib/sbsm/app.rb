@@ -26,15 +26,13 @@
 require 'cgi'
 require 'cgi/session'
 require 'sbsm/cgi'
-require 'cgi/drbsession'
-require 'sbsm/drbserver'
+require 'sbsm/session_store'
 require 'mimemagic'
 
 module SBSM
   ###
   # App a base class for Webrick server
-  class App < SBSM::DRbServer
-    include DRbUndumped
+  class App < SessionStore
     attr_reader :sbsm, :my_self, :trans_handler, :validator, :drb_uri
 
     OPTIONS = [ :app, :config_file, :trans_handler, :validator, :persistence_layer, :server_uri, :session, :unknown_user, :proxy ]
@@ -89,33 +87,33 @@ module SBSM
 
       return [400, {}, []] if /favicon.ico/i.match(request.path)
       @drb_uri ||= @app.drb_uri
+      # https://www.tutorialspoint.com/ruby/ruby_cgi_sessions.htm
       args = {
-        'database_manager'  =>  CGI::Session::DRbSession,
+        'database_manager'  =>  CGI::Session::MemoryStore,
         'drbsession_uri'    =>  @drb_uri,
         'session_path'      =>  '/',
         @cookie_name => session_id,
       }
-      SBSM.debug "starting session_id #{session_id} #{request.path}: cookies #{@cookie_name} are #{request.cookies} @session #{@session.class} @cgi #{@cgi.class}"
-      @cgi = CGI.initialize_without_offline_prompt('html4') unless @cgi
-      @session = CGI::Session.new(@cgi, args) unless @session
       saved = self[session_id]
-      @start_time = Time.now.to_f
-      GC.start
-      SBSM.debug "GC.start took #{((Time.now.to_f)- @start_time)*1000.0} milliseconds"
-      @proxy  = DRbObject.new(saved, server_uri) unless @proxy.is_a?(DRbObject)
-      @proxy.trans_handler = @trans_handler
-      @proxy.app = @app unless @proxy.app
-      res = @proxy.drb_process(self, request)
+      SBSM.debug "starting session_id #{session_id}  saved #{saved.class} #{request.path}: cookies #{@cookie_name} are #{request.cookies} @session #{@session.class} @cgi #{@cgi.class}"
+      @cgi = CGI.initialize_without_offline_prompt('html4') unless @cgi
+      @session = saved if saved
+      @session = CGI::Session.new(@cgi, args) unless @session
+      SBSM.debug "starting session_id #{session_id} saved #{saved.class}"
+      # @start_time = Time.now.to_f; GC.start; SBSM.debug "GC.start took #{((Time.now.to_f)- @start_time)*1000.0} milliseconds"
+      res = @session.process_rack(request)
+      # require 'pry'; binding.pry
+      response = Rack::Response.new
       response.write res
       response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
-      response.headers.merge!(@proxy.http_headers)
+      response.headers.merge!(@session.http_headers)
       if (result = response.headers.find { |k,v| /status/i.match(k) })
         response.status = result.last.to_i
         response.headers.delete(result.first)
       end
-      response.set_cookie(@cookie_name, :value =>  @proxy.cookie_input)
+      response.set_cookie(@cookie_name, :value =>  @session.cookie_input)
       response.set_cookie(SESSION_ID, :value => session_id)
-      SBSM.debug "finish session_id #{session_id}: header with cookies #{response.headers} from #{@proxy.cookie_input}"
+      SBSM.debug "finish session_id #{session_id}: header with cookies #{response.headers} from #{@session.cookie_input}"
       response.finish
     end
   end

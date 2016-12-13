@@ -28,24 +28,21 @@
 
 require 'cgi'
 require 'sbsm/cgi'
-require 'sbsm/drb'
 require 'sbsm/state'
 require 'sbsm/lookandfeelfactory'
 require 'delegate'
 require 'sbsm/trans_handler'
 
 module SBSM
-  class	Session < SimpleDelegator
+  class	Session
 		attr_reader :user, :active_thread, :key, :cookie_input,
 			:unsafe_input, :valid_input, :request_path, :cgi
-    attr_writer :trans_handler, :app, :validator
-		include DRbUndumped
+    attr_reader :app, :validator, :trans_handler
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = 'sbsm'
 		DEFAULT_LANGUAGE = 'en'
 		DEFAULT_STATE = State
 		DEFAULT_ZONE = nil
-		DRB_LOAD_LIMIT = 255 * 102400
     EXPIRES = 60 * 60
 		LF_FACTORY = nil
 		LOOKANDFEEL = Lookandfeel
@@ -88,15 +85,17 @@ module SBSM
                    requests, grand_total)
       ''
     end
-    def initialize(key, app, validator=nil)
-      SBSM.info "initialize app #{app.class} @app is now #{@app.class} validator #{validator} th #{@trans_handler}" # drb_uri #{drb_uri}"
+    def initialize(key, app)
+      SBSM.info "initialize key #{key} #{app.class}"
+      @app = app
+      @trans_handler = app.trans_handler
+      @trans_handler ||= TransHandler.instance
+      @validator = app.validator
+      @validator ||= Validator.new
       touch()
       reset_input()
       reset_cookie()
-      raise "Must pass key and app and validator to session" unless key && app # && validator
-      @app = app
       @key = key
-      @validator = validator
       @attended_states = {}
       @persistent_user_input = {}
       logout()
@@ -104,8 +103,7 @@ module SBSM
       @variables = {}
       @mutex = Mutex.new
       @cgi = CGI.initialize_without_offline_prompt('html4')
-      SBSM.debug "session initialized #{self} key #{key} app #{app.class}  #{@validator.class} th #{@trans_handler.class} with @cgi #{@cgi}"
-      super(app)
+      SBSM.debug "session initialized #{self} key #{key} app #{app.class}  #{@validator.class} with @cgi #{@cgi}"
     end
     def age(now=Time.now)
       now - @mtime
@@ -165,19 +163,46 @@ module SBSM
       # used when
 			@state.direct_event
 		end
-    def drb_process(app, rack_request)
+    def process_rack(rack_request)
       start = Time.now
       @request_path ||= rack_request.path
       rack_request.params.each { |key, val| @cgi.params.store(key, val) }
       @trans_handler.translate_uri(rack_request)
       html = @mutex.synchronize do
-        process(rack_request)
+        begin
+          @request_method =rack_request.request_method
+          @request_path = rack_request.path
+          @validator.reset_errors() if @validator && @validator.respond_to?(:reset_errors)
+          import_user_input(rack_request)
+          import_cookies(rack_request)
+          @state = active_state.trigger(event())
+          SBSM.debug "active_state.trigger state #{@state.object_id} remember #{persistent_user_input(:remember).inspect}"
+          #FIXME: is there a better way to distinguish returning states?
+          #       ... we could simply refuse to init if event == :sort, but that
+          #       would not solve the problem cleanly, I think.
+          unless(@state.request_path)
+            @state.request_path = @request_path
+            @state.init
+          end
+          unless @state.volatile?
+            SBSM.debug "Changing from #{@active_state.object_id} to state #{@state.object_id} remember #{persistent_user_input(:remember).inspect}"
+            @active_state = @state
+            @attended_states.store(@state.object_id, @state)
+          else
+            SBSM.debug "Stay in volatile state #{@state.object_id}"
+          end
+          @zone = @active_state.zone
+          @active_state.touch
+          cap_max_states
+        ensure
+          @user_input_imported = false
+        end
         to_html
       end
       (@@stats[@request_path] ||= []).push(Time.now - start)
       html
     rescue  => err
-        SBSM.info "Error in drb_process #{err.backtrace[0..5].join("\n")}"
+        SBSM.info "Error in process_rack #{err.backtrace[0..5].join("\n")}"
         raise err
     end
 		def error(key)
@@ -210,7 +235,6 @@ module SBSM
 		end
 		def import_cookies(request)
 			reset_cookie()
-      return if request.cookies.is_a?(DRb::DRbUnknown)
       if(cuki_str = request.cookies[self::class::PERSISTENT_COOKIE_NAME])
         SBSM.debug "cuki_str #{self::class::PERSISTENT_COOKIE_NAME} #{cuki_str}"
         eval(cuki_str).each { |key, val|
@@ -367,40 +391,6 @@ module SBSM
 				@persistent_user_input.store(key, value)
 			else
 				@persistent_user_input[key]
-			end
-		end
-    def process(rack_request)
-      begin
-        @request_method =rack_request.request_method
-        @request = rack_request
-        @request_method ||= @request.request_method
-        @request_path = @request.path
-        @validator.reset_errors() if @validator && @validator.respond_to?(:reset_errors)
-        import_user_input(rack_request)
-        import_cookies(rack_request)
-        @state = active_state.trigger(event())
-        SBSM.debug "active_state.trigger state #{@state.object_id} remember #{persistent_user_input(:remember).inspect}"
-        #FIXME: is there a better way to distinguish returning states?
-        #       ... we could simply refuse to init if event == :sort, but that
-        #       would not solve the problem cleanly, I think.
-        unless(@state.request_path)
-          @state.request_path = @request_path
-          @state.init
-        end
-        unless @state.volatile?
-          SBSM.debug "Changing from #{@active_state.object_id} to state #{@state.object_id} remember #{persistent_user_input(:remember).inspect}"
-          @active_state = @state
-          @attended_states.store(@state.object_id, @state)
-        else
-          SBSM.debug "Stay in volatile state #{@state.object_id}"
-        end
-        @zone = @active_state.zone
-        @active_state.touch
-        cap_max_states
-      rescue DRb::DRbConnError
-        raise
-			ensure
-				@user_input_imported = false
 			end
 		end
 		def reset
