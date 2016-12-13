@@ -21,12 +21,6 @@ class AppVariantTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   def setup
     @@myapp = Demo::SimpleSBSM.new(cookie_name: TEST_COOKIE_NAME)
-    SBSM.info msg = "Starting #{TEST_APP_URI}"
-    DRb.start_service(TEST_APP_URI, @@myapp)
-    sleep(0.1)
-  end
-  def teardown
-    DRb.stop_service
   end
   def app
     @@myapp
@@ -52,12 +46,6 @@ class AppTest < MiniTest::Unit::TestCase
 
   def setup
     @@myapp = Demo::SimpleSBSM.new
-    SBSM.info msg = "Starting #{TEST_APP_URI}"
-    DRb.start_service(TEST_APP_URI, @@myapp)
-    sleep(0.1)
-  end
-  def teardown
-    DRb.stop_service
   end
   def app
     @@myapp

@@ -1,11 +1,7 @@
 #!/usr/local/bin/ruby
 # Niklaus Giger, November 2016
 # A simple example on how to use SBSM with webrick
-require 'drb/drb'
 require 'sbsm/logger'
-require 'sbsm/session'
-require 'sbsm/validator'
-require 'sbsm/state'
 require 'sbsm/app'
 
 root_dir = File.expand_path(File.join(__FILE__, '..', '..'))
@@ -50,7 +46,7 @@ module Demo
     }
     @@class_counter = 0
     def initialize(session, user)
-      SBSM.info "HomeState #{session} DRb.front is #{DRb.front}"
+      SBSM.info "HomeState #{session}"
       @session = session
       @member_counter = 0
       super(session, user)
