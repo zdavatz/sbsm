@@ -16,7 +16,7 @@ begin
   require 'pry'
 rescue LoadError
 end
-
+RUN_ALL_TESTS=true
 class AppVariantTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
   def setup
@@ -31,7 +31,6 @@ class AppVariantTest < MiniTest::Unit::TestCase
   def app
     @@myapp
   end
-
   def test_post_feedback
     get '/de/page' do # needed to set cookie
       last_response.set_cookie(TEST_COOKIE_NAME, :value =>  Hash.new('anrede' => 'value2'))
@@ -46,7 +45,7 @@ class AppVariantTest < MiniTest::Unit::TestCase
     assert_equal ['value2', 'value3'],  @@myapp.proxy.cookie_input.values
     assert_match /anrede=value2/, CGI.unescape(last_response.headers['Set-Cookie'])
   end
-end
+end if RUN_ALL_TESTS
 
 class AppTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
@@ -63,6 +62,7 @@ class AppTest < MiniTest::Unit::TestCase
   def app
     @@myapp
   end
+if RUN_ALL_TESTS
   def test_post_feedback
     get '/de/page' do # needed to set cookie
       last_response.set_cookie(SBSM::Session::PERSISTENT_COOKIE_NAME, :value => Hash.new('anrede' => 'value2', 'name' => 'values'))
@@ -180,7 +180,7 @@ class AppTest < MiniTest::Unit::TestCase
     assert last_response.ok?
     assert_match ABOUT_HTML_CONTENT, last_response.body
   end
-
+end
   def test_session_about_then_root
     get '/fr/page/about'
     assert last_response.ok?
@@ -193,5 +193,5 @@ class AppTest < MiniTest::Unit::TestCase
   def test_show_stats
     # We add it here to get some more or less useful statistics
     ::SBSM::Session.show_stats '/de/page'
-  end
+  end if RUN_ALL_TESTS
 end

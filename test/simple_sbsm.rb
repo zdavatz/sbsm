@@ -9,6 +9,10 @@ require 'sbsm/drbserver'
 require 'sbsm/state'
 require 'sbsm/app'
 
+root_dir = File.expand_path(File.join(__FILE__, '..', '..'))
+TEST_LOGGER = ChronoLogger.new(File.join(root_dir, 'test.log'))
+SBSM.logger=TEST_LOGGER
+
 TEST_APP_URI  = 'druby://localhost:9876'
 SERVER_NAME = 'localhost:9878'
 TEST_COOKIE_NAME = 'test-cookie'
