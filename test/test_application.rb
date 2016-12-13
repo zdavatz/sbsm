@@ -19,11 +19,10 @@ end
 
 class AppVariantTest < MiniTest::Unit::TestCase
   include Rack::Test::Methods
-  MY_COOKIE_NAME = 'test-cookie'
   def setup
-    @@myapp = Demo::SimpleSBSM.new(cookie_name: MY_COOKIE_NAME)
-    SBSM.info msg = "Starting #{SERVER_URI}"
-    DRb.start_service(SERVER_URI, @@myapp)
+    @@myapp = Demo::SimpleSBSM.new(cookie_name: TEST_COOKIE_NAME)
+    SBSM.info msg = "Starting #{TEST_APP_URI}"
+    DRb.start_service(TEST_APP_URI, @@myapp)
     sleep(0.1)
   end
   def teardown
@@ -35,11 +34,11 @@ class AppVariantTest < MiniTest::Unit::TestCase
 
   def test_post_feedback
     get '/de/page' do # needed to set cookie
-      last_response.set_cookie(MY_COOKIE_NAME, :value =>  Hash.new('anrede' => 'value2'))
+      last_response.set_cookie(TEST_COOKIE_NAME, :value =>  Hash.new('anrede' => 'value2'))
     end
     get '/de/page/feedback' do
     end
-    assert_equal  ["_session_id", MY_COOKIE_NAME], last_request.cookies.keys
+    assert_equal  ["_session_id", TEST_COOKIE_NAME], last_request.cookies.keys
     skip "Cannot test cookie_input"
     assert_equal ['anrede', 'name'],  @@myapp.proxy.cookie_input.keys
     assert_equal 'xxx', @@myapp.proxy.persistent_user_input(:anrede)
@@ -54,8 +53,8 @@ class AppTest < MiniTest::Unit::TestCase
 
   def setup
     @@myapp = Demo::SimpleSBSM.new
-    SBSM.info msg = "Starting #{SERVER_URI}"
-    DRb.start_service(SERVER_URI, @@myapp)
+    SBSM.info msg = "Starting #{TEST_APP_URI}"
+    DRb.start_service(TEST_APP_URI, @@myapp)
     sleep(0.1)
   end
   def teardown
@@ -149,6 +148,7 @@ class AppTest < MiniTest::Unit::TestCase
     assert_match /^request_path is \/$/, body
     assert_match /member_counter is 1$/, body
     assert_match HOME_HTML_CONTENT, body
+    # Getting the request a second time must increment the class, but not the member counter
     m = /class_counter is (\d+)$/.match(body)
     counter = m[1]
     assert_match /class_counter is (\d+)$/, body
@@ -156,8 +156,10 @@ class AppTest < MiniTest::Unit::TestCase
     assert last_response.ok?
     body = last_response.body.clone
     assert_match /^request_path is \/$/, body
-    assert_match /member_counter is 2$/, body
-    assert_match /class_counter is #{counter.to_i+1}$/, body
+    class_line = /class_counter.*/.match(body)[0]
+    assert_match /class_counter is #{counter.to_i+1}$/, class_line
+    member_line = /member_counter.*/.match(body)[0]
+    assert_match /member_counter is 1$/, member_line
   end
   def test_session_home_then_fr_about
     get '/home'
@@ -169,8 +171,27 @@ class AppTest < MiniTest::Unit::TestCase
     assert_match ABOUT_HTML_CONTENT, last_response.body
   end
 
+  def test_session_home_then_fr_about
+    get '/home'
+    assert last_response.ok?
+    assert_match /^request_path is \/home$/, last_response.body
+    assert_match HOME_HTML_CONTENT, last_response.body
+    get '/fr/page/about'
+    assert last_response.ok?
+    assert_match ABOUT_HTML_CONTENT, last_response.body
+  end
+
+  def test_session_about_then_root
+    get '/fr/page/about'
+    assert last_response.ok?
+    assert_match ABOUT_HTML_CONTENT, last_response.body
+    get '/'
+    assert last_response.ok?
+    assert_match HOME_HTML_CONTENT, last_response.body
+  end
+
   def test_show_stats
     # We add it here to get some more or less useful statistics
-    Session.show_stats '/de/page'
+    ::SBSM::Session.show_stats '/de/page'
   end
 end

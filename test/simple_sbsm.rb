@@ -7,9 +7,11 @@ require 'sbsm/session'
 require 'sbsm/validator'
 require 'sbsm/drbserver'
 require 'sbsm/state'
+require 'sbsm/app'
 
-SERVER_URI  = 'druby://localhost:9876'
+TEST_APP_URI  = 'druby://localhost:9876'
 SERVER_NAME = 'localhost:9878'
+TEST_COOKIE_NAME = 'test-cookie'
 
 # Some string shared with the unit test
 HOME_HTML_CONTENT = 'Überall zu Hause' # mit UTF-8!
@@ -220,9 +222,9 @@ module Demo
     SESSION = Session
     attr_reader :drb_uri
     def initialize(cookie_name: nil)
-      @drb_uri = SERVER_URI
+      @drb_uri = TEST_APP_URI
       SBSM.info "SimpleSBSM.new"
-      super(:app => self, :validator => Validator.new, :trans_handler => SBSM::TransHandler.instance, :drb_uri => SERVER_URI,
+      super(:app => self, :validator => Validator.new, :trans_handler => SBSM::TransHandler.instance, :drb_uri => TEST_APP_URI,
             cookie_name: cookie_name)
     end
   end
