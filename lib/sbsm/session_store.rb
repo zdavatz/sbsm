@@ -35,6 +35,11 @@ require 'sbsm/logger'
 require 'sbsm/validator'
 
 module SBSM
+  #
+  # SessionStore manages session, which are kept in memory
+  # Sessions are limited and expire after some time
+  # The maximal amount of concurrent session is given via CAP_MAX_THRESHOLD
+  #
   class SessionStore
     CLEANING_INTERVAL = 30
     CAP_MAX_THRESHOLD = 120
@@ -45,7 +50,14 @@ module SBSM
     UNKNOWN_USER = UnknownUser
     VALIDATOR = nil
     attr_reader :cleaner, :updater, :persistence_layer
-    def initialize(persistence_layer=nil)
+    def initialize(app:,
+                   persistence_layer: nil,
+                   trans_handler: nil,
+                   session_class: nil,
+                   validator: nil,
+                   cookie_name: nil,
+                   unknown_user: nil)
+      fail "You must specify an app!" unless app
       @sessions = {}
       @mutex = Mutex.new
       @cleaner = run_cleaner if(self.class.const_get(:RUN_CLEANER))
@@ -53,6 +65,14 @@ module SBSM
       @async = ThreadGroup.new
       @system = persistence_layer
       @persistence_layer = persistence_layer
+      @cookie_name = cookie_name
+      @trans_handler = trans_handler
+      @trans_handler ||= TransHandler.instance
+      @session_class = session_class
+      @session_class ||= SBSM::Session
+      @unknown_user = unknown_user
+      @unknown_user ||= UNKNOWN_USER
+      @validator = validator
     end
     def _admin(src, result, priority=0)
       raise "admin interface disabled" unless(self::class::ENABLE_ADMIN)
@@ -134,33 +154,26 @@ module SBSM
     end
     def run_cleaner
       # puts "running cleaner thread"
-      Thread.new {
+      Thread.new do
         Thread.current.abort_on_exception = true
         #Thread.current.priority = 1
-        loop {
+        loop do
           sleep self::class::CLEANING_INTERVAL
-          @mutex.synchronize {
+          @mutex.synchronize do
             clean()
-          }
-        }
-      }
-    end
-    def unknown_user
-      self::class::UNKNOWN_USER.new
+          end
+        end
+      end
     end
     def [](key)
-      @mutex.synchronize {
+      @mutex.synchronize do
         unless((s = @sessions[key]) && !s.expired?)
-          args = [key, self]
-          if(klass = self::class::VALIDATOR)
-            args.push(klass.new)
-          end
-          s = @sessions[key] = self::class::SESSION.new(*args.compact)
+          s = @sessions[key] = @session_class.new(app: @app, cookie_name: @cookie_name, trans_handler: @trans_handler, validator: @validator, unknown_user: @unknown_user)
         end
         s.reset()
         s.touch()
         s
-      }
+      end
     end
   end
 end

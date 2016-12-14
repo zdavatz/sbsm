@@ -28,27 +28,37 @@
 require 'minitest/autorun'
 require 'sbsm/session'
 require 'sbsm/validator'
+require 'sbsm/trans_handler'
+require 'sbsm/app'
 require 'rack'
 require 'rack/test'
 
+begin
+  require 'pry'
+rescue LoadError
+end
+
 class StubSessionUnknownUser
 end
-class StubSessionApp
-  attr_accessor :trans_handler, :validator
-  def validator
-    StubSessionValidator.new
-  end
-	def unknown_user
-		StubSessionUnknownUser.new
-	end
-	def login(session)
-		false
-	end
-	def async(&block)
-		block.call
-	end
+class StubSessionSession < SBSM::Session
 end
-class StubSessionValidator
+class StubSessionApp < SBSM::App
+  attr_accessor :trans_handler, :validator
+  SESSION = StubSessionSession
+  def initialize(args = {})
+    args[:session_class] ||= StubSessionSession
+    args[:validator] ||= StubSessionValidator.new
+    args[:unknown_user] ||= StubSessionUnknownUser.new
+    super(args)
+  end
+  def login(session)
+    false
+  end
+  def async(&block)
+    block.call
+  end
+end
+class StubSessionValidator < SBSM::Validator
 	def reset_errors; end
 	def validate(key, value, mandatory=false)
 		value
@@ -68,13 +78,11 @@ class StubSessionRequest < Rack::Request
   end
 end
 class StubSessionView 
-	def http_headers 
-		{
-			"foo"	=>	"bar"
-		}
-	end
 	def initialize(foo, bar)
 	end
+  def http_headers
+    { "foo"   =>      "bar" }
+  end
 	def to_html(context)
 		'0123456789' * 3
 	end
@@ -102,9 +110,8 @@ end
 class StubVolatileState < SBSM::State
 	VOLATILE = true
 end
-class Session < SBSM::Session
+class StubSessionWithView < SBSM::Session
 	DEFAULT_STATE = StubSessionState
-	DRB_LOAD_LIMIT = 10
 	CAP_MAX_THRESHOLD = 3
 	MAX_STATES = 3
 	DEFAULT_FLAVOR = 'gcc'
@@ -113,6 +120,12 @@ class Session < SBSM::Session
 	attr_writer :lookandfeel, :persistent_user_input
 	attr_writer :active_state
 	public :active_state
+  def initialize(args)
+    args[:app]       ||= StubSessionApp.new
+    args[:validator] ||= StubSessionValidator.new
+    super(args)
+    persistent_user_input = {}
+  end
 end
 class StubSessionSession < SBSM::Session
 	attr_accessor :lookandfeel
@@ -122,8 +135,11 @@ class StubSessionSession < SBSM::Session
 		'gcc'	=>	'ccg',
 		'sbb'	=>	'bbs',
 	}
-	def initialize(*args)
-		super
+	def initialize(app: app)
+    args = { :app => app}
+    args[:app]       ||= StubSessionApp.new
+    args[:validator] ||= StubSessionValidator.new
+    super(args)
 		persistent_user_input = {}
 	end
 	def persistent_user_input(key)
@@ -134,16 +150,47 @@ end
 class TestSession < Minitest::Test
   include Rack::Test::Methods
 	def setup
-		@session = Session.new("test", StubSessionApp.new)
+    @app = StubSessionApp.new(validator: StubSessionValidator.new,
+                           unknown_user: StubSessionUnknownUser.new)
+    @session = StubSessionWithView.new(app: @app,
+                           validator: StubSessionValidator.new,
+                           unknown_user: StubSessionUnknownUser.new)
 		@request = StubSessionRequest.new
 		@state = StubSessionState.new(@session, nil)
 	end
+if true
+  def test_user_input
+    @request["foo"] = "bar"
+    @request["baz"] = "zuv"
+    # next line checks whether we did setup correctly the session
+    assert_equal(@session.validator.class, StubSessionValidator)
+    @session.process_rack(rack_request: @request)
+    assert_equal(['foo', 'bar'], @session.valid_values('foo'))
+    assert_equal("zuv", @session.user_input(:baz))
+    assert_equal("zuv", @session.user_input(:baz))
+    result = @session.user_input(:foo, :baz)
+    expected = {
+      :foo  =>  'bar',
+      :baz  =>  'zuv',
+    }
+    assert_equal(expected, result)
+  end
+  def test_persistent_user_input
+    @request["baz"] = "zuv"
+    @session.process_rack(rack_request: @request)
+    assert_equal("zuv", @session.persistent_user_input(:baz))
+    @session.process_rack(StubSessionRequest.new)
+    assert_equal("zuv", @session.persistent_user_input(:baz))
+    @request["baz"] = "bla"
+    @session.process_rack(rack_request: @request)
+    assert_equal("bla", @session.persistent_user_input(:baz))
+  end
   def test_user_input_hash
     @request["hash[1]"] = "4"
     @request["hash[2]"] = "5"
     @request.params["hash[3]"] = "6"
     @request.params['real_hash'] = {'1' => 'a', '2' => 'b'}
-    @session.process_rack(@request)
+    @session.process_rack(rack_request: @request)
     hash = @session.user_input(:hash)
     assert_equal(Hash, hash.class)
     assert_equal(3, hash.size)
@@ -156,7 +203,7 @@ class TestSession < Minitest::Test
     assert_equal("b", real_hash['2'])
   end
 	def test_attended_states_store
-		@session.process_rack(@request)
+		@session.process_rack(rack_request: @request)
 		state = @session.state
 		expected = {
 			state.object_id => state
@@ -167,16 +214,16 @@ class TestSession < Minitest::Test
 	end
 	def test_attended_states_cap_max
 		req1 = StubSessionRequest.new
-		@session.process_rack(req1)
+		@session.process_rack(:rack_request =>req1)
 		state1 = @session.state
 		req2 = StubSessionRequest.new
 		req2["event"] = "foo"	
-		@session.process_rack(req2)
+		@session.process_rack(:rack_request =>req2)
 		state2 = @session.state
 		refute_equal(state1, state2)
 		req3 = StubSessionRequest.new
 		req3["event"] = :bar	
-		@session.process_rack(req3)
+		@session.process_rack(:rack_request =>req3)
 		state3 = @session.state
 		refute_equal(state1, state3)
 		refute_equal(state2, state3)
@@ -188,7 +235,7 @@ class TestSession < Minitest::Test
 		assert_equal(attended, @session.attended_states)
 		req4 = StubSessionRequest.new
 		req4["event"] = :foobar	
-		@session.process_rack(req4)
+		@session.process_rack(:rack_request =>req4)
 		@session.cap_max_states
 		state4 = @session.state
 		refute_equal(state1, state4)
@@ -226,7 +273,7 @@ class TestSession < Minitest::Test
 		}
 		@session.active_state = @state
 		# @request.params.store('state_id', state.object_id.next)
-		@session.process_rack(@request)
+		@session.process_rack(rack_request: @request)
 		assert_equal(@state, @session.active_state)
 	end
 	def test_active_state3
@@ -241,8 +288,8 @@ class TestSession < Minitest::Test
 		}
 		@session.state = @state
 		@request.params.store('state_id', state.object_id)
-		@session.process_rack(@request)
-		assert_equal(state, @session.active_state)
+		@session.process_rack(rack_request: @request)
+		assert_equal(state.class, @session.active_state.class)
 	end
 	def test_volatile_state
 		state = StubSessionState.new(@session, nil)
@@ -251,12 +298,12 @@ class TestSession < Minitest::Test
 		@session.active_state = state
 		@session.state = state
 		@request.params.store('event', :volatile)
-		newstate = @session.process_rack(@request)
+		newstate = @session.process_rack(rack_request: @request)
 		assert_equal(:volatile, @session.event)
 		assert_equal(volatile, @session.state)
 		assert_equal(state, @session.active_state)
 		@request.params.store('event', :foo)
-		newstate = @session.process_rack(@request)
+		newstate = @session.process_rack(rack_request: @request)
 		assert_equal(state.foo, @session.state)
 		assert_equal(state.foo, @session.active_state)
 	end
@@ -267,19 +314,19 @@ class TestSession < Minitest::Test
     assert_respond_to(@session, :delete)
   end
   def test_restore
-    assert_instance_of(Session, @session.restore[:proxy])
+    assert_instance_of(NilClass, @session.restore[:proxy])
   end
 	def test_user_input_no_request
 		assert_nil(@session.user_input(:no_input))
 	end
 	def test_user_input_nil
-		@session.process_rack(@request)
+		@session.process_rack(rack_request: @request)
 		assert_nil(@session.user_input(:no_input))
 	end
   def test_user_input
 		@request["foo"] = "bar"
 		@request["baz"] = "zuv"
-    @session.process_rack(@request)
+    @session.process_rack(rack_request: @request)
     assert_equal("bar", @session.user_input(:foo))
     assert_equal("zuv", @session.user_input(:baz))
     assert_equal("zuv", @session.user_input(:baz))
@@ -294,19 +341,13 @@ class TestSession < Minitest::Test
 		@request["hash[1]"] = "4"
 		@request["hash[2]"] = "5"
 		@request["hash[3]"] = "6"
-		@session.process_rack(@request)
+		@session.process_rack(rack_request: @request)
 		hash = @session.user_input(:hash)
 		assert_equal(Hash, hash.class)
 		assert_equal(3, hash.size)
 		assert_equal("4", hash["1"])
 		assert_equal("5", hash["2"])
 		assert_equal("6", hash["3"])
-	end
-	def test_http_headers
-		expected = {
-			"foo"	=>	"bar"
-		}
-		assert_equal(expected, @session.http_headers)
 	end
 	def test_http_protocol
 		assert_equal("http", @session.http_protocol)
@@ -325,27 +366,14 @@ class TestSession < Minitest::Test
 	end
 	def test_persistent_user_input
 		@request["baz"] = "zuv"
-    @session.process_rack(@request)
+    @session.process_rack(rack_request: @request)
 		assert_equal("zuv", @session.persistent_user_input(:baz))
-		@session.process_rack(StubSessionRequest.new)
+		@session.process_rack(rack_request: StubSessionRequest.new)
 		assert_equal("zuv", @session.persistent_user_input(:baz))
 		@request["baz"] = "bla"
-    @session.process_rack(@request)
+    @session.process_rack(rack_request: @request)
 		assert_equal("bla", @session.persistent_user_input(:baz))
 	end
-  def test_process
-    state = StubSessionState.new(@session, nil)
-    @session.attended_states = {
-      state.object_id =>  state,
-    }
-    @session.state = @state
-    expected = state.foo
-    @request.params.store('state_id', state.object_id)
-    @request.params.store('event', :foo)
-    @session.process_rack(@request)
-    assert_equal(expected.class, @session.state.class)
-    assert_equal(expected, @session.attended_states[expected.object_id])
-  end
 	def test_logout
 		state = StubSessionBarState.new(@session, nil)
 		@session.attended_states.store(state.object_id, state)
@@ -374,7 +402,7 @@ class TestSession < Minitest::Test
     assert_equal('en', lnf3.language) ## flavor does not change!
 	end
 	def test_lookandfeel2
-    session = StubSessionSession.new("test", StubSessionApp.new)
+    session = StubSessionSession.new(app: StubSessionApp.new)
 		session.lookandfeel=nil
 		session.persistent_user_input = {
 			:flavor => 'gcc',
@@ -383,7 +411,7 @@ class TestSession < Minitest::Test
 		assert_equal('gcc', session.flavor)
 	end
   def test_lookandfeel3
-		session = StubSessionSession.new("test", StubSessionApp.new)
+		session = StubSessionSession.new(app: StubSessionApp.new)
 		session.lookandfeel=nil
 		lnf2 = session.lookandfeel
 		session.persistent_user_input = {
@@ -391,4 +419,5 @@ class TestSession < Minitest::Test
 		}
 		assert_equal('gcc', session.flavor)
 	end
+end
 end

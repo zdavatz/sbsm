@@ -20,6 +20,10 @@ FEEDBACK_HTML_CONTENT = 'Give us your feedback about SBSM'
 CONFIRM_HTML_CONTENT = 'Please confirm your feedback'
 SENT_HTML_CONTENT = 'Thanks for you feedback! Hope to see you soon'
 
+begin
+  require 'pry'
+rescue LoadError
+end
 
 module Demo
   class GlobalState < SBSM::State
@@ -136,7 +140,7 @@ module Demo
     def ready?
       unless @email
         false
-      else
+      elseustomized
         true
       end
     end
@@ -213,13 +217,14 @@ module Demo
   class Session < SBSM::Session
     DEFAULT_STATE    = HomeState
   end
+
   class SimpleSBSM < SBSM::App
     SESSION = Session
-    attr_reader :drb_uri
     def initialize(cookie_name: nil)
-      @drb_uri = TEST_APP_URI
       SBSM.info "SimpleSBSM.new"
-      super(:app => self, :validator => Validator.new, :trans_handler => SBSM::TransHandler.instance, :drb_uri => TEST_APP_URI,
+      super(validator: Validator.new,
+            trans_handler: SBSM::TransHandler.instance,
+            session_class: SESSION,
             cookie_name: cookie_name)
     end
   end

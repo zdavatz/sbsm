@@ -12,18 +12,15 @@ require 'sbsm/app'
 require 'sbsm/session'
 require 'simple_sbsm'
 require 'nokogiri'
-begin
-  require 'pry'
-rescue LoadError
-end
+
 RUN_ALL_TESTS=true
-class AppVariantTest < MiniTest::Unit::TestCase
+# Here we test, whether setting various class constant have the desired effect
+
+class AppVariantTest < Minitest::Test
   include Rack::Test::Methods
+  attr_reader :app
   def setup
-    @@myapp = Demo::SimpleSBSM.new(cookie_name: TEST_COOKIE_NAME)
-  end
-  def app
-    @@myapp
+    @app = Demo::SimpleSBSM.new(cookie_name: TEST_COOKIE_NAME)
   end
   def test_post_feedback
     get '/de/page' do # needed to set cookie
@@ -32,25 +29,30 @@ class AppVariantTest < MiniTest::Unit::TestCase
     get '/de/page/feedback' do
     end
     assert_equal  ["_session_id", TEST_COOKIE_NAME], last_request.cookies.keys
-    skip "Cannot test cookie_input"
-    assert_equal ['anrede', 'name'],  @@myapp.proxy.cookie_input.keys
-    assert_equal 'xxx', @@myapp.proxy.persistent_user_input(:anrede)
+    skip "Cannot content for test cookie_input"
+    assert_equal ['anrede', 'name'],  @app.cookie_input.keys
+    assert_equal 'xxx', @app.persistent_user_input(:anrede)
 
-    assert_equal ['value2', 'value3'],  @@myapp.proxy.cookie_input.values
+    assert_equal ['value2', 'value3'],  @app.cookie_input.values
     assert_match /anrede=value2/, CGI.unescape(last_response.headers['Set-Cookie'])
   end
 end if RUN_ALL_TESTS
 
-class AppTest < MiniTest::Unit::TestCase
+class AppTest < Minitest::Test
   include Rack::Test::Methods
+  attr_reader :app
 
   def setup
-    @@myapp = Demo::SimpleSBSM.new
+    @app = Demo::SimpleSBSM.new
   end
-  def app
-    @@myapp
-  end
-if RUN_ALL_TESTS
+
+  def test_session_redirect
+    get '/de/page/redirect'
+    assert_equal 303,last_response.status
+    assert_equal 'feedback',last_response.headers['Location']
+    assert_match REDIRECT_HTML_CONTENT, last_response.body
+    assert_match /utf-8/i, last_response.headers['Content-Type']
+  end if RUN_ALL_TESTS
   def test_post_feedback
     get '/de/page' do # needed to set cookie
       last_response.set_cookie(SBSM::Session::PERSISTENT_COOKIE_NAME, :value => Hash.new('anrede' => 'value2', 'name' => 'values'))
@@ -63,10 +65,10 @@ if RUN_ALL_TESTS
     skip "Cannot test cookie_input"
     assert_match /anrede.*=.*value2/, CGI.unescape(last_response.headers['Set-Cookie'])
     assert_match FEEDBACK_HTML_CONTENT, last_response.body
-    assert_equal ['anrede'],  @@myapp.proxy.cookie_input.keys
-    assert_equal ['value2'],  @@myapp.proxy.cookie_input.values
-    assert_equal ['anrede', 'name'],  @@myapp.proxy.cookie_input.keys
-    assert_equal ['value2', 'value3'],  @@myapp.proxy.cookie_input.values
+    assert_equal ['anrede'],  @app.cookie_input.keys
+    assert_equal ['value2'],  @app.cookie_input.values
+    assert_equal ['anrede', 'name'],  @app.cookie_input.keys
+    assert_equal ['value2', 'value3'],  @app.cookie_input.values
     page = Nokogiri::HTML(last_response.body)
     x = page.css('div')
     skip 'We must add here an input form or we cannot continue testing'
@@ -82,7 +84,7 @@ if RUN_ALL_TESTS
     assert last_response.ok?
     assert_match CONFIRM_DONE_HTML_CONTENT, last_response.body
   end
-
+if RUN_ALL_TESTS
   def test_session_home
     get '/home'
     assert last_response.ok?
@@ -168,7 +170,6 @@ if RUN_ALL_TESTS
     assert last_response.ok?
     assert_match ABOUT_HTML_CONTENT, last_response.body
   end
-end
   def test_session_about_then_root
     get '/fr/page/about'
     assert last_response.ok?
@@ -182,4 +183,5 @@ end
     # We add it here to get some more or less useful statistics
     ::SBSM::Session.show_stats '/de/page'
   end if RUN_ALL_TESTS
+end
 end

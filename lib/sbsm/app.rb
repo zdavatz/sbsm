@@ -27,46 +27,57 @@ require 'cgi'
 require 'cgi/session'
 require 'sbsm/cgi'
 require 'sbsm/session_store'
+require 'sbsm/trans_handler'
+require 'sbsm/validator'
 require 'mimemagic'
 
 module SBSM
   ###
   # App a base class for Webrick server
-  class App < SessionStore
-    attr_reader :sbsm, :my_self, :trans_handler, :validator, :drb_uri
+  class App
 
-    OPTIONS = [ :app, :config_file, :trans_handler, :validator, :persistence_layer, :server_uri, :session, :unknown_user, :proxy ]
+    OPTIONS = [ :app, :config_file, :trans_handler, :validator, :persistence_layer, :server_uri, :unknown_user]
     OPTIONS.each{ |opt| eval "attr_reader :#{opt}" }
 
     # Base class for a SBSM based WebRick HTTP server
-    # * offers a start_server() method to launch a DRB server for handling the DRB-requests
     # * offer a call(env) method form handling the WebRick requests
     # This is all what is needed to be compatible with WebRick
     #
-    # === arguments
+    # === optional arguments
     #
-    # * +app+ -               The app we should handle requests for
     # * +validator+ -         A Ruby class overriding the SBSM::Validator class
     # * +trans_handler+ -     A Ruby class overriding the SBSM::TransHandler class
+    # * +session_class+ -     A Ruby class overriding the SBSM::Session class
+    # * +unknown_user+ -      A Ruby class overriding the SBSM::UnknownUser class
     # * +persistence_layer+ - Persistence Layer to use
     # * +cookie_name+ -       The cookie to save persistent user data
-    # * +drb_uri+ -           URI for DRB-Server of app
     #
     # === Examples
     # Look at steinwies.ch
     # * https://github.com/zdavatz/steinwies.ch (simple, mostly static files, one form, no persistence layer)
     #
-    def initialize(app:, validator:, trans_handler:, drb_uri:, persistence_layer: nil, cookie_name: nil)
-      SBSM.info "initialize #{$0} app #{app.class} @app is now #{@app.class} validator #{validator} th #{trans_handler} drb_uri #{drb_uri}"
-      @app = app unless @app
-      @cookie_name = cookie_name ||  SBSM::Session::PERSISTENT_COOKIE_NAME
-      @drb_uri = drb_uri
-      @trans_handler = trans_handler
-      @validator = validator
-      super(persistence_layer)
+    def initialize(validator: nil,
+                   trans_handler:  nil,
+                   session_class: nil,
+                   persistence_layer: nil,
+                   unknown_user: nil,
+                   cookie_name: nil)
+      @@last_session = nil
+      SBSM.info "initialize validator #{validator} th #{trans_handler} cookie #{cookie_name} session #{session_class}"
+      @session_store = SessionStore.new(persistence_layer: persistence_layer,
+                                        trans_handler: trans_handler,
+                                        session_class: session_class,
+                                        cookie_name: cookie_name,
+                                        unknown_user: unknown_user,
+                                        app: self,
+                                        validator: validator)
     end
 
     SESSION_ID = '_session_id'
+
+    def last_session
+      @@last_session
+    end
 
     def call(env) ## mimick sbsm/lib/app.rb
       request = Rack::Request.new(env)
@@ -86,35 +97,31 @@ module SBSM
       end
 
       return [400, {}, []] if /favicon.ico/i.match(request.path)
-      @drb_uri ||= @app.drb_uri
       # https://www.tutorialspoint.com/ruby/ruby_cgi_sessions.htm
       args = {
-        'database_manager'  =>  CGI::Session::MemoryStore,
-        'drbsession_uri'    =>  @drb_uri,
+        'database_manager'  =>  @session_store,
         'session_path'      =>  '/',
         @cookie_name => session_id,
       }
-      saved = self[session_id]
-      SBSM.debug "starting session_id #{session_id}  saved #{saved.class} #{request.path}: cookies #{@cookie_name} are #{request.cookies} @session #{@session.class} @cgi #{@cgi.class}"
+      session = @session_store[session_id]
+      session.app ||= self
+      SBSM.debug "starting session_id #{session_id}  session #{session.class} #{request.path}: cookies #{@cookie_name} are #{request.cookies} @cgi #{@cgi.class}"
       @cgi = CGI.initialize_without_offline_prompt('html4') unless @cgi
-      @session = saved if saved
-      @session = CGI::Session.new(@cgi, args) unless @session
-      SBSM.debug "starting session_id #{session_id} saved #{saved.class}"
-      # @start_time = Time.now.to_f; GC.start; SBSM.debug "GC.start took #{((Time.now.to_f)- @start_time)*1000.0} milliseconds"
-      res = @session.process_rack(request)
-      # require 'pry'; binding.pry
-      response = Rack::Response.new
+      session = CGI::Session.new(@cgi, args) unless session
+      res = session.process_rack(rack_request: request)
       response.write res
       response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
-      response.headers.merge!(@session.http_headers)
+      response.headers.merge!(session.http_headers)
       if (result = response.headers.find { |k,v| /status/i.match(k) })
         response.status = result.last.to_i
         response.headers.delete(result.first)
       end
-      response.set_cookie(@cookie_name, :value =>  @session.cookie_input)
+      response.set_cookie(session.cookie_name, :value =>  session.cookie_input)
       response.set_cookie(SESSION_ID, :value => session_id)
-      SBSM.debug "finish session_id #{session_id}: header with cookies #{response.headers} from #{@session.cookie_input}"
+      @@last_session = session
+      SBSM.debug "finish session_id #{session_id}: header with cookies #{response.headers} from #{session.cookie_input}"
       response.finish
     end
+
   end
 end
