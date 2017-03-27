@@ -112,11 +112,7 @@ module SBSM
       end
 
       return [400, {}, []] if /favicon.ico/i.match(request.path)
-      args = {
-        'database_manager'  =>  @session_store,
-        'session_path'      =>  '/',
-        @cookie_name => session_id,
-      }
+
       Thread.current.thread_variable_set(:session, @session_store[session_id])
       session = Thread.current.thread_variable_get(:session)
       SBSM.debug "starting session_id #{session_id}  session #{session.class} #{request.path}: cookies #{@cookie_name} are #{request.cookies} @cgi #{@cgi.class}"
@@ -129,10 +125,11 @@ module SBSM
         response.headers.delete(result.first)
       end
       session.cookie_input.each do |key, value|
-        response.set_cookie(key, value)
+        response.set_cookie(key,  { :value => value, :path => '/' })
       end
-      response.set_cookie(SESSION_ID, session_id)
-      response.set_cookie(SBSM::Session.get_cookie_name, session_id)
+      response.set_cookie(SESSION_ID, { :value => session_id, :path => '/' }) unless request.cookies[SESSION_ID]
+
+      # response.set_cookie(SBSM::Session.get_cookie_name, session_id)
       @@last_session = session
       if response.headers['Set-Cookie'].to_s.index(session_id)
         SBSM.debug "finish session_id.1 #{session_id}: matches response.headers['Set-Cookie']"
