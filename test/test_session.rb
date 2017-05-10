@@ -144,11 +144,9 @@ end
 class TestSession < Minitest::Test
   include Rack::Test::Methods
 	def setup
-    @app = StubSessionApp.new(validator: StubSessionValidator.new,
-                           unknown_user: StubSessionUnknownUser.new)
+    @app = StubSessionApp.new(validator: StubSessionValidator.new)
     @session = StubSessionWithView.new(app: @app,
-                           validator: StubSessionValidator.new,
-                           unknown_user: StubSessionUnknownUser.new)
+                           validator: StubSessionValidator.new)
     @request = StubSessionRequest.new
 		@state = StubSessionState.new(@session, nil)
 	end
