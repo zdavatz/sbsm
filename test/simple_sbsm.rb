@@ -218,7 +218,7 @@ module Demo
     DEFAULT_STATE    = HomeState
   end
 
-  class SimpleSBSM < SBSM::RackInterface
+  class SimpleSBSM < SBSM::App
     def initialize
       SBSM.info "SimpleSBSM.new"
       super(app: self)

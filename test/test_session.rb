@@ -22,7 +22,7 @@
 # ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 # hwyss@ywesee.com
 #
-# TestSession -- sbsm -- 22.10.2002 -- hwyss@ywesee.com 
+# TestSession -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 #++
 
 require 'minitest/autorun'
@@ -74,7 +74,7 @@ class StubSessionRequest < Rack::Request
     super(Rack::MockRequest.env_for("http://example.com:8080/#{path}", params))
   end
 end
-class StubSessionView 
+class StubSessionView
 	def initialize(foo, bar)
 	end
   def http_headers
@@ -88,7 +88,7 @@ class StubSessionBarState < SBSM::State
 	EVENT_MAP = {
 		:foobar	=>	StubSessionBarState,
 	}
-end	
+end
 class StubSessionBarfoosState < SBSM::State
 	DIRECT_EVENT = :barfoos
 end
@@ -167,6 +167,10 @@ class TestSession < Minitest::Test
     assert_equal('@session.valid_input', @session.persistent_user_input(:language))
     assert_equal('@session.valid_input', @session.valid_input)
   end
+  def test_server_name
+    @session.process_rack(rack_request: @request)
+    assert_equal('example.com', @session.server_name)
+  end
   def test_user_input
     @request["foo"] = "bar"
     @request["baz"] = "zuv"
@@ -225,12 +229,12 @@ class TestSession < Minitest::Test
 		@session.process_rack(:rack_request =>req1)
 		state1 = @session.state
 		req2 = StubSessionRequest.new
-		req2["event"] = "foo"	
+		req2["event"] = "foo"
 		@session.process_rack(:rack_request =>req2)
 		state2 = @session.state
 		refute_equal(state1, state2)
 		req3 = StubSessionRequest.new
-		req3["event"] = :bar	
+		req3["event"] = :bar
 		@session.process_rack(:rack_request =>req3)
 		state3 = @session.state
 		refute_equal(state1, state3)
@@ -242,7 +246,7 @@ class TestSession < Minitest::Test
 		}
 		assert_equal(attended, @session.attended_states)
 		req4 = StubSessionRequest.new
-		req4["event"] = :foobar	
+		req4["event"] = :foobar
 		@session.process_rack(:rack_request =>req4)
 		@session.cap_max_states
 		state4 = @session.state
@@ -362,10 +366,10 @@ class TestSession < Minitest::Test
 	end
 	def test_login_fail_keep_user
 		@session.login
-		assert_equal(StubSessionUnknownUser, @session.user.class)
+		assert_equal(SBSM::UnknownUser, @session.user.class)
 	end
 	def test_logged_in
-		assert_equal(StubSessionUnknownUser, @session.user.class)
+		assert_equal(SBSM::UnknownUser, @session.user.class)
 		assert_equal(false, @session.logged_in?)
 	end
 	def test_valid_values

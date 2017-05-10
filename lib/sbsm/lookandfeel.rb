@@ -132,7 +132,7 @@ module SBSM
 			@session.navigation
 		end
 		def resource(rname, rstr=nil)
-			collect_resource([ self::class::RESOURCE_BASE, @session.flavor ], 
+			collect_resource([ self::class::RESOURCE_BASE, @session.flavor ],
                          rname, rstr)
 		end
 		def resource_external(rname)
@@ -166,8 +166,8 @@ module SBSM
       end
 		end
     def _collect_resource(base, part, rstr)
-      [ @session.http_protocol + ':/', 
-        @session.server_name, 
+      [ @session.http_protocol + ':/',
+        @session.server_name,
         base, part, rstr].flatten.compact.join('/')
     end
     def set_dictionary(language)

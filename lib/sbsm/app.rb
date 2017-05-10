@@ -33,16 +33,18 @@ require 'mimemagic'
 
 module SBSM
   ###
-  # App as a member of session
+
   class App
 
     def initialize()
-      SBSM.info "initialize"
+      SBSM.info "initialize #{self.class}"
     end
+
   end
 
   class RackInterface
     attr_accessor :session # thread variable!
+    attr_reader :app, :session_store
     SESSION_ID = '_session_id'
 
     # Base class for a SBSM based WebRick HTTP server
@@ -51,11 +53,10 @@ module SBSM
     #
     # === optional arguments
     #
-    # * +app+ -               A Ruby class used by the session
+    # * +app+ -               the App for the Rack-Interface
     # * +validator+ -         A Ruby class overriding the SBSM::Validator class
     # * +trans_handler+ -     A Ruby class overriding the SBSM::TransHandler class
     # * +session_class+ -     A Ruby class overriding the SBSM::Session class
-    # * +unknown_user+ -      A Ruby class overriding the SBSM::UnknownUser class
     # * +persistence_layer+ - Persistence Layer to use
     # * +cookie_name+ -       The cookie to save persistent user data
     # * +multi_threaded+ -    Allow multi_threaded SBSM (default is false)
@@ -64,7 +65,7 @@ module SBSM
     # Look at steinwies.ch
     # * https://github.com/zdavatz/steinwies.ch (simple, mostly static files, one form, no persistence layer)
     #
-    def initialize(app:,
+    def initialize(app: ,
                    validator: nil,
                    trans_handler:  nil,
                    session_class: nil,
@@ -75,13 +76,12 @@ module SBSM
                  )
       @@last_session = nil
       @app = app
-      SBSM.info "initialize validator #{validator} th #{trans_handler} cookie #{cookie_name} session #{session_class} app #{app} multi_threaded #{multi_threaded}"
+      SBSM.info "initialize validator #{validator} th #{trans_handler} cookie #{cookie_name} session #{session_class} app #{app.class} multi_threaded #{multi_threaded}"
       @session_store = SessionStore.new(app: app,
                                         persistence_layer: persistence_layer,
                                         trans_handler: trans_handler,
                                         session_class: session_class,
                                         cookie_name: cookie_name,
-                                        unknown_user: unknown_user,
                                         validator: validator,
                                         multi_threaded: multi_threaded)
     end
@@ -129,7 +129,6 @@ module SBSM
       end
       response.set_cookie(SESSION_ID, { :value => session_id, :path => '/' }) unless request.cookies[SESSION_ID]
 
-      # response.set_cookie(SBSM::Session.get_cookie_name, session_id)
       @@last_session = session
       if response.headers['Set-Cookie'].to_s.index(session_id)
         SBSM.debug "finish session_id.1 #{session_id}: matches response.headers['Set-Cookie']"
