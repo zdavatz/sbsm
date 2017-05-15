@@ -35,6 +35,7 @@ require 'delegate'
 
 module SBSM
   class	Session
+
 		attr_reader :user, :active_thread, :key, :cookie_input, :cookie_name,
 			:unsafe_input, :valid_input, :request_path, :cgi, :attended_states
     attr_accessor :validator, :trans_handler, :app
@@ -96,7 +97,6 @@ module SBSM
     #
     # * +validator+ -         A Ruby class overriding the SBSM::Validator class
     # * +trans_handler+ -     A Ruby class overriding the SBSM::TransHandler class
-    # * +unknown_user+ -      A Ruby class overriding the SBSM::UnknownUser class
     # * +cookie_name+ -       The cookie to save persistent user data
     #
     # === Examples
@@ -106,45 +106,44 @@ module SBSM
     def initialize(app:,
                    trans_handler: nil,
                    validator: nil,
-                   unknown_user: nil,
-                   cookie_name: nil,
+                    unknown_user: nil,
+                  cookie_name: nil,
                    multi_threaded: false)
       SBSM.info "initialize th #{trans_handler} validator #{validator} app #{app.class}"
       @app = app
-      @unknown_user = unknown_user
-      @unknown_user ||=  self.class::UNKNOWN_USER
-      @validator = validator
-      @validator  ||= Validator.new
+      @unknown_user = SBSM::UnknownUser.new
+      @validator = validator if validator.is_a?(SBSM::Validator)
+      @validator ||= (validator && validator.new) || Validator.new
       fail "invalid validator #{@validator}" unless @validator.is_a?(SBSM::Validator)
-      @trans_handler = trans_handler
-      @trans_handler ||= TransHandler.instance
+      @trans_handler = trans_handler || TransHandler.instance
       fail "invalid trans_handler #{@trans_handler}" unless @trans_handler.is_a?(SBSM::TransHandler)
       @cookie_name =  cookie_name
       @cookie_name ||= self.class::PERSISTENT_COOKIE_NAME
-      @@cookie_name = @cookie_name
       @attended_states = {}
       @persistent_user_input = {}
       touch()
       reset_input()
       reset_cookie()
-      @user = @unknown_user
-      @unknown_user_class
-      @unknown_user_class = @unknown_user.class
+      @user  = SBSM::UnknownUser.new
       @variables = {}
       @cgi = CGI.initialize_without_offline_prompt('html4')
       @multi_threaded = multi_threaded
       @mutex = multi_threaded ? Mutex.new: @@mutex
       @active_thread = nil
-      SBSM.debug "session initialized #{self} with @cgi #{@cgi} multi_threaded #{multi_threaded} app #{app.object_id}"
+      SBSM.debug "session initialized #{self} with @cgi #{@cgi} multi_threaded #{multi_threaded} app #{app.object_id} and user #{@user.class} @unknown_user #{@unknown_user.class}"
     end
     def self.get_cookie_name
-      @@cookie_name
+      @cookie_name
     end
     def method_missing(symbol, *args, &block) # Replaces old dispatch to DRb
       @app.send(symbol, *args, &block)
+    rescue => error
+      puts error
+      puts error.backtrace.join("\n")
+      raise error
     end
     def unknown_user
-      @unknown_user_class.new
+      @unknown_user || SBSM::UnknownUser.new
     end
     def age(now=Time.now)
       now - @mtime
@@ -209,12 +208,13 @@ module SBSM
         begin
           @request_method =rack_request.request_method
           @request_path = rack_request.path
+          @server_name = rack_request.env['SERVER_NAME']
           logout unless @active_state
           validator.reset_errors() if validator && validator.respond_to?(:reset_errors)
           import_user_input(rack_request)
           import_cookies(rack_request)
           @state = active_state.trigger(event())
-          SBSM.debug "active_state.trigger state #{@state.object_id} remember #{persistent_user_input(:remember).inspect}"
+          SBSM.debug "active_state.trigger state #{@state.object_id} #{@state.class} remember #{persistent_user_input(:remember).inspect}"
           #FIXME: is there a better way to distinguish returning states?
           #       ... we could simply refuse to init if event == :sort, but that
           #       would not solve the problem cleanly, I think.
@@ -223,11 +223,11 @@ module SBSM
             @state.init
           end
           unless @state.volatile?
-            SBSM.debug "Changing from #{@active_state.object_id} to state #{@state.class} #{@state.object_id} remember #{persistent_user_input(:remember).inspect}"
+            SBSM.debug "Changing from #{@active_state.object_id} to state #{@state.class} #{@state.object_id} remember #{persistent_user_input(:remember).inspect}  #{@user.class}"
             @active_state = @state
             @attended_states.store(@state.object_id, @state)
           else
-            SBSM.debug "Stay in volatile state #{@state.object_id}"
+            SBSM.debug "Stay in volatile state #{@state.object_id} #{@state.class}"
           end
           @zone = @active_state.zone
           @active_state.touch
@@ -356,11 +356,11 @@ module SBSM
 			cookie_set_or_get(:language) || default_language
 		end
 		def logged_in?
-			!@user.is_a?(@unknown_user_class)
+			!@user.is_a?(SBSM::UnknownUser)
 		end
 		def login
 			if(user = (@app && @app.respond_to?(:login) && @app.login(self)))
-          SBSM.debug "user is #{user}  #{request_path.inspect}"
+          SBSM.debug "user is #{user.class}  #{request_path.inspect}"
 				@user = user
       else
         SBSM.debug "login no user #{request_path.inspect}"
@@ -368,9 +368,9 @@ module SBSM
 		end
 		def logout
 			__checkout
-			@user = unknown_user()
+      @user = SBSM::UnknownUser.new
       @active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
-      SBSM.debug "logout #{request_path.inspect} setting @state #{@state.object_id} #{@state.class} remember #{persistent_user_input(:remember).inspect}"
+      SBSM.debug "logout #{request_path.inspect} setting @state #{@state.object_id} #{@state.class} remember #{persistent_user_input(:remember).inspect} #{@user.class}"
       @state.init
 			@attended_states.store(@state.object_id, @state)
 		end
