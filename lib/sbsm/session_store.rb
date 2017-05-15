@@ -60,7 +60,6 @@ module SBSM
                    multi_threaded: nil)
       fail "You must specify an app!" unless app
       @sessions = {}
-      @admin_enabled = false
       @mutex = Mutex.new
       @cleaner = run_cleaner if(self.class.const_get(:RUN_CLEANER))
       @admin_threads = ThreadGroup.new
@@ -77,11 +76,8 @@ module SBSM
       @unknown_user ||= UNKNOWN_USER
       @validator = validator
     end
-    def enable_admin
-      @admin_enabled = true
-    end
     def _admin(src, result, priority=0)
-      raise "admin interface disabled" unless @admin_enabled
+      raise "admin interface disabled" unless(self::class::ENABLE_ADMIN)
       t = Thread.new {
         Thread.current.abort_on_exception = false
         result << begin
@@ -173,12 +169,12 @@ module SBSM
     end
     def [](key)
       @mutex.synchronize do
-        unless((session = @sessions[key]) && !session.expired?)
-          session = @sessions[key] = @session_class.new(app: @app, cookie_name: @cookie_name, trans_handler: @trans_handler, validator: @validator)
+        unless((s = @sessions[key]) && !s.expired?)
+          s = @sessions[key] = @session_class.new(app: @app, cookie_name: @cookie_name, trans_handler: @trans_handler, validator: @validator, unknown_user: @unknown_user)
         end
-        session.reset()
-        session.touch()
-        session
+        s.reset()
+        s.touch()
+        s
       end
     end
   end

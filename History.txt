@@ -1,3 +1,7 @@
+=== 1.3.8 / 15.05.2017
+
+* Reverted some changes to make bbmb and virbac run
+
 === 1.3.7 / 10.05.2017
 * Some changes for VIRBAC which uses viral modules and a KnownUser class
 ** Add @server_name to rack session

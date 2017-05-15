@@ -106,7 +106,8 @@ module SBSM
     def initialize(app:,
                    trans_handler: nil,
                    validator: nil,
-                   cookie_name: nil,
+                    unknown_user: nil,
+                  cookie_name: nil,
                    multi_threaded: false)
       SBSM.info "initialize th #{trans_handler} validator #{validator} app #{app.class}"
       @app = app

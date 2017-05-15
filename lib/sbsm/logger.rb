@@ -36,12 +36,10 @@ module SBSM
   # by the different process. Should probably later be replaced by a Rack based logger
   def self.info(msg)
     info = "#{File.basename(caller[0])} #{msg}"
-    puts info if defined? Pry
     @@logger.info(info) if @@logger
   end
   def self.debug(msg)
     info = "#{File.basename(caller[0])} #{msg}"
-    puts info if defined? Pry
     @@logger.debug(info) if @@logger
   end
 end
