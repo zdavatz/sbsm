@@ -38,6 +38,14 @@ module SBSM
     info = "#{File.basename(caller[0])} #{msg}"
     @@logger.info(info) if @@logger
   end
+  def self.error(msg)
+    info = "#{File.basename(caller[0])} #{msg}"
+    @@logger.error(info) if @@logger
+  end
+  def self.warn(msg)
+    info = "#{File.basename(caller[0])} #{msg}"
+    @@logger.warn(info) if @@logger
+  end
   def self.debug(msg)
     info = "#{File.basename(caller[0])} #{msg}"
     @@logger.debug(info) if @@logger

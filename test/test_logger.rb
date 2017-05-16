@@ -22,7 +22,7 @@
 # ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 # hwyss@ywesee.com
 #
-# TestSession -- sbsm -- 22.10.2002 -- hwyss@ywesee.com 
+# TestSession -- sbsm -- 22.10.2002 -- hwyss@ywesee.com
 #++
 
 require 'minitest/autorun'
@@ -48,7 +48,7 @@ class TestLogger < Minitest::Test
     @temp_file.unlink
   end
 
-  def test_default_levels_with_no_loggin
+  def test_default_levels_with_no_logging
     saved_length = File.size(@default_name)
     SBSM.debug("debug #{__LINE__}")
     assert_equal(saved_length, File.size(@default_name))
@@ -99,6 +99,25 @@ class TestLogger < Minitest::Test
     SBSM.debug("debug #{__LINE__}")
     SBSM.info("info #{__LINE__}")
     assert_equal(default_saved_length, File.size(@default_name))
+  end
+
+  def test_warn
+    SBSM.logger = Logger.new(@temp_file.path)
+    saved_length = File.size(@temp_file.path)
+    assert( !/test_warn/.match(IO.read(@temp_file.path)))
+    SBSM.warn("xx #{__LINE__}")
+    assert(saved_length < File.size(@temp_file.path))
+    content = IO.read(@temp_file.path)
+    assert_match(/test_warn/, IO.read(@temp_file.path))
+  end
+
+  def test_error
+    SBSM.logger = Logger.new(@temp_file.path)
+    saved_length = File.size(@temp_file.path)
+    assert( !/test_error/.match(IO.read(@temp_file.path)))
+    SBSM.error("xx #{__LINE__}")
+    assert(saved_length < File.size(@temp_file.path))
+    assert_match(/test_error/, IO.read(@temp_file.path))
   end
 
 end
