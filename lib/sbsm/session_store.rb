@@ -43,7 +43,6 @@ module SBSM
   class SessionStore
     CLEANING_INTERVAL = 30
     CAP_MAX_THRESHOLD = 120
-    ENABLE_ADMIN = false
     MAX_SESSIONS = 100
     RUN_CLEANER = true
     SESSION = Session
@@ -62,7 +61,6 @@ module SBSM
       @sessions = {}
       @mutex = Mutex.new
       @cleaner = run_cleaner if(self.class.const_get(:RUN_CLEANER))
-      @admin_threads = ThreadGroup.new
       @async = ThreadGroup.new
       @app = app
       @system = persistence_layer
@@ -75,31 +73,6 @@ module SBSM
       @unknown_user = unknown_user
       @unknown_user ||= UNKNOWN_USER
       @validator = validator
-    end
-    def _admin(src, result, priority=0)
-      raise "admin interface disabled" unless(self::class::ENABLE_ADMIN)
-      t = Thread.new {
-        Thread.current.abort_on_exception = false
-        result << begin
-          response = begin
-            instance_eval(src)
-          rescue NameError => e
-            e
-          end
-          str = response.to_s
-          if(str.length > 200)
-            response.class
-          else
-            str
-          end
-        rescue StandardError => e
-          e.message
-        end.to_s
-      }
-      t[:source] = src
-      t.priority = priority
-      @admin_threads.add(t)
-      t
     end
     def async(&block)
       @async.add(Thread.new(&block))
