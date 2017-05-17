@@ -1,3 +1,7 @@
+=== 1.4.0 / 17.05.2017
+
+* Moved _admin to separate AdminServer class
+
 === 1.3.9 / 15.05.2017
 
 * Added SBSM.warn and SBSM.error to make lib/sbsm/state.rb happy
