@@ -61,7 +61,6 @@ module SBSM
       @sessions = {}
       @mutex = Mutex.new
       @cleaner = run_cleaner if(self.class.const_get(:RUN_CLEANER))
-      @async = ThreadGroup.new
       @app = app
       @system = persistence_layer
       @persistence_layer = persistence_layer
@@ -73,9 +72,6 @@ module SBSM
       @unknown_user = unknown_user
       @unknown_user ||= UNKNOWN_USER
       @validator = validator
-    end
-    def async(&block)
-      @async.add(Thread.new(&block))
     end
     def cap_max_sessions(now = Time.now)
       if(@sessions.size > self::class::CAP_MAX_THRESHOLD)

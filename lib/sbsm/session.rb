@@ -52,6 +52,7 @@ module SBSM
 		SERVER_NAME = nil
     UNKNOWN_USER = UnknownUser
     @@mutex = Mutex.new
+    @@async = ThreadGroup.new
     def Session.reset_stats
       @@stats = {}
     end
@@ -550,6 +551,9 @@ module SBSM
 		def []=(key, val)
 			@variables[key] = val
 		end
+    def async(&block)
+      @@async.add(Thread.new(&block))
+    end
 		private
 		def active_state
 			if(state_id = @valid_input[:state_id])
