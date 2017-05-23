@@ -1,3 +1,7 @@
+=== 1.4.2 / 23.05.2017
+
+* Return correct http_protocol https when serving on port 443
+
 === 1.4.1 / 22.05.2017
 
 * Moved _async from from SessionStore back to Session class
