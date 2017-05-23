@@ -210,6 +210,7 @@ module SBSM
           @request_method =rack_request.request_method
           @request_path = rack_request.path
           @server_name = rack_request.env['SERVER_NAME']
+          @server_port = rack_request.env['SERVER_PORT']
           logout unless @active_state
           validator.reset_errors() if validator && validator.respond_to?(:reset_errors)
           import_user_input(rack_request)
@@ -406,8 +407,7 @@ module SBSM
 			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
-			@http_protocol ||=	if(@request.respond_to?(:server_port) \
-														&& @request.server_port == 443)
+        @http_protocol ||=	if(@server_port && @server_port == 443)
 														'https'
 													else
 														'http'
