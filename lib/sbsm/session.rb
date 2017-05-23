@@ -407,7 +407,7 @@ module SBSM
 			{'Content-Type' => 'text/plain'}
 		end
 		def http_protocol
-        @http_protocol ||=	if(@server_port && @server_port == 443)
+                @http_protocol ||= if(@server_port && @server_port == 443) || ENV['SERVER_PORT']
 														'https'
 													else
 														'http'

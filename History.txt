@@ -1,5 +1,6 @@
 === 1.4.2 / 23.05.2017
 
+* Allow overriding http_protocol via ENV variable SERVER_PORT
 * Return correct http_protocol https when serving on port 443
 
 === 1.4.1 / 22.05.2017
