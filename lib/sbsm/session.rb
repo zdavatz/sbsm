@@ -37,7 +37,8 @@ module SBSM
   class	Session
 
 		attr_reader :user, :active_thread, :key, :cookie_input, :cookie_name,
-			:unsafe_input, :valid_input, :request_path, :cgi, :attended_states
+        :server_name, :server_port, :request_params, :request_method, :request_origin,
+			:unsafe_input, :valid_input, :request_path, :request_post, :cgi, :attended_states
     attr_accessor :validator, :trans_handler, :app
 		PERSISTENT_COOKIE_NAME = "sbsm-persistent-cookie"
 		DEFAULT_FLAVOR = 'sbsm'
@@ -209,8 +210,17 @@ module SBSM
         begin
           @request_method =rack_request.request_method
           @request_path = rack_request.path
+          if rack_request.env
+            @request_origin  = 'http'
+            if (proto = rack_request.env['SERVER_PROTOCOL'])
+              @request_origin = proto.downcase.match(/^\w+/)[0]
+            end
+            @request_origin += '://'
+            @request_origin += rack_request.env['REMOTE_ADDR'] if rack_request.env['REMOTE_ADDR']
+          end
           @server_name = rack_request.env['SERVER_NAME']
           @server_port = rack_request.env['SERVER_PORT']
+          @request_params = rack_request.params
           logout unless @active_state
           validator.reset_errors() if validator && validator.respond_to?(:reset_errors)
           import_user_input(rack_request)

@@ -177,8 +177,8 @@ class TestLookandfeel < Minitest::Test
 	end
 	def test_format_price
 		assert_equal('123.45', @lookandfeel.format_price(12345))
-		assert_equal(nil, @lookandfeel.format_price(nil))
-		assert_equal(nil, @lookandfeel.format_price(0))
+		assert_nil(@lookandfeel.format_price(nil))
+		assert_nil(@lookandfeel.format_price(0))
 	end
 	def test_format_date
 		hannesgeburtstag = Date.new(1975,8,21)

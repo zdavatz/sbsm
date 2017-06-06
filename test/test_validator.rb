@@ -21,7 +21,7 @@
 # ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 # hwyss@ywesee.com
 #
-# TestValidator -- sbsm -- 15.11.2002 -- hwyss@ywesee.com 
+# TestValidator -- sbsm -- 15.11.2002 -- hwyss@ywesee.com
 
 $: << File.dirname(__FILE__)
 $: << File.expand_path("../lib", File.dirname(__FILE__))
@@ -59,7 +59,7 @@ class TestValidator < Minitest::Test
 		assert_equal({}, @val.errors)
 	end
 	def test_validate
-		assert_equal(nil, @val.validate(:something, :other) )
+		assert_nil(@val.validate(:something, :other) )
 	end
 	def test_boolean
 		assert_equal(true, @val.validate(:bool, 'true'))
@@ -106,19 +106,19 @@ class TestValidator < Minitest::Test
 	def test_date
 		assert_equal(Date.new(2002,1,2), @val.validate(:date, '2.1.2002'))
 		assert_equal(SBSM::InvalidDataError, @val.validate(:date, '13.13.1234').class)
-		assert_equal(nil, @val.validate(:date, " \t"))
+		assert_nil(@val.validate(:date, " \t"))
 	end
 	def test_state_id
-		assert_equal(nil, @val.validate(:state_id, nil))
-		assert_equal(nil, @val.validate(:state_id, "df"))
+		assert_nil(@val.validate(:state_id, nil))
+		assert_nil(@val.validate(:state_id, "df"))
 		assert_equal(1245, @val.validate(:state_id, "1245"))
 		assert_equal(-1245, @val.validate(:state_id, "-1245"))
 	end
 	def test_pattern
 		assert_equal('new', @val.validate(:pattern, 'new'))
 		assert_equal('12345', @val.validate(:pattern, '12345'))
-		assert_equal(nil, @val.validate(:pattern, '23foo45'))
-		assert_equal(nil, @val.validate(:pattern, 'abfoodc'))
+		assert_nil(@val.validate(:pattern, '23foo45'))
+		assert_nil(@val.validate(:pattern, 'abfoodc'))
 	end
   def test_validate_html
     src = "<SPAN style=\"PADDING-BOTTOM: 4px; LINE-HEIGHT: 1.4em; WHITE-SPACE: normal\"><p class=\"MsoNormal\" style=\"MARGIN: 0cm -0.3pt 0pt 0cm; TEXT-ALIGN: justify\"><span lang=\"DE\" style=\"FONT-SIZE: 11pt; FONT-FAMILY: Arial; mso-bidi-font-size: 10.0pt; mso-bidi-font-family: 'Times New Roman'\">Wirkstoff: Ibuprofenum. </span></p><p class=\"MsoNormal\" style=\"MARGIN: 0cm -0.3pt 0pt 0cm; TEXT-ALIGN: justify\"><span lang=\"DE\" style=\"FONT-SIZE: 11pt; FONT-FAMILY: Arial; mso-bidi-font-size: 10.0pt; mso-bidi-font-family: 'Times New Roman'\">Hilfsstoffe: Conserv.: Sorbinsäure (E 200)</span></p></span>"
