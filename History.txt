@@ -1,3 +1,7 @@
+=== 1.4.4 / 12.06.2017
+
+* Fix remote_ip for POST processing in xmlconf
+
 === 1.4.3 / 06.06.2017
 
 * Allow access to request_origin and request_params for POST processing in xmlconf
