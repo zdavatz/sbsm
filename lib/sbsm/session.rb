@@ -217,6 +217,7 @@ module SBSM
             end
             @request_origin += '://'
             @request_origin += rack_request.env['REMOTE_ADDR'] if rack_request.env['REMOTE_ADDR']
+            @remote_ip = rack_request.env['HTTP_X_FORWARDED_FOR']
           end
           @server_name = rack_request.env['SERVER_NAME']
           @server_port = rack_request.env['SERVER_PORT']
