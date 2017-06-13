@@ -113,7 +113,8 @@ module SBSM
                    multi_threaded: false)
       SBSM.info "initialize th #{trans_handler} validator #{validator} app #{app.class}"
       @app = app
-      @unknown_user = SBSM::UnknownUser.new
+      @unknown_user = unknown_user
+      @unknown_user ||= SBSM::UnknownUser.new
       @validator = validator if validator.is_a?(SBSM::Validator)
       @validator ||= (validator && validator.new) || Validator.new
       fail "invalid validator #{@validator}" unless @validator.is_a?(SBSM::Validator)
@@ -381,7 +382,7 @@ module SBSM
 		end
 		def logout
 			__checkout
-      @user = SBSM::UnknownUser.new
+      @user = @unknown_user
       @active_state = @state = self::class::DEFAULT_STATE.new(self, @user)
       SBSM.debug "logout #{request_path.inspect} setting @state #{@state.object_id} #{@state.class} remember #{persistent_user_input(:remember).inspect} #{@user.class}"
       @state.init
