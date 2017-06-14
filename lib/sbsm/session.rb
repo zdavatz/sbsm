@@ -204,6 +204,8 @@ module SBSM
 		end
     def process_rack(rack_request:)
       start = Time.now
+      @passthru = false
+      @disposition = false
       @request_path ||= rack_request.path
       rack_request.params.each { |key, val| @cgi.params.store(key, val) }
       @trans_handler.translate_uri(rack_request)
@@ -431,8 +433,14 @@ module SBSM
 		def navigation
 			@user.navigation
 		end
-		def passthru(*args)
-			@request.passthru(*args)
+    def get_passthru
+      @passthru ? [@passthru, @disposition] : []
+    end
+		def passthru(path, disposition='attachment')
+      # the variable @passthru is set by a trusted source
+      @passthru    = path.untaint
+      @disposition = disposition
+      ''
 		end
 		def persistent_user_input(key)
 			if(value = user_input(key))

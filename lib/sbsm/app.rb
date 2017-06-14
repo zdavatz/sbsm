@@ -117,9 +117,24 @@ module SBSM
       session = Thread.current.thread_variable_get(:session)
       SBSM.debug "starting session_id #{session_id}  session #{session.class} #{request.path}: cookies #{@cookie_name} are #{request.cookies} @cgi #{@cgi.class}"
       res = session.process_rack(rack_request: request)
-      response.write res
-      response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
-      response.headers.merge!(session.http_headers)
+      thru = session.get_passthru
+      if thru.size > 0
+        file_name = thru.first.untaint
+        response.set_header('Content-Type', MimeMagic.by_extension(File.extname(file_name)).type)
+        response.headers['Content-Disposition'] = "#{thru.last}; filename=#{File.basename(file_name)}"
+        response.headers['Content-Length'] =  File.size(file_name).to_s
+        begin
+          response.write(File.open(file_name, File::RDONLY){|file| file.read})
+        rescue Errno::ENOENT, IOError => err
+          SBSM.error("#{err.message} #{thru.first}")
+          return [404, {}, []]
+        end
+      else
+        response.write res
+        response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
+        response.headers.merge!(session.http_headers)
+      end
+
       if (result = response.headers.find { |k,v| /status/i.match(k) })
         response.status = result.last.to_i
         response.headers.delete(result.first)
