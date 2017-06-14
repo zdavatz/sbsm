@@ -111,7 +111,7 @@ module SBSM
                     unknown_user: SBSM::UnknownUser.new,
                   cookie_name: nil,
                    multi_threaded: false)
-      SBSM.info "initialize th #{trans_handler} validator #{validator} app #{app.class}"
+      SBSM.info "initialize th #{trans_handler} validator #{validator} app #{app.class} multi_threaded #{multi_threaded}"
       @app = app
       @unknown_user = unknown_user.is_a?(Class) ? unknown_user.new : unknown_user
       @validator = validator if validator.is_a?(SBSM::Validator)
@@ -274,7 +274,6 @@ module SBSM
         ensure
           @user_input_imported = false
         end
-        binding.pry if /nolvadex/i.match(@request_path)
         to_html
       end
       (@@stats[@request_path] ||= []).push(Time.now - start)

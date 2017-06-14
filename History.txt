@@ -1,3 +1,9 @@
+=== 1.4.5 / 13.06.2017
+
+* Fix unknown_user if passing a class and not an instance of it
+* Fix using pass_thru for oddb.org
+* Fix setting unknown_user
+
 === 1.4.4 / 12.06.2017
 
 * Fix remote_ip for POST processing in xmlconf

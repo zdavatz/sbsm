@@ -22,7 +22,7 @@
 # ywesee - intellectual capital connected, Winterthurerstrasse 52, CH-8006 Zürich, Switzerland
 # hwyss@ywesee.com
 #
-# User -- sbsm -- 20.11.2002 -- hwyss@ywesee.com 
+# User -- sbsm -- 20.11.2002 -- hwyss@ywesee.com
 #++
 
 module SBSM
