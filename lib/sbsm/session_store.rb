@@ -55,7 +55,7 @@ module SBSM
                    session_class: nil,
                    validator: nil,
                    cookie_name: nil,
-                   unknown_user: nil,
+                   unknown_user: UNKNOWN_USER.new,
                    multi_threaded: nil)
       fail "You must specify an app!" unless app
       @sessions = {}
@@ -69,8 +69,8 @@ module SBSM
       @trans_handler ||= TransHandler.instance
       @session_class = session_class
       @session_class ||= SBSM::Session
-      @unknown_user = unknown_user
-      @unknown_user ||= UNKNOWN_USER
+      @unknown_user = unknown_user.is_a?(Class) ? unknown_user.new : unknown_user
+      @unknown_user ||= UnknownUser.new
       @validator = validator
     end
     def cap_max_sessions(now = Time.now)
