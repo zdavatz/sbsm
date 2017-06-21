@@ -35,6 +35,7 @@ module SBSM
   ###
   # App as a member of session
   class App
+    attr_reader :unknown_user
 
     def initialize()
       SBSM.info "initialize"
@@ -43,6 +44,7 @@ module SBSM
 
   class RackInterface
     attr_accessor :session # thread variable!
+    attr_reader   :session_store, :unknown_user
     SESSION_ID = '_session_id'
 
     # Base class for a SBSM based WebRick HTTP server
@@ -84,6 +86,7 @@ module SBSM
                                         unknown_user: unknown_user,
                                         validator: validator,
                                         multi_threaded: multi_threaded)
+      @unknown_user = unknown_user
     end
 
     def last_session
@@ -143,7 +146,6 @@ module SBSM
         response.set_cookie(key,  { :value => value, :path => '/' })
       end
       response.set_cookie(SESSION_ID, { :value => session_id, :path => '/' }) unless request.cookies[SESSION_ID]
-
       # response.set_cookie(SBSM::Session.get_cookie_name, session_id)
       @@last_session = session
       if response.headers['Set-Cookie'].to_s.index(session_id)
