@@ -37,8 +37,8 @@ require 'sbsm/session_store'
 module SBSM
   # AdminClass must be tied to an Rack app
   class AdminServer
-    def initialize(app:)
-      @session = SBSM::SessionStore.new(app: app)
+    def initialize(app:, multi_threaded: false)
+      @session = SBSM::SessionStore.new(app: app, multi_threaded: multi_threaded)
       @admin_threads = ThreadGroup.new
     end
     def _admin(src, result, priority=0)
