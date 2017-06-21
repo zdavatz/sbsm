@@ -31,6 +31,7 @@ require 'sbsm/cgi'
 require 'sbsm/state'
 require 'sbsm/user'
 require 'sbsm/lookandfeelfactory'
+require 'sbsm/trans_handler'
 require 'delegate'
 
 module SBSM
@@ -571,16 +572,16 @@ module SBSM
       # nothing
     end
     def delete
-      @app.delete_session @key
+      @app.delete_session(@key)
     end
 		def zone
-			@valid_input[:zone] || @state.zone || self::class::DEFAULT_ZONE
+			@valid_input[:zone] || (@state && @state.zone) || self::class::DEFAULT_ZONE
 		end
 		def zones
 			@active_state.zones
 		end
 		def zone_navigation
-			@state.zone_navigation
+			@state.zone_navigation if @state
 		end
 		def ==(other)
 			super
