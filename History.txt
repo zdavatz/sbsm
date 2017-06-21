@@ -1,3 +1,9 @@
+=== 1.4.6 / 21.06.2017
+
+* Added  SessionStore.clear
+* Added reader unknown_user and session_store
+* Admin server is now multi_threaded by default
+
 === 1.4.5 / 13.06.2017
 
 * Fix unknown_user if passing a class and not an instance of it
