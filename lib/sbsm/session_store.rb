@@ -110,6 +110,10 @@ module SBSM
       }
       #cap_max_sessions(now)
     end
+    def SessionStore.sessions
+      @@sessions
+    end
+
     def SessionStore.clear
       @@mutex.synchronize do
         @@sessions.each_value { |sess| sess.__checkout }
