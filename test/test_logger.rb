@@ -120,4 +120,18 @@ class TestLogger < Minitest::Test
     assert_match(/test_error/, IO.read(@temp_file.path))
   end
 
+  def test_log_level
+    assert_equal(Logger::WARN,  SBSM.logger.level)
+    SBSM.logger = Logger.new(@temp_file.path, level: Logger::ERROR)
+    assert_equal(Logger::ERROR,  SBSM.logger.level)
+    saved_length = File.size(@temp_file.path)
+    assert( !/test_error/.match(IO.read(@temp_file.path)))
+    SBSM.error("test_error #{__LINE__}")
+    SBSM.logger.level= Logger::WARN
+    assert_match(/test_error/, IO.read(@temp_file.path))
+    SBSM.info("test_info #{__LINE__}")
+    content = IO.read(@temp_file.path)
+    assert_nil(/test_info/.match(IO.read(@temp_file.path)))
+  end
+
 end

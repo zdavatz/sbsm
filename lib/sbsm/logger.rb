@@ -25,7 +25,8 @@
 require 'chrono_logger'
 require 'sbsm/version'
 module SBSM
-  @@logger = nil
+  @@logger = Logger.new(STDERR)
+  @@logger.level = Logger::WARN
   def self.logger=(logger)
     @@logger = logger
   end
