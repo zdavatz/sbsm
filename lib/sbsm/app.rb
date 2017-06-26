@@ -108,7 +108,7 @@ module SBSM
       end
       if File.file?(file_name)
         mime_type = MimeMagic.by_extension(File.extname(file_name)).type
-        SBSM.info "file_name is #{file_name} checkin base #{File.basename(file_name)} MIME #{mime_type}"
+        SBSM.debug "file_name is #{file_name} checkin base #{File.basename(file_name)} MIME #{mime_type}"
         response.set_header('Content-Type', mime_type)
         response.write(File.open(file_name, File::RDONLY){|file| file.read})
         return response
