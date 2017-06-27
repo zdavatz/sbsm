@@ -106,8 +106,14 @@ module SBSM
       else
         file_name = File.expand_path(File.join('doc', request.path))
       end
+
       if File.file?(file_name)
-        mime_type = MimeMagic.by_extension(File.extname(file_name)).type
+        if File.extname(file_name).length > 0
+          mime_type = MimeMagic.by_extension(File.extname(file_name)).type
+        else
+          mime_type = MimeMagic.by_path(file_name)
+        end
+        mime_type ||= 'text/plain'
         SBSM.debug "file_name is #{file_name} checkin base #{File.basename(file_name)} MIME #{mime_type}"
         response.set_header('Content-Type', mime_type)
         response.write(File.open(file_name, File::RDONLY){|file| file.read})
