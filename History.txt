@@ -1,3 +1,7 @@
+=== 1.4.8 / 26.06.2017
+
+* Fix setting mime_type for files like status/status_crawler
+
 === 1.4.7 / 26.06.2017
 
 * Set the debug logging level to WARN
