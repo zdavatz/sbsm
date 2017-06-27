@@ -387,11 +387,10 @@ module SBSM
 		def info?
 			@state.info? if @state.respond_to?(:info?)
 		end
-		def is_crawler?
-			@is_crawler ||= if @request.respond_to?(:is_crawler?)
-                        @request.is_crawler?
-                      end
-		end
+    def is_crawler?
+      crawler_pattern = /archiver|slurp|bot|crawler|jeeves|spider|\.{6}/i
+      !!crawler_pattern.match(@rack_request.user_agent)
+    end
 		def language
 			cookie_set_or_get(:language) || default_language
 		end

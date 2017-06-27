@@ -70,6 +70,7 @@ class StubSessionValidator < SBSM::Validator
 	end
 end
 class StubSessionRequest < Rack::Request
+  attr_accessor :user_agent
   def initialize(path='', params = {})
     super(Rack::MockRequest.env_for("http://example.com:8080/#{path}", params))
   end
@@ -429,4 +430,9 @@ class TestSession < Minitest::Test
 		}
 		assert_equal('gcc', session.flavor)
 	end
+  def test_is_crawler
+    @request.user_agent = 'google crawler'
+    @session.process_rack(rack_request: @request)
+    assert_equal(true, @session.is_crawler?)
+  end
 end
