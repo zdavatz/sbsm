@@ -60,7 +60,8 @@ class AppTestSimple < Minitest::Test
   end
   def test_post_feedback
     set_cookie "_session_id=#{TEST_COOKIE_NAME}"
-    set_cookie "#{SBSM::Session::PERSISTENT_COOKIE_NAME}=dummy"
+    params = { 'dummy' => 'value'}
+    set_cookie "#{SBSM::Session::PERSISTENT_COOKIE_NAME}"
     get '/de/page/feedback' do
     end
     # assert_match /anrede.*=.*value2/, CGI.unescape(last_response.headers['Set-Cookie'])

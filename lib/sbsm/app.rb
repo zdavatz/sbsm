@@ -148,14 +148,14 @@ module SBSM
         response.status = result.last.to_i
         response.headers.delete(result.first)
       end
-      session.cookie_input.each do |key, value|
-        response.set_cookie(key,  { :value => value, :path => '/' })
-      end
-      response.set_cookie(SESSION_ID, { :value => session_id, :path => '/' }) unless request.cookies[SESSION_ID]
-      # response.set_cookie(SBSM::Session.get_cookie_name, session_id)
+      response.set_cookie(session.persistent_cookie_name,
+                          { :value    => session.cookie_pairs,
+                            :path     => "/",
+                            :expires  => (Time.now + (60 * 60 * 24 * 365 * 10))})
+      response.set_cookie(SESSION_ID, { :value => session_id, :path => '/' ,  :expires => (Time.now + (60 * 60 * 24 * 365 * 10)) })
       @@last_session = session
       if response.headers['Set-Cookie'].to_s.index(session_id)
-        SBSM.debug "finish session_id.1 #{session_id}: matches response.headers['Set-Cookie']"
+        SBSM.debug "finish session_id.1 #{session_id}: matches response.headers['Set-Cookie'] #{response.headers['Set-Cookie']}"
       else
         SBSM.debug "finish session_id.2 #{session_id}: headers #{response.headers}"
       end

@@ -153,18 +153,27 @@ class TestSession < Minitest::Test
 	end
 
   def test_cookies
+    changed_langue = 'fr'
+    expected_lang = 'de'
     c_name =  SBSM::Session::PERSISTENT_COOKIE_NAME
-    c_value = "remember=63488f94c90813200f29e1a60de9a479ad52e71758f48e612e9f6390f80c7b7c\nname=juerg%40davaz.com\nlanguage=en"
+    params = { 'remember' => '63488f94c90813200f29e1a60de9a479ad52e71758f48e612e9f6390f80c7b7c',
+               'name' => 'juerg@davaz.com',
+               'language' => 'en'}
+    assert_equal('en', @session.default_language)
     @request.cookies[:remember] = 'my_remember_value'
-    @request.cookies[:language] = 'en'
+    @request.cookies[:language] = 'de'
     @request.cookies['_session_id'] = '10e524151d7f0da819f4222ecc1'
-    @request.cookies[c_name] = 'my_cookie_id'
-    @request.set_header('Set-Cookie', c_value)
+    @request.cookies[c_name] =params.to_yaml
     @session.process_rack(rack_request: @request)
-    assert_equal([:remember, :language, :_session_id, c_name.to_sym], @session.cookie_input.keys)
-    skip "Don't know how to test persistent_user_input"
-    assert_equal('@session.valid_input', @session.persistent_user_input(:language))
-    assert_equal('@session.valid_input', @session.valid_input)
+    assert_equal([:remember, :language, :_session_id], @session.cookie_input.keys)
+    # What is correct here? changed_langue aka de or expected_lang aka fr
+    assert_equal(expected_lang, @session.cookie_input[:language])
+    # What is correct here? my_remember_value or 63488f94c90813200f29e1a60de9a479ad52e71758f48e612e9f6390f80c7b7c
+    assert_equal('my_remember_value', @session.get_cookie_input(:remember))
+    assert_equal(expected_lang, @session.get_cookie_input(:language))
+    assert_nil(@session.get_cookie_input('_session_id'))
+    assert_nil(@session.get_cookie_input(c_name))
+    assert_nil(@session.get_cookie_input('namexxx'))
   end
   def test_server_name
     @session.process_rack(rack_request: @request)
