@@ -121,7 +121,6 @@ module SBSM
       end
 
       return [400, {}, []] if /favicon.ico/i.match(request.path)
-
       Thread.current.thread_variable_set(:session, @session_store[session_id])
       session = Thread.current.thread_variable_get(:session)
       SBSM.debug "starting session_id #{session_id}  session #{session.class} #{request.path}: cookies #{@cookie_name} are #{request.cookies} @cgi #{@cgi.class}"
@@ -159,6 +158,7 @@ module SBSM
       else
         SBSM.debug "finish session_id.2 #{session_id}: headers #{response.headers}"
       end
+      response.status = 302 if response.headers['Location']
       response.finish
     end
 
