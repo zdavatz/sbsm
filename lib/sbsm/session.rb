@@ -443,7 +443,19 @@ module SBSM
 			end
 		end
     def cookie_pairs
-      cookie_input.collect { |key, value| "#{key}=#{value ?CGI.escape(value) : ''}" }.join(';')
+      cookie_input.collect do |key, value|
+        if value
+          if value.is_a?(String)
+            "#{key}=#{CGI.escape(value)}"
+          else
+            "#{key}=#{value}"
+          end
+        else
+          "#{key}="
+        end
+      end.join(';')
+    rescue => error
+      binding.pry
     end
 		def http_headers
         @state.http_headers
