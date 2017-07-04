@@ -130,7 +130,7 @@ class StubSessionSession < SBSM::Session
 		'gcc'	=>	'ccg',
 		'sbb'	=>	'bbs',
 	}
-	def initialize(app: app)
+	def initialize(app:)
     super(app: app, validator:  StubSessionValidator.new)
 		persistent_user_input = {}
 	end

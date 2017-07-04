@@ -43,7 +43,7 @@ end
 class StubSessionSession < SBSM::Session
 end
 class StubSessionApp < SBSM::App
-  attr_accessor :trans_handler, :validator
+  attr_accessor :trans_handler, :validator, :cookie_input
   SESSION = StubSessionSession
   def initialize(args = {})
     super()
@@ -133,7 +133,7 @@ class StubSessionSession < SBSM::Session
 		'gcc'	=>	'ccg',
 		'sbb'	=>	'bbs',
 	}
-	def initialize(app: app)
+	def initialize(app: )
     super(app: app, validator:  StubSessionValidator.new)
 		persistent_user_input = {}
 	end
@@ -152,29 +152,6 @@ class TestSession < Minitest::Test
 		@state = StubSessionState.new(@session, nil)
 	end
 
-  def test_cookies
-    changed_langue = 'fr'
-    expected_lang = 'de'
-    c_name =  SBSM::Session::PERSISTENT_COOKIE_NAME
-    params = { 'remember' => '63488f94c90813200f29e1a60de9a479ad52e71758f48e612e9f6390f80c7b7c',
-               'name' => 'juerg@davaz.com',
-               'language' => 'en'}
-    assert_equal('en', @session.default_language)
-    @request.cookies[:remember] = 'my_remember_value'
-    @request.cookies[:language] = 'de'
-    @request.cookies['_session_id'] = '10e524151d7f0da819f4222ecc1'
-    @request.cookies[c_name] =params.to_yaml
-    @session.process_rack(rack_request: @request)
-    assert_equal([:remember, :language, :_session_id], @session.cookie_input.keys)
-    # What is correct here? changed_langue aka de or expected_lang aka fr
-    assert_equal(expected_lang, @session.cookie_input[:language])
-    # What is correct here? my_remember_value or 63488f94c90813200f29e1a60de9a479ad52e71758f48e612e9f6390f80c7b7c
-    assert_equal('my_remember_value', @session.get_cookie_input(:remember))
-    assert_equal(expected_lang, @session.get_cookie_input(:language))
-    assert_nil(@session.get_cookie_input('_session_id'))
-    assert_nil(@session.get_cookie_input(c_name))
-    assert_nil(@session.get_cookie_input('namexxx'))
-  end
   def test_server_name
     @session.process_rack(rack_request: @request)
     assert_equal('example.com', @session.server_name)
