@@ -170,14 +170,17 @@ class TestSession < Minitest::Test
     assert_equal(by_persistent_name, @session.cookie_input[:remember])
   end
   def test_cookie_pairs
-    @session.cookie_input = { 'name_last' => 'Müller', 'name_first' => 'Cécile',}
-    assert_equal('name_last=M%C3%BCller;name_first=C%C3%A9cile',  @session.cookie_pairs)
+    @session.cookie_input = { 'name_last' => 'Müller', 'name_first' => 'Cécile',
+                              'nil_value' => nil, 'empty_string' => ''}
+    assert_equal('name_last=M%C3%BCller;name_first=C%C3%A9cile;nil_value=;empty_string=',  @session.cookie_pairs)
     @request.cookies[@session.persistent_cookie_name] = @session.cookie_pairs
     @session.cookie_input = {}
     assert_equal({}, @session.cookie_input)
     @session.process_rack(rack_request: @request)
-    assert_equal([:name_last, :name_first], @session.cookie_input.keys)
+    assert_equal([:name_last, :name_first, :nil_value, :empty_string], @session.cookie_input.keys)
     assert_equal('Müller', @session.cookie_input[:name_last])
     assert_equal('Cécile', @session.cookie_input[:name_first])
+    assert_equal('', @session.cookie_input[:nil_value])
+    assert_equal('', @session.cookie_input[:empty_string])
   end
 end
