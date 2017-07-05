@@ -152,6 +152,8 @@ module SBSM
                             :path     => "/",
                             :expires  => (Time.now + (60 * 60 * 24 * 365 * 10))})
       response.set_cookie(SESSION_ID, { :value => session_id, :path => '/' ,  :expires => (Time.now + (60 * 60 * 24 * 365 * 10)) })
+      request = nil
+      session.rack_request = nil
       @@last_session = session
       if response.headers['Set-Cookie'].to_s.index(session_id)
         SBSM.debug "finish session_id.1 #{session_id}: matches response.headers['Set-Cookie'] #{response.headers['Set-Cookie']}"
