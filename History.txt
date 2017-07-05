@@ -1,3 +1,9 @@
+=== 1.5.3 / 05.07.2017
+
+* Add process_late for ODDB.org limit_request
+* Fix clearing/cap_max_state in sessionstore
+* Delete some variable to save space in session_store
+
 === 1.5.2 / 04.07.2017
 
 * Fix handling true/false values in cookie
