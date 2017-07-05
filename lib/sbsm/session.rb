@@ -273,6 +273,7 @@ module SBSM
           @zone = @active_state.zone
           @active_state.touch
           cap_max_states
+          self.process_late() if self.respond_to?(:process_late) # needed for ODDB.org limit_request
         ensure
           @user_input_imported = false
         end
