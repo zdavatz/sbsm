@@ -75,23 +75,25 @@ module SBSM
       @validator = validator
     end
     def cap_max_sessions(now = Time.now)
-      if(@@sessions.size > self::class::CAP_MAX_THRESHOLD)
-        SBSM.info "too many sessions! Keeping only #{self::class::MAX_SESSIONS}"
-        sess = nil
-        sorted = @@sessions.values.sort
-        sorted[0...(-self::class::MAX_SESSIONS)].each { |sess|
-          sess.__checkout
-          @@sessions.delete(sess.key)
-        }
-        if(sess)
-          age = sess.age(now)
-          SBSM.info sprintf("deleted all sessions that had not been accessed for more than %im %is", age / 60, age % 60)
+        if(@@sessions.size > self::class::CAP_MAX_THRESHOLD)
+          SBSM.info "too many sessions! Keeping only #{self::class::MAX_SESSIONS}"
+          sess = nil
+          @@sessions.values.sort[0...(-self::class::MAX_SESSIONS)].each { |sess|
+            sess.__checkout
+            @@sessions.delete(sess.key)
+          }
+          if(sess)
+            age = sess.age(now)
+            SBSM.info sprintf("deleted all sessions that had not been accessed for more than %im %is", age / 60, age % 60)
+          end
         end
-      end
+      seconds = (Time.now.to_i - now.to_i)
+      SBSM.warn sprintf("cap_max_sessions to #{self::class::CAP_MAX_THRESHOLD}. took %d seconds", seconds)
     end
     def clean
       now = Time.now
-      @@sessions.delete_if { |key, s|
+      old_size = @@sessions.size
+      @@sessions.delete_if do |key, s|
         begin
           if s.respond_to?(:expired?)
             if s.expired?(now)
@@ -107,8 +109,9 @@ module SBSM
         rescue
           true
         end
-      }
-      #cap_max_sessions(now)
+      end
+      seconds = (Time.now.to_i - now.to_i)
+      SBSM.warn sprintf("Cleaned #{old_size - @@sessions.size} sessions. Took %d seconds", seconds)
     end
     def SessionStore.sessions
       @@sessions
@@ -148,6 +151,7 @@ module SBSM
         unless((s = @@sessions[key]) && !s.expired?)
           s = @@sessions[key] = @session_class.new(app: @app, cookie_name: @cookie_name, trans_handler: @trans_handler, validator: @validator, unknown_user: @unknown_user)
         end
+        s.key=key
         s.reset()
         s.touch()
         s
