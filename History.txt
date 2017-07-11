@@ -1,3 +1,7 @@
+=== 1.5.3 / 11.07.2017
+
+* Avoid nil error when rack_request is nil
+
 === 1.5.3 / 05.07.2017
 
 * Add process_late for ODDB.org limit_request
