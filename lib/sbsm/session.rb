@@ -210,8 +210,8 @@ module SBSM
         begin
           @passthru = false
           @disposition = false
-          @request_path ||= rack_request.path
           @rack_request = rack_request
+          @request_path ||= rack_request.path
           @post_content = nil
 
           if rack_request.request_method.eql?('POST')
@@ -395,7 +395,7 @@ module SBSM
 		end
     def is_crawler?
       crawler_pattern = /archiver|slurp|bot|crawler|jeeves|spider|\.{6}/i
-      !!crawler_pattern.match(@rack_request.user_agent)
+      !!(@rack_request && crawler_pattern.match(@rack_request.user_agent))
     end
 		def language
 			cookie_set_or_get(:language) || default_language

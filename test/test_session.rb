@@ -421,4 +421,10 @@ class TestSession < Minitest::Test
     @session.process_rack(rack_request: @request)
     assert_equal(true, @session.is_crawler?)
   end
+  def test_is_crawler_nil_rack_request
+    @request.user_agent = 'google crawler'
+    @session.process_rack(rack_request: @request)
+    @session.rack_request = nil
+    assert_equal(false, @session.is_crawler?)
+  end
 end
