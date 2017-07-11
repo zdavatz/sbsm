@@ -60,6 +60,7 @@ class TestSessionStore < Minitest::Test
   IDS = ['1', '2', '3', '4', '5', '6', '7']
   NR_SESSIONS = IDS.size
   def test_clean
+    assert_equal(0, SBSM::SessionStore.sessions.size)
     IDS.each do |session_id|
       @session_store[session_id].mtime = Time.now - (SBSM::Session::EXPIRES+2)
     end

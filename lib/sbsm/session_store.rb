@@ -61,6 +61,7 @@ module SBSM
                    unknown_user: UNKNOWN_USER.new,
                    multi_threaded: nil)
       fail "You must specify an app!" unless app
+      @@sessions = {}
       @cleaner = run_cleaner if(self.class.const_get(:RUN_CLEANER))
       @app = app
       @system = persistence_layer
