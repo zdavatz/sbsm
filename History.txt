@@ -1,4 +1,8 @@
-=== 1.5.3 / 11.07.2017
+=== 1.5.5 / 12.07.2017
+
+* Do not return body if HEAD is requested
+
+=== 1.5.4 / 11.07.2017
 
 * Avoid nil error when rack_request is nil
 
