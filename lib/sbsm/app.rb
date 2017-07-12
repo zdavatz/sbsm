@@ -138,7 +138,7 @@ module SBSM
           return [404, {}, []]
         end
       else
-        response.write res
+        response.write res unless request.request_method.eql?('HEAD')
         response.headers['Content-Type'] ||= 'text/html; charset=utf-8'
         response.headers.merge!(session.http_headers)
       end
@@ -152,8 +152,7 @@ module SBSM
                             :path     => "/",
                             :expires  => (Time.now + (60 * 60 * 24 * 365 * 10))})
       response.set_cookie(SESSION_ID, { :value => session_id, :path => '/' ,  :expires => (Time.now + (60 * 60 * 24 * 365 * 10)) })
-      request = nil
-      session.rack_request = nil
+      # bad idea to reset rack_request if we need more page
       @@last_session = session
       if response.headers['Set-Cookie'].to_s.index(session_id)
         SBSM.debug "finish session_id.1 #{session_id}: matches response.headers['Set-Cookie'] #{response.headers['Set-Cookie']}"

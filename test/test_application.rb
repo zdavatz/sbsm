@@ -49,6 +49,12 @@ class AppVariantTest < Minitest::Test
     assert_match ABOUT_HTML_CONTENT, last_response.body
     assert_equal(first_session_id, second_session_id)
   end
+  def test_request_head
+    head '/fr/page/about'
+    assert last_response.ok?
+    assert last_response.body.empty?
+    assert last_response.headers.keys.index('Content-Type')
+  end
 end
 
 class AppTestSimple < Minitest::Test
