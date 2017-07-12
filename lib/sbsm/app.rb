@@ -163,5 +163,9 @@ module SBSM
       response.finish
     end
 
+    private
+      def self.last_session  # for unit tests only
+        @@last_session
+      end
   end
 end

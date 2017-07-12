@@ -142,6 +142,23 @@ class StubSessionSession < SBSM::Session
 	end
 end
 
+class TestSessionApp < Minitest::Test
+  include Rack::Test::Methods
+  # attr_reader :app
+  def app
+    app = SBSM::RackInterface.new(app: SBSM::App)
+    builder = Rack::Builder.new
+    builder.run app
+  end
+  def test_request_remote_ip
+    get '/'
+    assert_nil SBSM::RackInterface.last_session.remote_ip
+    header 'X_FORWARDED_FOR', '[212.51.146.241],[66.249.93.27]' # a HTTP_ will be prepended to it
+    get '/'
+    assert_equal '212.51.146.241', SBSM::RackInterface.last_session.remote_ip
+  end
+end
+
 class TestSession < Minitest::Test
   include Rack::Test::Methods
 	def setup

@@ -518,6 +518,13 @@ module SBSM
 			@remote_ip ||= if(@request.respond_to?(:remote_host))
 				@request.remote_host
 			end
+      if @remote_ip.to_s.index(',')
+        saved = @remote_ip.clone
+        @remote_ip = @remote_ip.first if @remote_ip.is_a?(Array)
+        @remote_ip = @remote_ip.split(',').first.gsub(/[\[\]]/, '') if @remote_ip.is_a?(String)
+        SBSM.info("remote_ip is weird #{saved.inspect} => #{@remote_ip.inspect}")
+      end
+      @remote_ip
 		end
 		def set_cookie_input(key, val)
       SBSM.debug"set_cookie_input #{key} #{val}"
