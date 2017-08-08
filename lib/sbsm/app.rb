@@ -127,15 +127,17 @@ module SBSM
       res = session.process_rack(rack_request: request)
       thru = session.get_passthru
       if thru.size > 0
-        file_name = thru.first.untaint
-        response.set_header('Content-Type', MimeMagic.by_extension(File.extname(file_name)).type)
-        response.headers['Content-Disposition'] = "#{thru.last}; filename=#{File.basename(file_name)}"
-        response.headers['Content-Length'] =  File.size(file_name).to_s
         begin
+          file_name = thru.first.untaint
+          raise Errno::ENOENT unless File.exist?(file_name)
+          response.set_header('Content-Type', MimeMagic.by_extension(File.extname(file_name)).type)
+          response.headers['Content-Disposition'] = "#{thru.last}; filename=#{File.basename(file_name)}"
+          response.headers['Content-Length'] =  File.size(file_name).to_s
           response.write(File.open(file_name, File::RDONLY){|file| file.read})
         rescue Errno::ENOENT, IOError => err
-          SBSM.error("#{err.message} #{thru.first}")
-          return [404, {}, []]
+          error_msg = "#{file_name} Not found\n"
+          SBSM.error("#{err.message} #{thru.first} => #{error_msg}")
+          return [404, {'Content-Type' => 'text/html', 'Content-Length' => error_msg.size.to_s}, [error_msg]]
         end
       else
         response.write res unless request.request_method.eql?('HEAD')

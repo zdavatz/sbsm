@@ -7,6 +7,7 @@ ENV['RACK_ENV'] = 'test'
 ENV['REQUEST_METHOD'] = 'GET'
 
 require 'minitest/autorun'
+require 'flexmock/minitest'
 require 'rack/test'
 require 'sbsm/app'
 require 'sbsm/session'
@@ -54,6 +55,25 @@ class AppVariantTest < Minitest::Test
     assert last_response.ok?
     assert last_response.body.empty?
     assert last_response.headers.keys.index('Content-Type')
+  end
+  def test_request_file
+    session_id_mock  = '1234'
+    invalid_path = '/path/to/non/existing/file'
+
+    @app = flexmock('file_app', @app)
+    env = { 'HTTP_COOKIE' => "_session_id=#{session_id_mock}" }
+    session_store = SBSM::SessionStore.new(app: @app)
+    session_mock= flexmock('session', session_store[session_id_mock.to_s])
+    session_mock.should_receive(:get_passthru).and_return([invalid_path])
+    @app.should_receive(:session_store).and_return(session_store)
+
+    result = get invalid_path, {},  env
+
+    assert_equal(false, last_response.ok?)
+    assert_equal(404, last_response.status)
+    assert (last_response.body.to_s.index(invalid_path))
+    assert last_response.headers.keys.index('Content-Type')
+    assert_equal('text/html', last_response.headers['Content-Type'])
   end
 end
 
