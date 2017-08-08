@@ -108,8 +108,8 @@ module SBSM
       end
 
       if File.file?(file_name)
-        if File.extname(file_name).length > 0
-          mime_type = MimeMagic.by_extension(File.extname(file_name)).type
+        if File.extname(file_name).length > 0 && (mime_info = MimeMagic.by_extension(File.extname(file_name)))
+          mime_type = mime_info.type
         else
           mime_type = MimeMagic.by_path(file_name)
         end

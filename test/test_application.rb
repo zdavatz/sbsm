@@ -75,6 +75,48 @@ class AppVariantTest < Minitest::Test
     assert last_response.headers.keys.index('Content-Type')
     assert_equal('text/html', last_response.headers['Content-Type'])
   end
+  def test_request_file_with_no_mime_info
+    session_id_mock  = '1234'
+    invalid_path = '/window.js.map.dummy'
+    file_name = File.expand_path(File.join('doc', invalid_path))
+    FileUtils.makedirs(File.dirname(file_name))
+    File.open(file_name, 'w+') {|f| f.puts 'dummy'}
+
+    @app = flexmock('file_app', @app)
+    env = { 'HTTP_COOKIE' => "_session_id=#{session_id_mock}" }
+    session_store = SBSM::SessionStore.new(app: @app)
+    session_mock= flexmock('session', session_store[session_id_mock.to_s])
+    session_mock.should_receive(:get_passthru).and_return([invalid_path])
+    @app.should_receive(:session_store).and_return(session_store)
+
+    result = get invalid_path, {},  env
+
+    assert_equal(true, last_response.ok?)
+    assert last_response.headers.keys.index('Content-Type')
+    assert_equal('text/plain', last_response.headers['Content-Type'])
+    FileUtils.rm(file_name)
+  end
+  def test_request_file_with_mime_info
+    session_id_mock  = '1234'
+    invalid_path = '/window.png'
+    file_name = File.expand_path(File.join('doc', invalid_path))
+    FileUtils.makedirs(File.dirname(file_name))
+    File.open(file_name, 'w+') {|f| f.puts 'dummy'}
+
+    @app = flexmock('file_app', @app)
+    env = { 'HTTP_COOKIE' => "_session_id=#{session_id_mock}" }
+    session_store = SBSM::SessionStore.new(app: @app)
+    session_mock= flexmock('session', session_store[session_id_mock.to_s])
+    session_mock.should_receive(:get_passthru).and_return([invalid_path])
+    @app.should_receive(:session_store).and_return(session_store)
+
+    result = get invalid_path, {},  env
+
+    assert_equal(true, last_response.ok?)
+    assert last_response.headers.keys.index('Content-Type')
+    assert_equal('image/png', last_response.headers['Content-Type'])
+    FileUtils.rm(file_name)
+  end
 end
 
 class AppTestSimple < Minitest::Test
@@ -133,6 +175,7 @@ class AppTestSimple < Minitest::Test
     get '/sbsm.css'
     assert last_response.ok?
     assert_match css_content, last_response.body
+    FileUtils.rm(css_file)
   end
   def test_session_about_then_home
     skip ('TODO: We should test test_post_feedback')
