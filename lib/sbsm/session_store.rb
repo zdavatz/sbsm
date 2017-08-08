@@ -112,7 +112,7 @@ module SBSM
         end
       end
       seconds = (Time.now.to_i - now.to_i)
-      SBSM.warn sprintf("Cleaned #{old_size - @@sessions.size} sessions. Took %d seconds", seconds)
+      # SBSM.warn sprintf("Cleaned #{old_size - @@sessions.size} sessions. Took %d seconds", seconds)
     end
     def SessionStore.sessions
       @@sessions
