@@ -69,6 +69,9 @@ class StubLookandfeelSession
 	def flavor
 		"gcc"
 	end
+	def server_port
+		"1234"
+	end
 	def server_name
 		"test.com"
 	end
@@ -127,7 +130,7 @@ class TestLookandfeel < Minitest::Test
 		assert_equal({}, @lookandfeel.attributes(:undefined))
 	end
 	def test_resource
-		assert_equal('http://test.com/resources/gcc/bar', @lookandfeel.resource(:foo))
+		assert_equal('http://test.com:1234/resources/gcc/bar', @lookandfeel.resource(:foo))
 	end
 	def test_lookup
 		assert_equal('dictbar', @lookandfeel.lookup(:foo))
@@ -161,18 +164,18 @@ class TestLookandfeel < Minitest::Test
 		assert_equal(expected, time.rfc1123)
 	end
 	def test_base_url
-		assert_equal("http://test.com/de/gcc", @lookandfeel.base_url)
+		assert_equal("http://test.com:1234/de/gcc", @lookandfeel.base_url)
 	end
 	def test_event_url
-		assert_match(/http:\/\/test.com\/de\/gcc\/foo\/state_id\/\d\/bar\/baz/,@lookandfeel.event_url(:foo, {:bar => 'baz'}))
+		assert_match(/http:\/\/test.com:1234\/de\/gcc\/foo\/state_id\/\d\/bar\/baz/,@lookandfeel.event_url(:foo, {:bar => 'baz'}))
 	end
 	def test_event_url__crawler
 		@session.is_crawler = true
-		assert_equal("http://test.com/de/gcc/foo/bar/baz",
+		assert_equal("http://test.com:1234/de/gcc/foo/bar/baz",
 			@lookandfeel.event_url(:foo, {:bar => 'baz'}))
 	end
 	def test_event_url__state_id_given
-		assert_equal("http://test.com/de/gcc/foo/bar/baz/state_id/mine",
+		assert_equal("http://test.com:1234/de/gcc/foo/bar/baz/state_id/mine",
 			@lookandfeel.event_url(:foo, [:bar, 'baz', :state_id, 'mine']))
 	end
 	def test_format_price
@@ -214,10 +217,10 @@ class TestLookandfeelWrapper < Minitest::Test
 	end
 	def test_resource1
 		lnf = SBSM::LookandfeelWrapper.new(@lookandfeel)
-		assert_equal('http://test.com/resources/gcc/bar', lnf.resource(:foo))
+		assert_equal('http://test.com:1234/resources/gcc/bar', lnf.resource(:foo))
 	end
 	def test_resource2
-		assert_equal('http://test.com/resources/gcc/foo', @wrapped.resource(:foo))
+		assert_equal('http://test.com:1234/resources/gcc/foo', @wrapped.resource(:foo))
 	end
 	def test_attributes1
 		lnf = SBSM::LookandfeelWrapper.new(@lookandfeel)

@@ -54,7 +54,7 @@ module SBSM
       self::class::HTML_ATTRIBUTES.fetch(key.to_sym, {}).dup rescue {}
 		end
 		def base_url
-			[@session.http_protocol + ':/', @session.server_name, @language, @flavor].compact.join("/")
+			[@session.http_protocol + ':/', @session.server_name + ":" + @session.server_port, @language, @flavor].compact.join("/")
 		end
 		def direct_event
 			@session.direct_event
@@ -88,7 +88,7 @@ module SBSM
 			@languages ||= self::class::DICTIONARIES.keys.sort
 		end
 		def language_url(language)
-			[@session.http_protocol + ':/', @session.server_name, language, @flavor].compact.join("/")
+			base_url
 		end
     def lookup(key, *args, &block)
       _lookup(key, *args) || (block.call if block)
@@ -166,9 +166,7 @@ module SBSM
       end
 		end
     def _collect_resource(base, part, rstr)
-      [ @session.http_protocol + ':/', 
-        @session.server_name, 
-        base, part, rstr].flatten.compact.join('/')
+      [ @session.http_protocol + ':/', @session.server_name + ":" + @session.server_port, base, part, rstr].flatten.compact.join('/')
     end
     def set_dictionary(language)
       @dictionary = self::class::DICTIONARIES[language] || {}
