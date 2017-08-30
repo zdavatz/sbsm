@@ -135,7 +135,8 @@ module SBSM
 		def http_headers
       return @http_headers if @http_headers
       name = view
-      name ? view.http_headers : {}
+      result = name ? view.http_headers : {}
+      result
 		end
 		def info?
 			!@infos.empty?
