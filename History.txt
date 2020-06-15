@@ -1,3 +1,7 @@
+=== 1.6.0 / 13.06.2020
+
+* Remove calls to obsolete taint/untaint methods
+
 === 1.5.9 / 30.08.2017
 
 * Fix recognition whether we are using HTTPS or not

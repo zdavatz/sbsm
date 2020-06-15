@@ -44,13 +44,13 @@ module SBSM
     def initialize(name: nil, config_file: nil, handler_uri: nil)
       @handler_uri = handler_uri ||=  '/index.rbx'
       config_file ||=  'etc/trans_handler.yml'
-      @config_file = File.expand_path(config_file).untaint
+      @config_file = File.expand_path(config_file)
       @parser_name = name ||= 'uri'
       @parser_method = "_#{name}_parser"
       @grammar_path = File.expand_path("../../data/#{name}.grammar",
-        File.dirname(__FILE__).untaint)
+        File.dirname(__FILE__))
       @parser_path = File.expand_path("#{name}_parser.rb",
-        File.dirname(__FILE__).untaint)
+        File.dirname(__FILE__))
     end
     def config(request)
       config = Hash.new { {} }
@@ -150,12 +150,12 @@ module SBSM
 		end
 		def uri_parser(grammar_path=@grammar_path, parser_path=@parser_path)
 			if(File.exist?(grammar_path))
-				oldpath = File.expand_path("_" << File.basename(grammar_path), 
+				oldpath = File.expand_path("_" << File.basename(grammar_path),
 					File.dirname(grammar_path))
 				src = File.read(grammar_path)
 				unless(File.exists?(oldpath) && File.read(oldpath)==src)
 					File.delete(oldpath) if File.exists?(oldpath)
-					Parse.generate_parser_from_file_to_file(grammar_path, 
+					Parse.generate_parser_from_file_to_file(grammar_path,
 						parser_path, @parser_method, 'SBSM')
 					File.open(oldpath, 'w') { |f| f << src }
 				end

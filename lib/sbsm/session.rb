@@ -479,7 +479,7 @@ module SBSM
     end
 		def passthru(path, disposition='attachment')
       # the variable @passthru is set by a trusted source
-      @passthru    = path.untaint
+      @passthru    = path
       @disposition = disposition
       ''
 		end

@@ -106,7 +106,6 @@ module SBSM
       else
         file_name = File.expand_path(File.join('doc', request.path))
       end
-
       if File.file?(file_name)
         if File.extname(file_name).length > 0 && (mime_info = MimeMagic.by_extension(File.extname(file_name)))
           mime_type = mime_info.type
@@ -117,7 +116,7 @@ module SBSM
         SBSM.debug "file_name is #{file_name} checkin base #{File.basename(file_name)} MIME #{mime_type}"
         response.set_header('Content-Type', mime_type)
         response.write(File.open(file_name, File::RDONLY){|file| file.read})
-        return response
+        return response.finish
       end
 
       return [400, {}, []] if /favicon.ico/i.match(request.path)
@@ -128,7 +127,7 @@ module SBSM
       thru = session.get_passthru
       if thru.size > 0
         begin
-          file_name = thru.first.untaint
+          file_name = thru.first
           raise Errno::ENOENT unless File.exist?(file_name)
           response.set_header('Content-Type', MimeMagic.by_extension(File.extname(file_name)).type)
           response.headers['Content-Disposition'] = "#{thru.last}; filename=#{File.basename(file_name)}"

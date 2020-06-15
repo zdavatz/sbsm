@@ -15,14 +15,10 @@ before_install:
 bundler_args: --without debugger
 
 rvm:
-  - ruby-head
-  - 2.2.3
-  - 2.4.2
+  - 2.7.1
   - 2.5.0
-  - 2.3.0
+  - ruby-head
 matrix:
   allow_failures:
-    # On november 1 had failure compiling the child_processes
     - rvm: ruby-head
-    - rvm: 2.2.3 # Test for LogLevel does not work
-    - rvm: 2.3.0 # Test for LogLevel does not work
+    - rvm: 2.5.0 # Test for LogLevel does not work
