@@ -7,12 +7,9 @@ notifications:
 
 cache: bundler
 
-sudo: false
-
 before_install:
   - gem --version
-
-bundler_args: --without debugger
+  - bundle config set without 'debugger'
 
 rvm:
   - 2.7.1
