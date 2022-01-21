@@ -31,7 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "flexmock"
   spec.add_development_dependency "minitest"
-  spec.add_development_dependency "rdoc"
+  spec.add_development_dependency "rdoc", '< 6.0.0'
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "watir"
   spec.add_development_dependency "watir-webdriver"
