@@ -93,6 +93,14 @@ module SBSM
       @@last_session
     end
 
+    def fix_html_content_type(content_type)
+      # davaz.com#50
+      if content_type == 'application/xhtml+xml'
+        return 'text/html; charset=utf-8'
+      end
+      return content_type
+    end
+
     def call(env) ## mimick sbsm/lib/app.rb
       request = Rack::Request.new(env)
       response = Rack::Response.new
@@ -113,6 +121,7 @@ module SBSM
           mime_type = MimeMagic.by_path(file_name)
         end
         mime_type ||= 'text/plain'
+        mime_type = fix_html_content_type(mime_type)
         SBSM.debug "file_name is #{file_name} checkin base #{File.basename(file_name)} MIME #{mime_type}"
         response.set_header('Content-Type', mime_type)
         response.write(File.open(file_name, File::RDONLY){|file| file.read})
@@ -129,7 +138,7 @@ module SBSM
         begin
           file_name = thru.first
           raise Errno::ENOENT unless File.exist?(file_name)
-          response.set_header('Content-Type', MimeMagic.by_extension(File.extname(file_name)).type)
+          response.set_header('Content-Type', fix_html_content_type(MimeMagic.by_extension(File.extname(file_name)).type))
           response.headers['Content-Disposition'] = "#{thru.last}; filename=#{File.basename(file_name)}"
           response.headers['Content-Length'] =  File.size(file_name).to_s
           response.write(File.open(file_name, File::RDONLY){|file| file.read})
