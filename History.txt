@@ -1,3 +1,7 @@
+=== 1.6.1 / 09.12.2022
+
+* Fix Mime-Bug for Davaz.com
+
 === 1.6.0 / 13.06.2020
 
 * Remove calls to obsolete taint/untaint methods
