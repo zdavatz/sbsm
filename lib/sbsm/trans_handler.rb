@@ -153,8 +153,8 @@ module SBSM
 				oldpath = File.expand_path("_" << File.basename(grammar_path),
 					File.dirname(grammar_path))
 				src = File.read(grammar_path)
-				unless(File.exists?(oldpath) && File.read(oldpath)==src)
-					File.delete(oldpath) if File.exists?(oldpath)
+				unless(File.exist?(oldpath) && File.read(oldpath)==src)
+					File.delete(oldpath) if File.exist?(oldpath)
 					Parse.generate_parser_from_file_to_file(grammar_path,
 						parser_path, @parser_method, 'SBSM')
 					File.open(oldpath, 'w') { |f| f << src }
