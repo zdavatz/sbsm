@@ -117,7 +117,7 @@ EOS
       request = fake_request_for_path  '/shortcut'
         # run in safe-mode
         Thread.new {
-          $SAFE = 1
+          # $SAFE = 1
           TransHandler.instance.translate_uri(request)
         }.join
       assert_equal({'shortcut' => 'variables'}, request.params)
