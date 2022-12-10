@@ -72,12 +72,12 @@ module Demo
     PERSISTENT_COOKIE_NAME = 'CustomizedSession-cookie'
     LOOKANDFEEL            = CustomLookandfeel
 
-    def initialize(args)
+    def initialize(*args, **keyword_args)
       SBSM.debug "session args #{args}"
       @@active_stated_visited = false
       @@login_visited = false
       @@visited_init = true
-      super(args)
+      super(*args, **keyword_args)
     end
 
     def flavor
@@ -231,7 +231,7 @@ class CustomizedAppSessionValidatorLnf < Minitest::Test
     end
     assert last_response.ok?
     # TEST_COOKIE_NAME set via param to app
-    cookie = last_response.get_header('Set-Cookie').split("\n").find_all{|x| x.index(my_cookey_name)}
+    cookie = last_response.get_header('Set-Cookie')[0].split("\n").find_all{|x| x.index(my_cookey_name)}
     skip ('TODO: We should test test_customized_cookie_name')
     assert_equal 1, cookie.size
     assert_match my_cookey_name, cookie.first
@@ -249,7 +249,7 @@ class CustomizedAppCookieName < Minitest::Test
     get '/' do
     end
     assert last_response.ok?
-    cookie = last_response.get_header('Set-Cookie').split("\n").find_all{|x| x.index(Demo::DEMO_PERSISTENT_COOKIE_NAME)}
+    cookie = last_response.get_header('Set-Cookie')[0].split("\n").find_all{|x| x.index(Demo::DEMO_PERSISTENT_COOKIE_NAME)}
     skip ('TODO: We should test test_customized_cookie_name')
     assert_equal 1, cookie.size
     assert_match Demo::DEMO_PERSISTENT_COOKIE_NAME, cookie.first

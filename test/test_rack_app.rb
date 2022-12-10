@@ -115,10 +115,10 @@ class StubSessionWithView < SBSM::Session
 	attr_writer :lookandfeel, :persistent_user_input
 	attr_writer :active_state
 	public :active_state
-  def initialize(args)
-    args[:app]       ||= StubSessionApp.new
-    args[:validator] ||= StubSessionValidator.new
-    super(args)
+  def initialize(*args, **kwargs)
+    kwargs[:app]       ||= StubSessionApp.new
+    kwargs[:validator] ||= StubSessionValidator.new
+    super(*args, **kwargs)
     persistent_user_input = {}
   end
 end

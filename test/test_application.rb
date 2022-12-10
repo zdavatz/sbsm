@@ -54,7 +54,7 @@ class AppVariantTest < Minitest::Test
     head '/fr/page/about'
     assert last_response.ok?
     assert last_response.body.empty?
-    assert last_response.headers.keys.index('Content-Type')
+    assert last_response.headers.keys.index('content-type')
   end
   def test_request_file
     session_id_mock  = '1234'
@@ -72,8 +72,8 @@ class AppVariantTest < Minitest::Test
     assert_equal(false, last_response.ok?)
     assert_equal(404, last_response.status)
     assert (last_response.body.to_s.index(invalid_path))
-    assert last_response.headers.keys.index('Content-Type')
-    assert_equal('text/html', last_response.headers['Content-Type'])
+    assert last_response.headers.keys.index('content-type')
+    assert_equal('text/html', last_response.headers['content-type'])
   end
   def test_request_file_with_no_mime_info
     session_id_mock  = '1234'
@@ -92,8 +92,8 @@ class AppVariantTest < Minitest::Test
     result = get invalid_path, {},  env
 
     assert_equal(true, last_response.ok?)
-    assert last_response.headers.keys.index('Content-Type')
-    assert_equal('text/plain', last_response.headers['Content-Type'])
+    assert last_response.headers.keys.index('content-type')
+    assert_equal('text/plain', last_response.headers['content-type'])
     FileUtils.rm(file_name)
   end
   def test_request_file_with_mime_info
@@ -113,8 +113,8 @@ class AppVariantTest < Minitest::Test
     result = get invalid_path, {},  env
 
     assert_equal(true, last_response.ok?)
-    assert last_response.headers.keys.index('Content-Type')
-    assert_equal('image/png', last_response.headers['Content-Type'])
+    assert last_response.headers.keys.index('content-type')
+    assert_equal('image/png', last_response.headers['content-type'])
     FileUtils.rm(file_name)
   end
 end
