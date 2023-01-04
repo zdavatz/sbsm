@@ -118,10 +118,11 @@ class StubSessionWithView < SBSM::Session
 	attr_writer :lookandfeel, :persistent_user_input
 	attr_writer :active_state
 	public :active_state
+        require 'pry-byebug'
   def initialize(args)
     args[:app]       ||= StubSessionApp.new
     args[:validator] ||= StubSessionValidator.new
-    super(args)
+    super(:app => args[:app], :validator => args[:validator])
     persistent_user_input = {}
   end
 end
@@ -163,7 +164,7 @@ class TestSession < Minitest::Test
   include Rack::Test::Methods
 	def setup
     @app = StubSessionApp.new(validator: StubSessionValidator.new)
-    @session = StubSessionWithView.new(app: @app,
+    @session = StubSessionWithView.new(# app: @app,
                            validator: StubSessionValidator.new)
     @request = StubSessionRequest.new
 		@state = StubSessionState.new(@session, nil)
@@ -174,8 +175,8 @@ class TestSession < Minitest::Test
     assert_equal('example.com', @session.server_name)
   end
   def test_user_input
-    @request["foo"] = "bar"
-    @request["baz"] = "zuv"
+    @request.params["foo"] = "bar"
+    @request.params["baz"] = "zuv"
     # next line checks whether we did setup correctly the session
     assert_equal(@session.validator.class, StubSessionValidator)
     @session.process_rack(rack_request: @request)
@@ -190,18 +191,18 @@ class TestSession < Minitest::Test
     assert_equal(expected, result)
   end
   def test_persistent_user_input
-    @request["baz"] = "zuv"
+    @request.params["baz"] = "zuv"
     @session.process_rack(rack_request: @request)
     assert_equal("zuv", @session.persistent_user_input(:baz))
     @session.process_rack(StubSessionRequest.new)
     assert_equal("zuv", @session.persistent_user_input(:baz))
-    @request["baz"] = "bla"
+    @request.params["baz"] = "bla"
     @session.process_rack(rack_request: @request)
     assert_equal("bla", @session.persistent_user_input(:baz))
   end
   def test_user_input_hash
-    @request["hash[1]"] = "4"
-    @request["hash[2]"] = "5"
+    @request.params["hash[1]"] = "4"
+    @request.params["hash[2]"] = "5"
     @request.params["hash[3]"] = "6"
     @request.params['real_hash'] = {'1' => 'a', '2' => 'b'}
     @session.process_rack(rack_request: @request)
@@ -231,12 +232,12 @@ class TestSession < Minitest::Test
 		@session.process_rack(:rack_request =>req1)
 		state1 = @session.state
 		req2 = StubSessionRequest.new
-		req2["event"] = "foo"
+                req2.params["event"] = "foo"
 		@session.process_rack(:rack_request =>req2)
 		state2 = @session.state
 		refute_equal(state1, state2)
 		req3 = StubSessionRequest.new
-		req3["event"] = :bar
+                req3.params["event"] = :bar
 		@session.process_rack(:rack_request =>req3)
 		state3 = @session.state
 		refute_equal(state1, state3)
@@ -248,7 +249,7 @@ class TestSession < Minitest::Test
 		}
 		assert_equal(attended, @session.attended_states)
 		req4 = StubSessionRequest.new
-		req4["event"] = :foobar
+                req4.params["event"] = :foobar
 		@session.process_rack(:rack_request =>req4)
 		@session.cap_max_states
 		state4 = @session.state
@@ -338,8 +339,8 @@ class TestSession < Minitest::Test
 		assert_nil(@session.user_input(:no_input))
 	end
   def test_user_input
-		@request["foo"] = "bar"
-		@request["baz"] = "zuv"
+		@request.params["foo"] = "bar"
+		@request.params["baz"] = "zuv"
     @session.process_rack(rack_request: @request)
     assert_equal("bar", @session.user_input(:foo))
     assert_equal("zuv", @session.user_input(:baz))
@@ -352,9 +353,9 @@ class TestSession < Minitest::Test
 		assert_equal(expected, result)
   end
 	def test_user_input_hash
-		@request["hash[1]"] = "4"
-		@request["hash[2]"] = "5"
-		@request["hash[3]"] = "6"
+		@request.params["hash[1]"] = "4"
+		@request.params["hash[2]"] = "5"
+		@request.params["hash[3]"] = "6"
 		@session.process_rack(rack_request: @request)
 		hash = @session.user_input(:hash)
 		assert_equal(Hash, hash.class)
@@ -379,12 +380,12 @@ class TestSession < Minitest::Test
 		assert_equal([], @session.valid_values('oof'))
 	end
 	def test_persistent_user_input
-		@request["baz"] = "zuv"
+		@request.params["baz"] = "zuv"
     @session.process_rack(rack_request: @request)
 		assert_equal("zuv", @session.persistent_user_input(:baz))
 		@session.process_rack(rack_request: StubSessionRequest.new)
 		assert_equal("zuv", @session.persistent_user_input(:baz))
-		@request["baz"] = "bla"
+		@request.params["baz"] = "bla"
     @session.process_rack(rack_request: @request)
 		assert_equal("bla", @session.persistent_user_input(:baz))
 	end
