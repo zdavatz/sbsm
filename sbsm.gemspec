@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   # hoping that these version fix only security/severe bugs
   # Consulted the Gemfile.lock to get 
   spec.add_dependency 'rack'
-  spec.add_dependency 'mail'
+  spec.add_dependency 'mail', '< 2.8.0'
   spec.add_dependency 'hpricot'
   spec.add_dependency 'mimemagic'
   spec.add_dependency 'chrono_logger'
