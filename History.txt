@@ -1,3 +1,10 @@
+=== 1.6.2 / 25.01.2024
+
+* Add devenv environment for Ruby 3.3 (see https://devenv.sh/)
+* Replace Chronologger with Logger as https://github.com/ma2gedev/chrono_logger
+  is no longer maintained and leads to test errors under Ruby 3.3
+* Run all tests also under Ruby 3.3
+
 === 1.6.1 / 09.12.2022
 
 * Fix Mime-Bug for Davaz.com
