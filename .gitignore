@@ -1,4 +1,3 @@
-.ruby-version
 Gemfile.lock
 etc/
 .bundle/
@@ -7,3 +6,14 @@ vendor/
 pkg/
 coverage/
 *.log
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
