@@ -22,7 +22,7 @@
 # ngiger@ywesee.com
 #++
 
-require 'chrono_logger'
+require 'logger'
 require 'sbsm/version'
 module SBSM
   @@logger = Logger.new(STDERR)

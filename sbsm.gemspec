@@ -24,7 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'mail', '< 2.8.0'
   spec.add_dependency 'hpricot'
   spec.add_dependency 'mimemagic'
-  spec.add_dependency 'chrono_logger'
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
