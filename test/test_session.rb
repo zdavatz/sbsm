@@ -118,7 +118,6 @@ class StubSessionWithView < SBSM::Session
 	attr_writer :lookandfeel, :persistent_user_input
 	attr_writer :active_state
 	public :active_state
-        require 'pry-byebug'
   def initialize(args)
     args[:app]       ||= StubSessionApp.new
     args[:validator] ||= StubSessionValidator.new
