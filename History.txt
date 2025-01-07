@@ -1,3 +1,8 @@
+=== 1.6.3 / 07.01.2025
+
+* Updated devenv environment for Ruby 3.3 (see https://devenv.sh/)
+* Replace hpricot with nokogiri as hpricot is no longer maintained and leads to many test warnings under Ruby 3.4
+
 === 1.6.2 / 25.01.2024
 
 * Add devenv environment for Ruby 3.3 (see https://devenv.sh/)
