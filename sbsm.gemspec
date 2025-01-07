@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   # Consulted the Gemfile.lock to get 
   spec.add_dependency 'rack'
   spec.add_dependency 'mail', '< 2.8.0'
-  spec.add_dependency 'hpricot'
+  spec.add_dependency 'nokogiri'
   spec.add_dependency 'mimemagic'
 
   spec.add_development_dependency "bundler"
@@ -35,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "watir"
   spec.add_development_dependency "watir-webdriver"
-  spec.add_development_dependency "pry-byebug"
+  spec.add_development_dependency "debug"
   spec.add_development_dependency "nokogiri"
   spec.add_development_dependency "rack-test"
 end

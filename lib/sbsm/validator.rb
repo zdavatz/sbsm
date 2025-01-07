@@ -30,7 +30,7 @@ require 'mail'
 require 'date'
 require 'uri'
 require 'stringio'
-require 'hpricot'
+require "nokogiri"
 require 'sbsm/logger'
 
 module SBSM
@@ -225,17 +225,16 @@ module SBSM
     end
     @@xml_ptrn = /<\?xml[^>]+>/
     def _validate_html(value, valid=self.class.const_get(:ALLOWED_TAGS))
-			doc = Hpricot(value.gsub(@@xml_ptrn, ''), :fixup_tags => true)
-      (doc/"*").each { |element|
-        unless(element.is_a?(Hpricot::Text) \
-               || (element.respond_to?(:name) \
-                   && valid.include?(element.name.downcase)))
-          element.swap _validate_html(element.inner_html.to_s)
-        end
-      }
-      valid = doc.to_html
-      valid.force_encoding 'UTF-8' if valid.respond_to?(:force_encoding)
-      valid
+		doc = Nokogiri::HTML.parse(value.gsub(@@xml_ptrn, ''))
+		doc.elements.each do |element|
+			unless( element.is_a?(Nokogiri::XML::Text) ||
+					(element.respond_to?(:name) \
+					&& valid.include?(element.name.downcase)))
+			end
+		end
+		result = ''
+		doc.elements.each { |x| result += x.inner_html}
+		result.sub('<body>','').sub('</body>','')
     end
     @@numeric_ptrn = /\d+(\.\d{1,2})?/
 		def validate_numeric(key, value)

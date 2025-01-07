@@ -150,7 +150,7 @@ module SBSM
 		end
 		def uri_parser(grammar_path=@grammar_path, parser_path=@parser_path)
 			if(File.exist?(grammar_path))
-				oldpath = File.expand_path("_" << File.basename(grammar_path),
+				oldpath = File.expand_path("_" + File.basename(grammar_path),
 					File.dirname(grammar_path))
 				src = File.read(grammar_path)
 				unless(File.exist?(oldpath) && File.read(oldpath)==src)
