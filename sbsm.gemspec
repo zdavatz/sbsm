@@ -16,13 +16,14 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
+  spec.metadata["changelog_uri"] = spec.homepage + "/blob/master/ChangeLog"
 
   # We fix the version of the spec to newer versions only in the third position
   # hoping that these version fix only security/severe bugs
   # Consulted the Gemfile.lock to get 
   spec.add_dependency 'rack'
   spec.add_dependency 'mail', '< 2.8.0'
-  spec.add_dependency 'hpricot'
+  spec.add_dependency 'nokogiri'
   spec.add_dependency 'mimemagic'
 
   spec.add_development_dependency "bundler"
@@ -34,7 +35,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "watir"
   spec.add_development_dependency "watir-webdriver"
-  spec.add_development_dependency "pry-byebug"
+  spec.add_development_dependency "debug"
   spec.add_development_dependency "nokogiri"
   spec.add_development_dependency "rack-test"
 end

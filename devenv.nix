@@ -13,13 +13,14 @@
     ruby --version
   '';
 
-  env.FREEDESKTOP_MIME_TYPES_PATH = "${pkgs.shared-mime-info}/share/mime/packages/freedesktop.org.xml";
-
   # https://devenv.sh/languages/
   # languages.nix.enable = true;
 
   languages.ruby.enable = true;
-  languages.ruby.versionFile = ./.ruby-version;
+  languages.ruby.version = "3.4";
+  # Needed for gem mimemagic
+  env.FREEDESKTOP_MIME_TYPES_PATH = "${pkgs.shared-mime-info}/share/mime/packages/freedesktop.org.xml";
+
   # https://devenv.sh/pre-commit-hooks/
   # pre-commit.hooks.shellcheck.enable = true;
 

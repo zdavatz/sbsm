@@ -26,7 +26,7 @@ class AppVariantTest < Minitest::Test
   end
   def test_post_feedback
     get '/de/page' do # needed to set cookie
-      last_response.set_cookie(TEST_COOKIE_NAME, :value =>  Hash.new('anrede' => 'value2'))
+      last_response.set_cookie(TEST_COOKIE_NAME, :value =>  {'anrede' => 'value2'})
     end
     clear_cookies
     set_cookie 'anrede=value2'
